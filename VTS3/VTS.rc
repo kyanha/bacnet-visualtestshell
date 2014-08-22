@@ -278,7 +278,7 @@ BEGIN
             MENUITEM "&Save Workspace As...",       ID_FILE_SAVE_AS
             MENUITEM SEPARATOR
             MENUITEM "&Switch Workspace...",        ID_FILE_WKS_SWITCH
-            MENUITEM "Recent Workspace",            ID_FILE_MRU_WKS1, GRAYED
+            MENUITEM "Recent Workspace",            ID_FILE_MRU_WKS1
         END
         MENUITEM SEPARATOR
         MENUITEM "&Print...\tCtrl+P",           ID_FILE_PRINT
@@ -287,7 +287,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Export...",                  ID_FILE_EXPORT
         MENUITEM SEPARATOR
-        MENUITEM "Recent File",                 ID_FILE_MRU_FILE1, GRAYED
+        MENUITEM "Recent File",                 ID_FILE_MRU_FILE1
         MENUITEM SEPARATOR
         MENUITEM "E&xit",                       ID_APP_EXIT
     END
@@ -317,6 +317,19 @@ BEGIN
         MENUITEM "&Last Frame (Auto-scroll)\tCtrl+4", ID_VIEW_LASTFRAME
         MENUITEM SEPARATOR
         MENUITEM "C&olor Setting...",           ID_VIEW_COLOR
+        POPUP "Customize &Columns"
+        BEGIN
+            MENUITEM "N&o.",                        ID_SW_NO
+            MENUITEM "T&imestamp",                  ID_SW_TIMESTAMP
+            MENUITEM "&Port",                       ID_SW_PORT
+            MENUITEM "So&urce",                     ID_SW_SOURCE
+            MENUITEM "D&estination",                ID_SW_DES
+            MENUITEM "S&NET",                       ID_SW_SNET
+            MENUITEM "S&ADDR",                      ID_SW_SADDR
+            MENUITEM "&DNET",                       ID_SW_DNET
+            MENUITEM "DADD&R",                      ID_SW_DADDR
+            MENUITEM "Ser&vice",                    ID_SW_SERVICE
+        END
         MENUITEM SEPARATOR
         MENUITEM "&Detail View",                ID_VIEW_DETAIL
         MENUITEM "&Hex View",                   ID_VIEW_HEX
@@ -327,7 +340,7 @@ BEGIN
     POPUP "&Send"
     BEGIN
         MENUITEM "&New Packet...",              ID_SEND_NEWPACKET
-        MENUITEM "Send &Again",                 ID_SEND_SENDAGAIN, GRAYED
+        MENUITEM "Send &Again",                 ID_SEND_SENDAGAIN
         MENUITEM SEPARATOR
     END
     POPUP "E&PICS"
@@ -335,10 +348,12 @@ BEGIN
         MENUITEM "&Load EPICS...",              ID_EPICS_LOAD
         MENUITEM "Read &All Properties...",     ID_EPICS_READALLPROPERTY
     END
-    POPUP "&Tests"
+    POPUP "&Tools"
     BEGIN
         MENUITEM "&Backup/Restore...",          ID_BACKUP_RESTORE
         MENUITEM "&Inconsistent Parameters...", ID_TESTS_INCONSISTENTPARS
+        MENUITEM "&Discover Devices...",        ID_TOOLS_DISCOVER_DEVICES
+        MENUITEM "&Generate EPICS from Device...", ID_TOOLS_GENERATE_EPICS
     END
     POPUP "&Help"
     BEGIN
@@ -2130,22 +2145,22 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,127,97,50,14
 END
 
-IDD_DEVICES DIALOG 0, 0, 282, 241
+IDD_DEVICES DIALOGEX 0, 0, 282, 241
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Devices"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
     CONTROL         "List1",IDC_DEVICELIST,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,7,7,201,80
-    LTEXT           "Name:",IDC_STATIC,7,97,25,10
-    LTEXT           "Instance:",IDC_STATIC,7,111,46,10
-    LTEXT           "Segment Size:",IDC_STATIC,7,125,62,10
-    LTEXT           "Window Size:",IDC_STATIC,7,139,50,10
-    LTEXT           "Next Invoke ID:",IDC_STATIC,7,153,56,10
-    LTEXT           "Vendor ID:",IDC_STATIC,7,167,40,10
-    LTEXT           "Max APDU Size:",IDC_STATIC,7,181,68,10
-    LTEXT           "APDU Timeout:",IDC_STATIC,7,195,53,10
-    LTEXT           "APDU Seg Timeout:",IDC_STATIC,7,209,71,10
-    LTEXT           "APDU Retries:",IDC_STATIC,7,223,65,10
+    LTEXT           "&Name:",IDC_STATIC,7,97,25,10
+    LTEXT           "&Device Instance:",IDC_STATIC,7,111,64,10
+    LTEXT           "&Segment Size:",IDC_STATIC,7,125,62,10
+    LTEXT           "&Window Size:",IDC_STATIC,7,139,50,10
+    LTEXT           "Next &Invoke ID:",IDC_STATIC,7,153,56,10
+    LTEXT           "&Vendor ID:",IDC_STATIC,7,167,40,10
+    LTEXT           "&Max APDU Size:",IDC_STATIC,7,181,68,10
+    LTEXT           "&APDU Timeout:",IDC_STATIC,7,195,53,10
+    LTEXT           "APDU Seg &Timeout:",IDC_STATIC,7,209,71,10
+    LTEXT           "APDU &Retries:",IDC_STATIC,7,223,65,10
     EDITTEXT        IDC_NAME,82,95,134,12,ES_AUTOHSCROLL | WS_DISABLED | WS_GROUP
     EDITTEXT        IDC_INSTANCE,82,109,30,12,ES_AUTOHSCROLL | WS_DISABLED
     EDITTEXT        IDC_SEGSIZE,82,123,30,12,ES_AUTOHSCROLL | WS_DISABLED
@@ -2162,7 +2177,7 @@ BEGIN
     CONTROL         "Receive",IDC_SEGRECEIVE,"Button",BS_AUTORADIOBUTTON | WS_DISABLED,155,149,55,10
     CONTROL         "None",IDC_SEGNONE,"Button",BS_AUTORADIOBUTTON | WS_DISABLED,155,159,55,10
     CONTROL         "Router",IDC_ROUTER,"Button",BS_AUTOCHECKBOX | WS_DISABLED | WS_GROUP | WS_TABSTOP,145,186,70,10
-    PUSHBUTTON      "Objects...",IDC_OBJPROP,145,203,50,15,WS_GROUP
+    PUSHBUTTON      "&Objects...",IDC_OBJPROP,145,203,50,15,WS_GROUP
     PUSHBUTTON      "New",IDC_NEWDEVICE,225,5,50,15,WS_GROUP
     PUSHBUTTON      "Delete",IDC_DELETEDEVICE,225,23,50,15,NOT WS_TABSTOP
     PUSHBUTTON      "I-Am",IDC_IAM,225,41,50,15,NOT WS_TABSTOP
@@ -4175,6 +4190,27 @@ BEGIN
     COMBOBOX        IDC_TYPECOMBO,88,69,100,75,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
 END
 
+IDD_DISCOVER_EPICS DIALOGEX 0, 0, 334, 124
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Generate EPICS From Device"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "&Port:",IDC_STATIC1,7,10,18,8
+    COMBOBOX        IDC_PORTCOMBO,35,9,100,49,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Device:",IDC_STATIC2,7,28,28,8
+    COMBOBOX        IDC_DEVICECOMBO,35,27,100,55,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    RTEXT           "Device &Instance:",IDC_STATIC3,151,16,85,8
+    EDITTEXT        IDC_DEVICEOBJINST,243,15,65,12,ES_AUTOHSCROLL
+    LTEXT           "(leave blank to discover instance)",IDC_STATIC4,182,29,110,8
+    LTEXT           "&EPICS filename:",IDC_STATIC5,7,64,54,8
+    EDITTEXT        IDC_FILENAME,35,76,222,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "Brow&se...",IDC_BROWSE,262,77,50,11
+    DEFPUSHBUTTON   "OK",IDOK,100,99,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,162,99,50,14
+    CONTROL         "Include all &values (else use ? for commonly changing values)",IDC_CHECK1,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,46,267,10
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -4182,8 +4218,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,6,2,0
- PRODUCTVERSION 3,6,2,0
+ FILEVERSION 3,6,3,0
+ PRODUCTVERSION 3,6,3,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x21L
@@ -4199,12 +4235,12 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "FileDescription", "Visual Test Shell for BACnet"
-            VALUE "FileVersion", "3.6.2.0"
+            VALUE "FileVersion", "3.6.3.0"
             VALUE "InternalName", "VTS"
             VALUE "LegalCopyright", "GPL"
             VALUE "OriginalFilename", "VTS.EXE"
             VALUE "ProductName", "Visual Test Shell for BACnet"
-            VALUE "ProductVersion", "3.6.2.0"
+            VALUE "ProductVersion", "3.6.3.0"
         END
     END
     BLOCK "VarFileInfo"
@@ -5761,6 +5797,12 @@ BEGIN
         LEFTMARGIN, 7
         TOPMARGIN, 7
     END
+
+    IDD_DISCOVER_EPICS, DIALOG
+    BEGIN
+        RIGHTMARGIN, 330
+        BOTTOMMARGIN, 113
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -6577,6 +6619,12 @@ BEGIN
     ID_VIEW_GLOBALBAR       "Show or hide the globallbar\nToggle GlobalBar"
     ID_VIEW_MAINTOOLBAR     "Show or hide the Toolbar\nToolBar"
     ID_VIEW_GLOBAL_TOOLBAR  "Show or hide the global bar\nToggle global bar"
+END
+
+STRINGTABLE
+BEGIN
+    ID_TOOLS_GENERATE_EPICS "Read properties from the device to help construct an EPICS"
+    ID_TOOLS_DISCOVER_DEVICES "Use Who-Is to discover devices"
 END
 
 #endif    // English (United States) resources

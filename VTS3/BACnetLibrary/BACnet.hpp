@@ -11,6 +11,7 @@
 
 #include "StringTables.h"
 #include "VTS.h"
+class VTSPort;
 
 //
 // General Typedefs
@@ -71,6 +72,12 @@ struct BACnetAddress
 
    CString MacAddress() const;
    bool SetMacAddress( const char *addrString );
+
+   // MAC address as text.  If port is provided, address format may be nicer (dotted decimal IP address, etc.)
+   CString PrettyMacAddress( VTSPort *pThePort = NULL ) const;
+
+   // Network and MAC address as text.  If port is provided, address format may be nicer (dotted decimal IP address, etc.)
+   CString PrettyAddress( VTSPort *pThePort = NULL ) const;
 };
 
 typedef BACnetAddress *BACnetAddressPtr;

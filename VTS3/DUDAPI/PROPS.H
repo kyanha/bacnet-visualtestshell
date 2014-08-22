@@ -170,6 +170,7 @@ static const char *stParseTypes[]={
 #define	AtLeast1			0x0080				//at least one from PropGroup must be present
 #define	IsArray				0x0100				//property is an array
 #define IsCommandable		0x0200				//property is commandable
+#define QVAL					0x0400				//Show as "?" in EPICS
 //services supported in propdescriptor member PropGroup
 #define	COV					127					//COV reporting
 #define	Intr				126					//Instrinsic reporting

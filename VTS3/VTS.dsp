@@ -210,6 +210,10 @@ SOURCE=.\DetailView.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\DiscoveryExecutor.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\DockingDetailViewBar.cpp
 # End Source File
 # Begin Source File
@@ -916,6 +920,10 @@ SOURCE=.\VTSDevicesTreeValuePage.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\VTSDiscoveryDlg.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\VTSDoc.cpp
 # End Source File
 # Begin Source File
@@ -1409,6 +1417,10 @@ SOURCE=.\DetailTreeCtrl.h
 # Begin Source File
 
 SOURCE=.\DetailView.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\DiscoveryExecutor.h
 # End Source File
 # Begin Source File
 
@@ -2129,6 +2141,10 @@ SOURCE=.\VTSDevicesTreePropPage.h
 # Begin Source File
 
 SOURCE=.\VTSDevicesTreeValuePage.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\VTSDiscoveryDlg.h
 # End Source File
 # Begin Source File
 

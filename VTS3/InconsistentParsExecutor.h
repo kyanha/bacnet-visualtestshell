@@ -48,7 +48,6 @@ public:
    virtual void ProcessTask();
 
    void ExecuteTest();
-   void DestoryOutputDlg(void) { m_pOutputDlg = NULL; }
 
 private:
    BACnetObjectIdentifier  m_ObjID;

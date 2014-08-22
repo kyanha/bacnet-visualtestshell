@@ -31,7 +31,7 @@ public:
    public:
       AnyValue();
       virtual ~AnyValue();
-      void SetObject(BACnetEncodeable * pbacnetEncodeable);
+      virtual void SetObject(BACnetEncodeable * pbacnetEncodeable);
    };
 
    // Create a new data type to be used in CreateObject Service
@@ -46,7 +46,7 @@ public:
       PropertyValue();
       PropertyValue(const PropertyValue& propValue);
       virtual ~PropertyValue() ;
-      
+
       void Encode(BACnetAPDUEncoder &enc);
       void Decode(BACnetAPDUDecoder &dec);
    };
@@ -87,6 +87,7 @@ protected:
    void StartTest();
    void Delay( UINT delaySec );
    bool SendExpectPacket(CByteArray& contents, bool resp = true);
+   void SendUnconfirmed(CByteArray& contents, bool isBroadcast);
    void InsertMaxAPDULenAccepted(CByteArray& contents);
    void FindRouterAddress(void);
    void Msg(const char* errMsg);
@@ -96,6 +97,10 @@ protected:
                                 BACnetEnumerated         &propID,
                                 AnyValue                 &propValue,
                                 int                      propIndex = -1 );
+   bool SendReadPropertyOptional( BACnetObjectIdentifier   &objID,
+                                  BACnetEnumerated         &propID,
+                                  AnyValue                 &propValue,
+                                  int                      propIndex = -1 );
    bool SendExpectWriteProperty( BACnetObjectIdentifier  &objID,
                                  BACnetEnumerated        &propID,
                                  AnyValue                &propValue,
@@ -105,8 +110,10 @@ protected:
    bool SendExpectReinitialize( ReinitializedStateOfDevice nReinitState, const char *pPassword );
 
    void GetDeviceMaxAPDU();
-
    void GetObjectList( BACnetArrayOf<BACnetObjectIdentifier> &objList );
+   void ErrorString( CString &theErrorString ) const;
+
+   virtual void ReceiveAPDU( const BACnetAPDU &theAPDU );
 
    CString        m_title;
    SendReceiveExecutorProgressDlg *m_pOutputDlg;
@@ -119,6 +126,7 @@ protected:
    UINT           m_maxAPDULen;
    BACnetAPDU     *m_pAPDU;
    BYTE           m_invokeID;
+   UINT           m_lastNetwork;    // network number of the last discovered network
 
    CCriticalSection m_cs;
    CEvent         m_event;             // is uesed by the main thread that the packet has been correctly received
@@ -130,6 +138,8 @@ protected:
    bool           m_bExpectAPDU;       // if expect a APDU or not
    BACnetAPDUType m_nExpectAPDUType;   // expected APDU type if expect a APDU
    int            m_nExpectAPDUServiceChoice; // expected Service Choice if expect a APDU
+   int            m_errorClass;        // gets error-class if an Error is returned
+   int            m_errorCode;         // gets error-code if an Error is returned
 };
 
 #endif // !defined(AFX_SEND_RECEIVE_EXECUTOR_H__B11EB238_C49B_4046_84A9_0CF30BFD844B__INCLUDED_)

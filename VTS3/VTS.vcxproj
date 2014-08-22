@@ -170,6 +170,7 @@
     <ClCompile Include="BACnetLibrary\BACnetTSM.cpp" />
     <ClCompile Include="BACnetLibrary\BACnetVIPLAN.cpp" />
     <ClCompile Include="BACnetLibrary\BACnetVLAN.cpp" />
+    <ClCompile Include="DiscoveryExecutor.cpp" />
     <ClCompile Include="DUDAPI\Bacprim32.cpp" />
     <ClCompile Include="SendNetworkNumberIs.cpp" />
     <ClCompile Include="SendReceiveExecutor.cpp" />
@@ -357,6 +358,7 @@
     <ClCompile Include="VTSDevicesTreeOptPage.cpp" />
     <ClCompile Include="VTSDevicesTreePropPage.cpp" />
     <ClCompile Include="VTSDevicesTreeValuePage.cpp" />
+    <ClCompile Include="VTSDiscoveryDlg.cpp" />
     <ClCompile Include="VTSDoc.cpp" />
     <ClCompile Include="VTSEngineeringUnitsDlg.cpp" />
     <ClCompile Include="VTSEventBitstringDlg.cpp" />
@@ -466,6 +468,7 @@
     <ResourceCompile Include="VTS.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DiscoveryExecutor.h" />
     <ClInclude Include="SendNetworkNumberIs.h" />
     <ClInclude Include="SendReceiveExecutor.h" />
     <ClInclude Include="SendWhatIsNetworkNumber.h" />
@@ -515,6 +518,7 @@
     <ClInclude Include="MSTP_NBLinkDlg.h" />
     <ClInclude Include="NBLink\nbsettings.h" />
     <ClInclude Include="BACnetLibrary\NTDDNDIS.H" />
+    <ClInclude Include="VTSDiscoveryDlg.h" />
     <ClInclude Include="WinPcap\PCAP.H" />
     <ClInclude Include="Sniffer\PI.h" />
     <ClInclude Include="DUDAPI\Propid.h" />

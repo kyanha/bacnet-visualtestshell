@@ -25,8 +25,9 @@
 
 #include "ScriptKeywords.h"
 
-#include "BakRestoreExecutor.h"		// Added by Jingbo Gao, Sep 20 2004
+#include "BakRestoreExecutor.h"
 #include "InconsistentParsExecutor.h"
+#include "DiscoveryExecutor.h"
 
 namespace PICS {
 
@@ -262,20 +263,26 @@ void ScriptNetFilter::Indication( const BACnetNPDU &npdu )
 //
 extern BakRestoreExecutor gBakRestoreExecutor;
 extern InconsistentParsExecutor gInconsistentParsExecutor;
+extern DiscoveryExecutor gDiscoveryExecutor;
 
 void ScriptNetFilter::Confirmation( const BACnetNPDU &npdu )
 {
 	// make a copy for the executor thread
+	// (Yes, new without storing a pointer: the constructor queues "thi"s...
 	if (gExecutor.IsRunning())
 		new ScriptNetPacket( this, npdu );
 	
-	// send this packet to BackupRestore executor	Jingbo Gao, Sep 20 2004
+	// send this packet to BackupRestore executor
 	if (gBakRestoreExecutor.IsRunning()) {
 		gBakRestoreExecutor.ReceiveNPDU(npdu);
 	}
 
 	if (gInconsistentParsExecutor.IsRunning()) {
 		gInconsistentParsExecutor.ReceiveNPDU(npdu);
+	}
+
+	if (gDiscoveryExecutor.IsRunning()) {
+		gDiscoveryExecutor.ReceiveNPDU(npdu);
 	}
 	// pass up to client
 	Response( npdu );

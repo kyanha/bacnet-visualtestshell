@@ -70,6 +70,7 @@ SendReceiveExecutor::SendReceiveExecutor( const char *pTheTitle )
   m_maxAPDULen(0),
   m_pAPDU(NULL),
   m_invokeID(0),
+  m_lastNetwork(~0),
   m_cs(),
   m_event(),
   m_bAbort(false),
@@ -78,7 +79,9 @@ SendReceiveExecutor::SendReceiveExecutor( const char *pTheTitle )
   m_bExpectPacket(false),
   m_bExpectAPDU(true),
   m_nExpectAPDUType(simpleAckPDU),
-  m_nExpectAPDUServiceChoice(0)
+  m_nExpectAPDUServiceChoice(0),
+  m_errorClass(0),
+  m_errorCode(0)
 {
 }
 
@@ -91,7 +94,9 @@ SendReceiveExecutor::~SendReceiveExecutor()
 // This function returns a new invokeID for each call.
 BYTE SendReceiveExecutor::InvokeID()
 {
-   return m_invokeID++;
+   // pre-increment means that AFTER a call, you can compare
+   // response invokeID value to m_invokeID
+   return ++m_invokeID;
 }
 
 void SendReceiveExecutor::Kill()
@@ -155,6 +160,10 @@ void SendReceiveExecutor::ReceiveNPDU(const BACnetNPDU& npdu)
    BACnetOctet packetData[MAX_NPDU_LENGTH];
    memcpy( packetData, npdu.pduData, npdu.pduLen );
 
+   // Initially, assume source is who sent the packet
+   BACnetAddress sourceAddr;
+   sourceAddr = npdu.pduAddr;
+
    // the rest of this code will need a decoder
    BACnetAPDUDecoder dec( packetData, npdu.pduLen );
    // Decode the packet
@@ -174,6 +183,8 @@ void SendReceiveExecutor::ReceiveNPDU(const BACnetNPDU& npdu)
          return;     // "BVLCI length incorrect";
       if (nBVLCfunc == 4)
       {
+         // Forwarded NPDU.  Remember the actual source of the packet
+         sourceAddr.LocalStation( dec.pktBuffer, 6 );
          dec.pktLength -= 6;
          dec.pktBuffer += 6;
       }
@@ -187,27 +198,37 @@ void SendReceiveExecutor::ReceiveNPDU(const BACnetNPDU& npdu)
    }
 
    if ((ctrl & 0x40) || (ctrl & 0x10))
-      return;     // 6th and 4th bit should be 0
+      return;                 // 6th and 4th bit should be 0
 
-   if (ctrl & 0x20)  // has DNET
+   if (ctrl & 0x20)           // has DNET
    {
+      // We (as a SendReceiveExecutor) aren't a router.
+      // Thus we look only at
+      // - packets without DNET/DADR (per clause 6.5.2)
+      // - global broadcasts (per clause 6.5.4)
+      UINT dnet = (dec.pktBuffer[0] << 8) | dec.pktBuffer[1];
       dec.pktLength -= 2;     // DNET
       dec.pktBuffer += 2;
       int len = (dec.pktLength--, *dec.pktBuffer++);  // DLEN
-      if (len == 0)
-         return;     // No DADR in packet
-      dec.pktLength -= len;      // DADR
+      if ((dnet != 65535) || (len != 0))
+         return;              // Not for us
+      dec.pktLength -= len;   // DADR
       dec.pktBuffer += len;
    }
 
    if (ctrl & 0x08)
    {
-      dec.pktLength -= 2;     // SNET
+      // Parse out SNET and SADR, source of this message
+      // We also know that npdu.pduAddr is a router to SNET
+      UINT snet = (dec.pktBuffer[0] << 8) | dec.pktBuffer[1];
+      dec.pktLength -= 2;
       dec.pktBuffer += 2;
+
       int len = (dec.pktLength--, *dec.pktBuffer++);  // SNET
       if (len == 0)
-         return;     // No SADR in packet
-      dec.pktLength -= len;      // SADR
+         return;              // No SADR in packet
+      sourceAddr.RemoteStation( snet, dec.pktBuffer, len );
+      dec.pktLength -= len;   // SADR
       dec.pktBuffer += len;
    }
 
@@ -231,49 +252,87 @@ void SendReceiveExecutor::ReceiveNPDU(const BACnetNPDU& npdu)
    BACnetAPDU apdu;
    apdu.Decode(dec);
 
-   // Is this a segmentAck?
+   // Is this a segmentAck for the pending request?
    if (apdu.apduType == segmentAckPDU)
    {
       // Check for a NAK
-      if(apdu.apduNak)
+      if (apdu.apduNak)
       {
          m_bAbort = true;
       }
 
-      // Only set the event if this the packet we were waiting for 
+      // Only set the event if this the packet we were waiting for
       // (Wait for a complexAck instead of a segmentAck for the last segment)
-      if (m_nExpectAPDUType == segmentAckPDU)
+      if ((m_nExpectAPDUType == segmentAckPDU) && (apdu.apduInvokeID == m_invokeID))
       {
          m_event.SetEvent();
       }
       return;
    }
 
-   if (apdu.apduType == errorPDU && m_nExpectAPDUType != errorPDU)
+   if ((apdu.apduType == errorPDU) && (apdu.apduInvokeID == m_invokeID) &&
+       (apdu.apduService == m_nExpectAPDUServiceChoice) && (m_nExpectAPDUType != errorPDU))
    {
-      m_bAbort = TRUE;     // received a Result(-) response from the IUT, terminate the test
+      m_bAbort = true;     // received a Result(-) response from the IUT, terminate the test
+
+      // Parse out at least error class and error choice, so that clients can act on them.
+      // Depending on the service, we have either
+      //   error-class ENUMERATED
+      //   error-code ENUMERATED
+      // or the above wrapped in [0]
+
+      // Bypass the fixed header
+      dec.pktBuffer += 3;
+      dec.pktLength -= 3;
+
+      BACnetAPDUTag tag;
+      dec.ExamineTag(tag);
+      if ((tag.tagClass == openingTagClass) && (tag.tagNumber == 0))
+      {
+         // Wrapped Error.  Eat the opening wrapper
+         tag.Decode( dec );
+      }
+
+      BACnetEnumerated val;
+      val.Decode(dec);
+      m_errorClass = val.m_enumValue;
+      val.Decode(dec);
+      m_errorCode = val.m_enumValue;
+
       m_event.SetEvent();
       return;
    }
 
-   if (apdu.apduType != m_nExpectAPDUType || apdu.apduService != m_nExpectAPDUServiceChoice)
+   if ((apdu.apduType != m_nExpectAPDUType) || (apdu.apduService != m_nExpectAPDUServiceChoice))
    {
-      return;     // according to the pdu type and service choice, this is not the packet which we expect
+      return;        // according to the pdu type and service choice, this is not the packet which we expect
    }
 
-   if (apdu.apduType == simpleAckPDU)
+   if ((apdu.apduType == simpleAckPDU) && (apdu.apduInvokeID == m_invokeID))
    {
       m_event.SetEvent();
       return;        // it's OK.
    }
 
+   // Set the source address, in case ReceiveAPDU wants it (for I-Am etc)
+   apdu.apduAddr = sourceAddr;
+
+   // Process the APDU
+   ReceiveAPDU( apdu );
+}
+
+// virtual
+// Process an APDU that matches our requested APDU type
+// Default assumes a single reply, which is passed via m_pADPU and m_event.
+void SendReceiveExecutor::ReceiveAPDU( const BACnetAPDU &theAPDU )
+{
    delete m_pAPDU;
-   m_pAPDU = new BACnetAPDU(apdu);
-   if (apdu.pktLength > 0)
+   m_pAPDU = new BACnetAPDU(theAPDU);
+   if (theAPDU.pktLength > 0)
    {
       delete []m_packetData;
-      m_packetData = new BACnetOctet[apdu.pktLength];
-      memcpy(m_packetData, apdu.pktBuffer, apdu.pktLength);
+      m_packetData = new BACnetOctet[theAPDU.pktLength];
+      memcpy(m_packetData, theAPDU.pktBuffer, theAPDU.pktLength);
       m_pAPDU->pktBuffer = m_packetData;
    }
 
@@ -289,33 +348,36 @@ bool SendReceiveExecutor::SendExpectPacket(CByteArray& contents, bool resp/* = t
    if (m_IUTAddr.addrType == remoteStationAddr)
    {  // if the IUT is on the remote network
       BYTE control = 0;
-      control |= 0x24;                    // Set control to include DNET, DLEN, DADR, Hop and DER 
+      // TODO: DER should only be set for ConfirmedRequest and segments
+      control |= 0x24;                    // Set control to include DNET, DLEN, DADR, Hop and DER
       buf.Add(control);
       buf.Add((m_IUTAddr.addrNet & 0xFF00) >> 8);  // DNET
       buf.Add(m_IUTAddr.addrNet & 0x00FF);
-      buf.Add((BYTE)m_IUTAddr.addrLen);         // DLEN
+      buf.Add((BYTE)m_IUTAddr.addrLen);            // DLEN
 
-      for(int index = 0; index < m_IUTAddr.addrLen; index++)
+      for (int index = 0; index < m_IUTAddr.addrLen; index++)
       {
-         buf.Add(m_IUTAddr.addrAddr[index]);    // DADR
+         buf.Add(m_IUTAddr.addrAddr[index]);       // DADR
       }
 
-      buf.Add((BYTE)0xFF);    // hop count
+      buf.Add((BYTE)0xFF);       // hop count
    }
    else
    {
+      // TODO: DER should only be set for ConfirmedRequest and segments
       if(resp)
          buf.Add((BYTE)0x04);    // control expect resp
       else 
          buf.Add((BYTE)0x00);    //control no resp
    }
+
    contents.InsertAt(0, &buf);
    if (m_pPort->m_nPortType == ipPort)
    {
       int len = contents.GetSize() + 4;       // the size of npdu plus BVLC
       contents.InsertAt(0, (BYTE)(len & 0xFF));
       contents.InsertAt(0, (BYTE)(len >> 8));
-      contents.InsertAt(0, (BYTE)0x0A);
+      contents.InsertAt(0, (BYTE)0x0A);      // Original Unicast
       contents.InsertAt(0, (BYTE)0x81);
    }
 
@@ -346,6 +408,9 @@ bool SendReceiveExecutor::SendExpectPacket(CByteArray& contents, bool resp/* = t
    // prepare accept packet
    m_bExpectAPDU = true;
    m_bExpectPacket = true;
+   m_errorClass = -1;
+   m_errorCode = -1;
+
    bool bReceived = false;
    for (int i = 0; i < nNumOfAPDURetries; i++)
    {
@@ -354,7 +419,7 @@ bool SendReceiveExecutor::SendExpectPacket(CByteArray& contents, bool resp/* = t
          BACnetNPDU(addr, contents.GetData(), contents.GetSize())
          );
 
-      if(!resp)
+      if (!resp)
       {
          //Not expecting a response. Leave
          bReceived = true;
@@ -376,10 +441,10 @@ bool SendReceiveExecutor::SendExpectPacket(CByteArray& contents, bool resp/* = t
             throw((LPCTSTR)str);
          }
 
-         bReceived = TRUE;
-         if (m_bAbort == TRUE)
+         bReceived = true;
+         if (m_bAbort)
          {
-            m_bAbort = FALSE;    // reset
+            m_bAbort = false;    // reset
             str.Format("%s Received a Result(-) response from IUT", (LPCTSTR)m_title);
             throw((LPCTSTR)str);
          }
@@ -389,6 +454,79 @@ bool SendReceiveExecutor::SendExpectPacket(CByteArray& contents, bool resp/* = t
 
    m_bExpectPacket = false;   // OK, we have gotten the packet
    return bReceived;
+}
+
+// Send an unconfirmed request, leaving m_bExpectPacket and m_bExpectAPDU true
+void SendReceiveExecutor::SendUnconfirmed(CByteArray& contents, bool isBroadcast)
+{
+   // network layer
+   CByteArray buf;
+   buf.Add((BYTE)0x01);      // version
+   if ((m_IUTAddr.addrType != localStationAddr) && (m_IUTAddr.addrType != localBroadcastAddr))
+   {  // IUT is on a remote network
+      buf.Add(0x20);                               // Set control to include DNET, DLEN, DADR, Hop
+
+      // Annoyingly, BACnetAddress doesn't set addrNet to 0xFFFF for global broadcast
+      UINT net = (m_IUTAddr.addrType == globalBroadcastAddr) ? 0xFFFF : m_IUTAddr.addrNet;
+      buf.Add((net & 0xFF00) >> 8);                // DNET
+      buf.Add(net & 0x00FF);
+
+      buf.Add((BYTE)m_IUTAddr.addrLen);            // DLEN
+      for (int index = 0; index < m_IUTAddr.addrLen; index++)
+      {
+         buf.Add(m_IUTAddr.addrAddr[index]);       // DADR
+      }
+
+      buf.Add((BYTE)0xFF);       // hop count
+   }
+   else
+   {
+      buf.Add(0x00);       //control no resp
+   }
+
+   contents.InsertAt(0, &buf);
+   if (m_pPort->m_nPortType == ipPort)
+   {
+      int len = contents.GetSize() + 4;       // the size of npdu plus BVLC
+      contents.InsertAt(0, (BYTE)(len & 0xFF));
+      contents.InsertAt(0, (BYTE)(len >> 8));
+
+      // Normally we broadcast.
+      // But if we have a foreign BBMD connection, ask him to do it
+      // TODO: If we are registered with a foreign device, shouldn't the DATALINK
+      // do this for us on ALL broadcasts?  Seems to process VTS's I-ams
+      BYTE bipFunction = 0x0B;   // Original-broadcast
+      if ((m_pPort->portBIPForeign != NULL) && (m_pPort->portBIPForeign->foreignBBMDAddr == m_IUTAddr))
+      {
+         bipFunction = 0x09;  // Distribute-Broadcast-To-Network
+      }
+      contents.InsertAt(0, bipFunction);
+
+      contents.InsertAt(0, (BYTE)0x81);
+   }
+
+   VTSDevicePtr pdevice = m_pPort->m_pdevice;
+
+   BACnetAddress  addr;
+   if (m_IUTAddr.addrType == remoteStationAddr)
+   {
+      addr = m_routerAddr;
+   }
+   else
+   {
+      addr = m_IUTAddr;
+   }
+   // Before sending a packet, modify the signal bit to notify the main thread to
+   // prepare accept packet
+   m_bExpectAPDU = true;
+   m_bExpectPacket = true;
+   m_errorClass = -1;
+   m_errorCode = -1;
+
+   // send packet
+   m_pPort->portFilter->Indication(
+         BACnetNPDU(addr, contents.GetData(), contents.GetSize())
+         );
 }
 
 void SendReceiveExecutor::InsertMaxAPDULenAccepted(CByteArray& contents)
@@ -427,37 +565,51 @@ void SendReceiveExecutor::InsertMaxAPDULenAccepted(CByteArray& contents)
 
 void SendReceiveExecutor::FindRouterAddress()
 {
-   // Send Who-Is-Router-To-Network message
-   unsigned short addrNet = m_IUTAddr.addrNet;
-   CByteArray contents;
-   contents.InsertAt( 0, (BYTE)(0x00FF & addrNet) );      // DNET, 2 octets
-   contents.InsertAt( 0, (BYTE)(addrNet >> 8) );
-   contents.InsertAt( 0, (BYTE)0x00 );      // Message Type = X'00' Who-Is-Router-To-Network
-   contents.InsertAt( 0, (BYTE)0x80 );      // control
-   contents.InsertAt( 0, (BYTE)0x01 );      // version
-   if (m_pPort->m_nPortType == ipPort)
+   // Router is only needed for remote destinations
+   if ((m_IUTAddr.addrType == remoteStationAddr) || (m_IUTAddr.addrType == remoteBroadcastAddr))
    {
-      int len = contents.GetSize() + 4;       // the size of npdu plus BVLC
-      contents.InsertAt( 0, (BYTE)(len & 0x00FF) );
-      contents.InsertAt( 0, (BYTE)(len >> 8) );
-//    contents.InsertAt( 0, (BYTE)0x0A );  // This is Original Unicast message specifier
-      contents.InsertAt( 0, (BYTE)0x0B );  // This is Original Broadcast message specifier
-      contents.InsertAt( 0, (BYTE)0x81 );
-   }
+      // We need a route to m_IUTAddr.addrNet
+      unsigned short addrNet = m_IUTAddr.addrNet;
+      if (addrNet != m_lastNetwork)
+      {
+         // Send Who-Is-Router-To-Network message
+         CByteArray contents;
+         contents.InsertAt( 0, (BYTE)(0x00FF & addrNet) );      // DNET, 2 octets
+         contents.InsertAt( 0, (BYTE)(addrNet >> 8) );
+         contents.InsertAt( 0, (BYTE)0x00 );       // Message Type = X'00' Who-Is-Router-To-Network
+         contents.InsertAt( 0, (BYTE)0x80 );       // control
+         contents.InsertAt( 0, (BYTE)0x01 );       // version
+         if (m_pPort->m_nPortType == ipPort)
+         {
+            int len = contents.GetSize() + 4;      // the size of npdu plus BVLC
+            contents.InsertAt( 0, (BYTE)(len & 0x00FF) );
+            contents.InsertAt( 0, (BYTE)(len >> 8) );
+            contents.InsertAt( 0, (BYTE)0x0B );    // Original Broadcast message
+            contents.InsertAt( 0, (BYTE)0x81 );
+         }
 
-   BACnetAddress  addr(localBroadcastAddr);
-   m_bExpectAPDU = FALSE;     // expect NPDU
-   m_bExpectPacket = TRUE;
-   m_pPort->portFilter->Indication(
-      BACnetNPDU(addr, contents.GetData(), contents.GetSize())
-      );
-   if (!m_event.Lock(30000))  // timeout setting: 30 seconds
-// if (!m_event.Lock())
-   {
-      throw("Cannot find a router to the IUT");
+         BACnetAddress  addr(localBroadcastAddr);
+         m_bExpectAPDU = false;     // expect NPDU
+         m_bExpectPacket = true;
+         m_pPort->portFilter->Indication(
+            BACnetNPDU(addr, contents.GetData(), contents.GetSize())
+            );
+         if (!m_event.Lock(30000))  // timeout setting: 30 seconds
+         {
+            CString str;
+            str.Format("Cannot find a router to network %u", addrNet);
+            throw( (LPCTSTR)str );
+         }
+         m_bExpectPacket = false;
+         m_bExpectAPDU = true;      // reset
+
+         // We don't parse the I-Am-Router here.
+         // Instead, we rely on the infrastructure to make note of this
+         // router, and use it when we use a remoteStation or remoteBroadcast
+         // to that network.
+         m_lastNetwork = addrNet;
+      }
    }
-   m_bExpectPacket = FALSE;
-   m_bExpectAPDU = TRUE;      // reset
 }
 
 void SendReceiveExecutor::Msg(const char* errMsg)
@@ -531,6 +683,33 @@ bool SendReceiveExecutor::SendExpectReadProperty( BACnetObjectIdentifier &objID,
    return true;
 }
 
+// As SendExpectReadProperty, but never throw: log any error and return false
+bool SendReceiveExecutor::SendReadPropertyOptional( BACnetObjectIdentifier   &objID,
+                                                    BACnetEnumerated         &propID,
+                                                    AnyValue                 &propValue,
+                                                    int                      propIndex )
+{
+   bool retval = false;
+   try
+   {
+      retval = SendExpectReadProperty( objID, propID, propValue, propIndex);
+   }
+   catch (...)
+   {
+      CString errType;
+      ErrorString(errType);
+
+      CString msg;
+      msg.Format( "Failed to read %s.  %s",
+                  NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( propID.m_enumValue ),
+                  (LPCTSTR)errType );
+      m_pOutputDlg->OutMessage( msg );
+      retval = false;
+   }
+
+   return retval;
+}
+
 bool SendReceiveExecutor::SendExpectWriteProperty( BACnetObjectIdentifier &objID,
                                                    BACnetEnumerated       &propID,
                                                    AnyValue               &propValue,
@@ -596,8 +775,8 @@ bool SendReceiveExecutor::SendExpectWhoIs(BACnetObjectIdentifier& iAmDeviceID, B
 
    // encode the packet
    CByteArray contents;
-   contents.InsertAt(0, (BYTE)0x08);
-   contents.InsertAt(0, (BYTE)0x10);
+   contents.Add((BYTE)0x10);
+   contents.Add((BYTE)whoIs);
 
    if (!SendExpectPacket(contents))
    {
@@ -610,7 +789,7 @@ bool SendReceiveExecutor::SendExpectWhoIs(BACnetObjectIdentifier& iAmDeviceID, B
    maxAPDULenAccepted.Decode(dec);
 
    BACnetEnumerated().Decode(dec);     // segSupported
-   BACnetUnsigned().Decode(dec);    // vendorID
+   BACnetUnsigned().Decode(dec);       // vendorID
 
    if (dec.pktLength != 0)
    {
@@ -723,6 +902,21 @@ void SendReceiveExecutor::GetObjectList( BACnetArrayOf<BACnetObjectIdentifier> &
    m_pOutputDlg->OutMessage(str);
 }
 
+// Format error-class and error-code into a string
+void SendReceiveExecutor::ErrorString( CString &theErrorString ) const
+{
+   if (m_errorClass >= 0)
+   {
+      // Got an Error response
+      const char *pClass = NetworkSniffer::BAC_STRTAB_BACnetErrorClass.EnumString(m_errorClass);
+      const char *pCode  = NetworkSniffer::BAC_STRTAB_BACnetErrorCode.EnumString(m_errorCode);
+      theErrorString.Format( "Error %s:%s", pClass, pCode );
+   }
+   else
+   {
+      theErrorString.Empty();
+   }
+}
 
 void SendReceiveExecutor::AnyValue::SetObject(BACnetEncodeable * pbacnetEncodeable)
 {

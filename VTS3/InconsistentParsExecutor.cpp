@@ -74,8 +74,6 @@ void InconsistentParsExecutor::ExecuteTest()
       }
       m_pName = pNames->GetAt( pNames->FindIndex(dlg.m_strDevice) );
       m_funToExe = (FunctionToExecute)dlg.m_nFunction;
-
-      m_funToExe = (FunctionToExecute)dlg.m_nFunction;
       m_ObjID = dlg.m_ObjectID;
       m_propID = dlg.m_propCombo;
    }
@@ -111,10 +109,7 @@ void InconsistentParsExecutor::ProcessTask()
 
       m_pOutputDlg->BeginTestProcess();
 
-      if (m_IUTAddr.addrType == remoteStationAddr)
-      {
-         FindRouterAddress();
-      }
+      FindRouterAddress();
 
       switch(m_funToExe) 
       {

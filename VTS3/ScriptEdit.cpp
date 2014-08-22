@@ -100,8 +100,11 @@ ScriptEdit::ScriptEdit()
 	// Default template document
 	((VTSApp*)AfxGetApp())->GetRelativeToExe( m_templateFileName, "scripts\\templates.txt" );
 
-	m_autoObjectType = 1;
-	m_autoPropertyID = 1;
+	// I find these damned annoying, so changed the default to OFF.
+	// The insert menu is more managable
+	m_autoObjectType = 0;
+	m_autoPropertyID = 0;
+
 	m_tabWidth = 3;
 }
 

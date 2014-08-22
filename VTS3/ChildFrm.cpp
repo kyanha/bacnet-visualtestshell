@@ -17,14 +17,12 @@
 
 #include "VTSPreferences.h"
 
-//Added by Yajun Zhou, 2002-11-4
 #include "ReadAllPropSettingsDlg.h"
 
-//Added by Jingbo Gao, 2004-9-20
 #include "BakRestoreExecutor.h"
 #include "InconsistentParsExecutor.h"
+#include "DiscoveryExecutor.h"
 
-//Added By Zhu Zhenhua, 2004-11-27
 #include "ScriptFrame.h"
 #include "ScriptExecutor.h"
 
@@ -121,12 +119,10 @@ BEGIN_MESSAGE_MAP(CChildFrame, CMDIChildWnd)
    ON_COMMAND(ID_EPICS_LOAD, OnEPICSLoad)
    ON_COMMAND(ID_EPICS_LOADAUTO, OnEPICSLoadAuto)
    ON_WM_DESTROY()
-   //Added by Zhenhua ZHu, 2003-6-2
    ON_COMMAND(ID_FILE_PRINT, OnFilePrint)
    ON_COMMAND(ID_FILE_PRINT_SETUP,OnFilePrintSetup)
    ON_UPDATE_COMMAND_UI(ID_FILE_PRINT,OnUpdateFilePrint)
    ON_COMMAND(ID_EPICS_READALLPROPERTY, OnReadAllProperty)
-   //Added by Zhu Zhenhua, 2004-11-27,for #508589 request 
    ON_COMMAND(ID_GLOBAL_SCRIPT_STEPPASS, OnGlobalScriptSteppass)
    ON_UPDATE_COMMAND_UI(ID_GLOBAL_SCRIPT_STEPPASS, OnUpdateGlobalScriptSteppass)
    ON_COMMAND(ID_GLOBAL_SCRIPT_STEPFAIL, OnGlobalScriptStepfail)
@@ -151,11 +147,14 @@ BEGIN_MESSAGE_MAP(CChildFrame, CMDIChildWnd)
    ON_UPDATE_COMMAND_UI(ID_VIEW_GLOBAL_TOOLBAR, OnUpdateViewGlobalToolbar)
    ////////////////////////////////////////////////
    //}}AFX_MSG_MAP
-   //Added by Jingbo Gao, 2004-9-20
    ON_UPDATE_COMMAND_UI(ID_BACKUP_RESTORE, OnUpdateBackupRestore)
    ON_COMMAND(ID_BACKUP_RESTORE, OnBackupRestore)
    ON_UPDATE_COMMAND_UI(ID_TESTS_INCONSISTENTPARS, OnUpdateInconsistentPars)
    ON_COMMAND(ID_TESTS_INCONSISTENTPARS, OnInconsistentPars)
+   ON_UPDATE_COMMAND_UI(ID_TOOLS_DISCOVER_DEVICES, OnUpdateDiscovery)
+   ON_COMMAND(ID_TOOLS_DISCOVER_DEVICES, OnDiscoverDevices)
+   ON_UPDATE_COMMAND_UI(ID_TOOLS_GENERATE_EPICS, OnUpdateDiscovery)
+   ON_COMMAND(ID_TOOLS_GENERATE_EPICS, OnGenerateEPICS)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -231,26 +230,25 @@ BOOL CChildFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
    gNewFrameContext = m_frameContext;
 
    // Tell the frame context which document, and get frame count.  Be careful
-   // because the frame count in the document might not be fully initialized 
+   // because the frame count in the document might not be fully initialized
    // if this is a new frame for a new document, VTSDoc::OnNewDocument() has
    // not been called yet.
    ((VTSDoc*)pContext->m_pCurrentDoc)->BindFrameContext( m_frameContext );
 
    // it all worked, we now have two splitter windows which contain
-   //  three different views
-   m_pwndHexViewBar=new CDockingHexViewBar(pContext);
-   m_pwndDetailViewBar=new CDockingDetailViewBar(pContext);
-   m_pwndEPICSViewBar = new CDockingEPICSViewBar(pContext);
+   // three different views
+   m_pwndHexViewBar    = new CDockingHexViewBar(pContext);
+   m_pwndDetailViewBar = new CDockingDetailViewBar(pContext);
+   m_pwndEPICSViewBar  = new CDockingEPICSViewBar(pContext);
 
    if (!m_pwndHexViewBar->Create(_T("Hex View"), this, 123))
    {
       TRACE0("Failed to create mybar\n");
       return -1;
-      // fail to create
    }
 
    m_pwndHexViewBar->SetBarStyle(m_pwndHexViewBar->GetBarStyle() |
-   CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC);
+                                 CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC);
    m_pwndHexViewBar->SetSCBStyle(SCBS_SIZECHILD);
    m_pwndHexViewBar->EnableDocking(CBRS_ALIGN_ANY);
    EnableDocking(CBRS_ALIGN_ANY);
@@ -262,7 +260,6 @@ BOOL CChildFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
    {
       TRACE0("Failed to create mybar\n");
       return -1;
-      // fail to create
    }
    m_pwndDetailViewBar->SetBarStyle(m_pwndDetailViewBar->GetBarStyle() |
    CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC);
@@ -274,12 +271,11 @@ BOOL CChildFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
    #ifdef _SCB_REPLACE_MINIFRAME
       m_pFloatingFrameClass = RUNTIME_CLASS(CSCBMiniDockFrameWnd);
    #endif //_SCB_REPLACE_MINIFRAME
-   
+
    if (!m_pwndEPICSViewBar->Create(_T("EPICS View"), this, 125))
    {
       TRACE0("Failed to create EPICS mybar\n");
       return -1;
-      // fail to create
    }
 
    m_pwndEPICSViewBar->SetBarStyle(m_pwndEPICSViewBar->GetBarStyle() | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC);
@@ -287,10 +283,14 @@ BOOL CChildFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
    m_pwndEPICSViewBar->EnableDocking(CBRS_ALIGN_ANY);
 
    DockControlBar(m_pwndDetailViewBar,AFX_IDW_DOCKBAR_RIGHT);
-   DockControlBar(m_pwndHexViewBar, AFX_IDW_DOCKBAR_RIGHT);
    DockControlBar(m_pwndEPICSViewBar,AFX_IDW_DOCKBAR_RIGHT);
+   // Moved default Hex to the bottom: four-wide is TOO wide.
+   // Ideal (for me) would be to have hex view only below the list view, so that
+   // Detail and EPICS views would get full height.
+   // But that would need splitter windows, not docking toolbars
+   DockControlBar(m_pwndHexViewBar, AFX_IDW_DOCKBAR_BOTTOM);
 
-//////////////////////////////////////////////////////////////////////////////////
+   //////////////////////////////////////////////////////////////////////////////////
    m_wndGlobalBar = new CToolBar();
    if (!m_wndGlobalBar->CreateEx(this, TBSTYLE_FLAT, WS_CHILD | WS_VISIBLE | CBRS_TOP
        | CBRS_GRIPPER | CBRS_TOOLTIPS | CBRS_FLYBY |CBRS_HIDE_INPLACE| CBRS_SIZE_DYNAMIC) ||
@@ -313,9 +313,6 @@ BOOL CChildFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
    m_pDetailView->m_pTabRing = m_pHexView;
    m_pHexView->m_pTabRing = m_pwndEPICSViewBar;
    m_pwndEPICSViewBar->m_pTabRing = m_pSummaryView;
-
-   // make sure this isn't used
-// gNewFrameContext = NULL;         madanner 9/04.. EPICS window listens, recreates and destroys
 
    m_pwndDetailViewBar->LoadState(_T("Detail Bar Status"));
    m_pwndHexViewBar->LoadState(_T("Hex Bar Status"));
@@ -627,8 +624,6 @@ void CChildFrame::OnUpdateViewEPICS(CCmdUI* pCmdUI)
 }
 
 
-// modified madanner 5/03
-
 void CChildFrame::OnFileExport()
 {
    int nPacketCount = m_frameContext->m_pDoc->GetPacketCount();
@@ -651,7 +646,7 @@ void CChildFrame::OnFileExport()
    try
    {
       exportFile.Open(strPathName, CFile::modeCreate | CFile::modeWrite);
-      
+
       // for some reason we have to have two info objects, one just for the summary and one for 
       // the detail lines...  If not, the detail lines are out of order.
 
@@ -795,8 +790,6 @@ void CChildFrame::OnFilePrint()
    ((CMainFrame *) AfxGetApp()->m_pMainWnd)->ReleaseProgress();
 }
 
-///////////////////////////////////////////////////////////
-// Added by Zhenhua Zhu, 2003-6-2
 void CChildFrame::OnFilePrintSetup()
 {
    if (m_printer.Dialog()!=-1)
@@ -804,10 +797,8 @@ void CChildFrame::OnFilePrintSetup()
 }
 
 
-//madanner 6/03, moved from ScriptFrame
 // CChildFrame::OnEPICSLoad
 //
-
 void CChildFrame::OnEPICSLoad()
 {
    CString filePath;
@@ -833,8 +824,6 @@ void CChildFrame::OnEPICSLoadAuto()
 
 
 
-// Added by Yajun Zhou, 2002-11-1
-//
 // ScriptFrame::OnReadAllProperty
 
 void CChildFrame::OnReadAllProperty()
@@ -855,7 +844,6 @@ void CChildFrame::OnReadAllProperty()
 
 
 // For protected access
-// madanner 8/04
 
 void CChildFrame::DoReadAllProperties()
 {
@@ -1263,29 +1251,43 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
    return strError.IsEmpty();
 }
 
-//Added by Jingbo Gao, 2004-9-20
 extern BakRestoreExecutor gBakRestoreExecutor;
-void CChildFrame::OnUpdateBackupRestore(CCmdUI* pCmdUI) 
+void CChildFrame::OnUpdateBackupRestore(CCmdUI* pCmdUI)
 {
-   pCmdUI->Enable(!gBakRestoreExecutor.IsRunning()); 
+   pCmdUI->Enable(!gBakRestoreExecutor.IsRunning());
 }
 
-
-void CChildFrame::OnBackupRestore() 
+void CChildFrame::OnBackupRestore()
 {
    m_frameContext->m_pDoc->DoBackupRestore();
 }
 
 extern InconsistentParsExecutor gInconsistentParsExecutor;
-void CChildFrame::OnUpdateInconsistentPars(CCmdUI* pCmdUI) 
+void CChildFrame::OnUpdateInconsistentPars(CCmdUI* pCmdUI)
 {
-   pCmdUI->Enable(!gInconsistentParsExecutor.IsRunning()); 
+   pCmdUI->Enable(!gInconsistentParsExecutor.IsRunning());
 }
 
-
-void CChildFrame::OnInconsistentPars() 
+void CChildFrame::OnInconsistentPars()
 {
    m_frameContext->m_pDoc->DoInconsistentPars();
+}
+
+// Discovery and EPICS generation share an executor, so enable/disable together
+extern DiscoveryExecutor gDiscoveryExecutor;
+void CChildFrame::OnUpdateDiscovery(CCmdUI* pCmdUI)
+{
+   pCmdUI->Enable(!gDiscoveryExecutor.IsRunning());
+}
+
+void CChildFrame::OnDiscoverDevices()
+{
+   gDiscoveryExecutor.ExecuteTest( DiscoveryExecutor::FN_DISCOVER_DEVICES );
+}
+
+void CChildFrame::OnGenerateEPICS()
+{
+   gDiscoveryExecutor.ExecuteTest( DiscoveryExecutor::FN_CREATE_EPICS );
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -1485,7 +1487,7 @@ void CChildFrame::OnGlobalScriptHalt()
 
 void CChildFrame::OnGlobalDisablePort() 
 {
-   int i;               // MAG 11AUG05 add this line, remove local declaration below since i is used out of that scope
+   int i;
    VTSPorts ports;
    VTSPorts* pPorts = ((VTSDoc*)GetActiveDocument())->GetPorts();
    ports.DeepCopy(pPorts);

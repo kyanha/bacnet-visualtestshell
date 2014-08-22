@@ -127,10 +127,7 @@ void BakRestoreExecutor::ProcessTask()
 
       m_pOutputDlg->BeginTestProcess();
 
-      if (m_IUTAddr.addrType == remoteStationAddr)
-      {
-         FindRouterAddress();
-      }
+      FindRouterAddress();
 
       switch(m_funToExe) {
       case ALL_BACKUP_RESTORE:
@@ -831,10 +828,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_1()
 
    m_pPort = pPort;
    SetIUTAddress(pPort, m_pName);
-   if (m_IUTAddr.addrType == remoteStationAddr)
-   {
-      FindRouterAddress();
-   }
+   FindRouterAddress();
 
    BACnetEnumerated  errorClass;
    BACnetEnumerated  errorCode;
@@ -944,10 +938,7 @@ void BakRestoreExecutor::DoAuxiliaryTest_3()
 
    m_pPort = pPort;
    SetIUTAddress(pPort, m_pName);
-   if (m_IUTAddr.addrType == remoteStationAddr)
-   {
-      FindRouterAddress();
-   }
+   FindRouterAddress();
 
    BACnetEnumerated  errorClass;
    BACnetEnumerated  errorCode;
