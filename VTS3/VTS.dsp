@@ -182,10 +182,6 @@ SOURCE=.\BACnetLibrary\BACnetVLAN.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\DUDAPI\Bacprim32.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\Sniffer\BACSN015.cpp
 # End Source File
 # Begin Source File

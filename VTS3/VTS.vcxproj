@@ -171,7 +171,6 @@
     <ClCompile Include="BACnetLibrary\BACnetVIPLAN.cpp" />
     <ClCompile Include="BACnetLibrary\BACnetVLAN.cpp" />
     <ClCompile Include="DiscoveryExecutor.cpp" />
-    <ClCompile Include="DUDAPI\Bacprim32.cpp" />
     <ClCompile Include="SendNetworkNumberIs.cpp" />
     <ClCompile Include="SendReceiveExecutor.cpp" />
     <ClCompile Include="SendWhatIsNetworkNumber.cpp" />

@@ -23,9 +23,6 @@ static char THIS_FILE[]=__FILE__;
 //
 //	The packet header contains information about the packet: where it 
 //	came from, where it was going, how to interpret the contents, etc.
-//	It is stored in the packet list array in the database, while the 
-//	packet contents (which vary in length) are stored in JDBOctetStr 
-//	objects.
 //
 
 VTSPacketHeader::VTSPacketHeader( void )

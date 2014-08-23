@@ -824,37 +824,30 @@ BACnetEncodeable * BACnetEncodeable::Factory( int nParseType, BACnetAPDUDecoder 
          break;
 
       case raslist:  // list of readaccessspecs
-         //p= eRASLIST(p,(BACnetReadAccessSpecification far*)msg->pv);
          pRetval = new BACnetReadAccessSpecification(dec);
          break;
 
       case act:      // action array
-         //p= eACT(p,(BACnetActionCommand far**)msg->pv, msg->Num,msg->ArrayIndex);
          pRetval = new BACnetActionCommand(dec);
          break;
 
       case evparm:   // event parameter
-         //p= eEVPARM(p,(BACnetEventParameter far*)msg->pv);
          pRetval = new BACnetEventParameter(dec);
          break;
 
       case skeys:    // session keys
-         //p= eSKEYS(p,(BACnetSessionKey far*)msg->pv);
          pRetval = new BACnetSessionKey(dec);
          break;
 
       case xsched:    // exception schedule: array[] of specialevent
-         //p= eXSCHED(p,(BACnetExceptionSchedule far*)msg->pv,msg->ArrayIndex);
          pRetval = new BACnetExceptionSchedule(dec);
          break;
 
       case wsched:   // weekly schedule: array[7] of list of timevalue
-         //p= eWSCHED(p,(BACnetTimeValue far**)msg->pv,7,msg->ArrayIndex);
          pRetval = new BACnetTimeValue(dec);
          break;
 
       case vtse:     // list of active  vt sessions (parse type) 
-         //p= eVTSE(p,(BACnetVTSession far*)msg->pv);
          pRetval = new BACnetVTSession(dec);
          break;
 

@@ -609,28 +609,11 @@ bool ScriptFrame::DoInitialSetup( void )
    VTSDocPtr         vdp = (VTSDoc *) ((VTSApp *) AfxGetApp())->GetWorkspace();
 
    // find a database for test messages
-//MAD_DB if (gDocList.Length() == 0) {
    if ( vdp == NULL ) {
       // alert the user
       AfxMessageBox( _T("No session database available to receive test results") );
       return false;
    }
-/*MAD_DB
-   else
-   if (gDocList.Length() == 1)
-      vdp = gDocList.Child( 0 );
-   else {
-      ScriptSelectSession  sss
-      ;
-
-      if (sss.DoModal() && sss.m_SelectedDoc)
-         vdp = sss.m_SelectedDoc;
-      else {
-         TRACE0( "User canceled from selecting session database\n" );
-         return false;
-      }
-   }
-*/
 
    // tell the executor to run the test
    gExecutor.Setup( vdp, m_pDoc, m_pDoc->SelectedTest() );

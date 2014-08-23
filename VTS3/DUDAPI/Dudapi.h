@@ -110,46 +110,18 @@ extern "C" {
                             
 // export functions declaration
 
-//long APIENTRY CMyBigLong(unsigned char far* sLong);
-//short APIENTRY CMyBigInt(unsigned char far* sInt);
-//short APIENTRY CMyInt(unsigned char far* sInt);										//***002
-//void APIENTRY DrawStdIcon (int x, int y, HWND hw, int id);
-//short APIENTRY LoadStringRes(int id, char far* Buffer, int Size);					//***002
 void APIENTRY MyDeletePICSObject(generic_object far* root);
 
-//generic_object far* APIENTRY FindGenObj(generic_object far* root, int index);
 generic_object far* APIENTRY GetpObj(generic_object far* root, dword ObjectId);  
 generic_object far* APIENTRY GetpDeviceObj(generic_object far* root);  
-//void APIENTRY CpyGenObj(generic_object far*, generic_object far*);
-//short APIENTRY GetNextGenObj(generic_object far* obj);								//***002
-//short APIENTRY GetObjType(word objtype, char far* Buffer);							//***002  
 
 short APIENTRY GetPropNameSupported(char far* PropName, word i, word objtype,		//***002
                                     octet far propFlags[64], dword far* PropId, word * pParseType);
 
-//short APIENTRY GetEnumName(char far* Name, word objtype, dword PropId, word EnumVal);	//***002
-//short APIENTRY GetPropName(dword PropId, char far* PropName);						//***002
-
 short APIENTRY GetPropValue(char far* Buffer, PVMessage far* msg);					//***002
 short APIENTRY GetPropIndex(word object_type, dword PropId);
 
-//short APIENTRY CheckObjTypeDevPics(char far* StdObj, generic_object far* pdbRoot,
-//									octet far resObjDev[MAX_DEFINED_OBJ], octet far resObjPICS[MAX_DEFINED_OBJ]); //***002
-//short APIENTRY CheckConfClass(word ConfClass, char far ApplServ[35], char far Result[35], 
-//								generic_object far* root, TObjProp far resObj[64], short far* eol); //***002
-//short APIENTRY CheckFunctionalGroup(dword FuncGroup, char far ApplServ[35], char far Result[35], 
-//									generic_object far* root, TObjProp far resObj[64], short far* eol); //***002
-//short APIENTRY DevApplServCheck(char far ApplServ[35], generic_object far* root, 
-//								char far resApplServ[35]);							//***002
-
 void APIENTRY SplitObjectId(dword ObjId, word far* ObjType, dword far* ObjInst);
-//BACnetObjectIdentifier far* APIENTRY GetObjIdRoot(generic_object far* pdbRoot);
-//short APIENTRY pIDinList(generic_object far* pdbRoot, long far* pid, dword far* ObjId);	//***002
-//short APIENTRY pDBinList(BACnetObjectIdentifier far* pidRoot, long far* pdb, dword far* ObjId);	//***002
-
-//void APIENTRY InitDudapi(void);
-//void APIENTRY CloseDudapi(void);
-
 
 #ifdef __cplusplus
 }

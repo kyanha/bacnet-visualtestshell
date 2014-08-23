@@ -150,10 +150,6 @@ struct PICSdb {
 extern "C" {
 #endif
 dword APIENTRY VTSAPIgetpropinfo(word,word,char *,word *,word *,word *,word *);
-word  APIENTRY VTSAPIgetenumtable(word,word,word *,dword *,char *);
-//BOOL  APIENTRY VTSAPIgetdefaultpropinfo(word,dword,word *,word *);
-//word  APIENTRY VTSAPIgetpropertystates(word,HWND);
-word  APIENTRY VTSAPIgetpropertystate(word,word,char *);
 bool  APIENTRY ReadTextPICS(const char *,PICSdb *,int *,int *);
 void  APIENTRY DeletePICSObject(generic_object *);
 int   GetStandardServicesSize(void);
@@ -174,7 +170,6 @@ bool cvhex(char *buf,octet *result);
 // Global variables
 extern UINT EPICSLengthProtocolServicesSupportedBitstring;    // used by test 135.1-2003 (k)
 extern UINT EPICSLengthProtocolObjectTypesSupportedBitstring; // used by test 135.1-2003 (l)
-
 
 #ifdef __cplusplus					//end of extern "C" declarations
 }
