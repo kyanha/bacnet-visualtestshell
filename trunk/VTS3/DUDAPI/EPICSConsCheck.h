@@ -12,8 +12,6 @@ last edit:	3-Nov-02 [016] Liangping,Xu
 ///////////////////////////////////////////////////////////////////////////////////
 //
 #define Max_Instance_Num 100
-#define Max_ObjServ_Num  50 
-#define Protocol_Serv_Sup 15        
 
 ///////////////////////////////////////////////////////////////////////////////////
 /// Describe object id for each object type
@@ -27,26 +25,4 @@ typedef struct tagTObjConsCHK
 
 TObjConsCHK  ObjInTestDB[MAX_DEFINED_OBJ];
 TObjConsCHK  DevObjList[MAX_DEFINED_OBJ];
-
-///////////////////////////////////////////////////////////////////////////////////
-/// Describe object type listed by protocol_object_supported property
-//typedef struct tagDevProtocolSup{
-//	octet *PropSupValue;            
-    //octet  ProtocolSup[Max_ObjServ_Num]; 
-//	word   ObjServNum;
-//}DevProtocolSup;
-
-//DevProtocolSup  ProtocolObjSup;
-//DevProtocolSup  ProtocolServSup;
-
-
-
-
-
-
-
-
-
-  
-
 

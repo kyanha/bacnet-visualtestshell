@@ -1617,18 +1617,6 @@ bool ScriptExecutor::SendPacket( void )
 		// get the destination
 		nlDA = execPacket->packetExprList.Find( kwDA );
 		if (!nlDA) {
-/* MAD_DB
-			for (int i = 0; i < execDB->m_Names.Length(); i++ ) {
-				VTSNameDesc		nameDesc;
-
-				execDB->m_Names.ReadName( i, &nameDesc );
-				if (stricmp(nameDesc.nameName,"IUT") == 0) {
-					nlDestAddr = nameDesc.nameAddr;
-					break;
-				}
-			}
-			if (i >= execDB->m_Names.Length())
-*/
 			if ( !execDB->LoadNamedAddress(&nlDestAddr, "IUT") )
 				throw ExecError( "Default destination address IUT not found", execPacket->baseLineStart );
 		} else {
@@ -1678,19 +1666,6 @@ bool ScriptExecutor::SendPacket( void )
 			} else
 			// it might be a name
 			if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptASCIIEnc)) {
-/* MAD_DB
-				CString tvalu = t.RemoveQuotes();
-				for (int i = 0; i < execDB->m_Names.Length(); i++ ) {
-					VTSNameDesc		nameDesc;
-
-					execDB->m_Names.ReadName( i, &nameDesc );
-					if (stricmp(nameDesc.nameName,tvalu) == 0) {
-						nlDestAddr = nameDesc.nameAddr;
-						break;
-					}
-				}
-				if (i >= execDB->m_Names.Length())
-*/
 				if ( !execDB->LoadNamedAddress(&nlDestAddr, t.RemoveQuotes()) )
 					throw ExecError( "Destination address name not found", nlDA->exprLine );
 			} else
