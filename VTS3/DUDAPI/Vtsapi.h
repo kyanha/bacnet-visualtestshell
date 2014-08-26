@@ -80,8 +80,8 @@ struct PICSdb {
 	dword	PTPmodemBaudRates[16];
 	dword	PTPAutoBaud[2];
 	dword	BACnetFailTimes[MAX_FAIL_TIMES];                    //array of Fail Times           29/12/2003  GJB
-	octet   BIBBSupported[MAX_BIBBS];  	//msdanner 9/2004: array of booleans indicating support for each BIBB,    
-    defaultrangelimits defaultlimits;	//msdanner 9/2004: default limits section,  
+	octet	BIBBSupported[MAX_BIBBS];  	//msdanner 9/2004: array of booleans indicating support for each BIBB,    
+	defaultrangelimits defaultlimits;	//msdanner 9/2004: default limits section,  
 	generic_object far *Database;
 	octet   BBMD;                       //msdanner 9/2004: indicates support for BBMD functionality
 	device_obj_type *pDeviceObject;     //msdanner 9/2004: points to parsed Device Object.  Only valid after parsing database.

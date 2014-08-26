@@ -1117,10 +1117,10 @@ STRING_TABLE BACnetPropertyIdentifier[] = {
    "instance-of",                      /* 48 */
    "integral-constant",                /* 49 */
    "integral-constant-units",          /* 50 */
-   "unused-was-issue-confirmed-notifications",    /* 51 deleted in version 1 revision 4 */
+   "unused-was-issue-confirmed-notifications", /* 51 deleted in version 1 revision 4 */
    "limit-enable",                     /* 52 */
    "list-of-group-members",            /* 53 */
-   "list-of-object-property-references",  /* 54 zhu zhenhua 2003-7-24 */
+   "list-of-object-property-references", /* 54 */
    "list-of-session-keys",             /* 55 deleted in version 1 revision 11 */
    "local-date",                       /* 56 */
    "local-time",                       /* 57 */
@@ -1189,7 +1189,7 @@ STRING_TABLE BACnetPropertyIdentifier[] = {
    "vendor-identifier",                /* 120 */
    "vendor-name",                      /* 121 */
    "vt-classes-supported",             /* 122 */
-   "weekly-schedule",                  /* 123 */   
+   "weekly-schedule",                  /* 123 */
    "attempted-samples",                /* 124 */
    "average-value",                    /* 125 */
    "buffer-size",                      /* 126 */
@@ -1218,40 +1218,40 @@ STRING_TABLE BACnetPropertyIdentifier[] = {
    "maximum-value-timestamp",          /* 149 */
    "minimum-value-timestamp",          /* 150 */
    "variance-value",                   /* 151 */
-   "active-cov-subscriptions",         /* 152 xiao shiyuan 2002-7-18 */
-   "backup-failure-timeout",           /* 153 xiao shiyuan 2002-7-18 */
-   "configuration-files",              /* 154 xiao shiyuan 2002-7-18 */
-   "database-revision",                /* 155 xiao shiyuan 2002-7-18 */
-   "direct-reading",                   /* 156 xiao shiyuan 2002-7-18 */
-   "last-restore-time",                /* 157 xiao shiyuan 2002-7-18 */
-   "maintenance-required",             /* 158 xiao shiyuan 2002-7-18 */
-   "member-of",                        /* 159 xiao shiyuan 2002-7-18 */
-   "mode",                             /* 160 xiao shiyuan 2002-7-18 */
-   "operation-expected",               /* 161 xiao shiyuan 2002-7-18 */
-   "setting",                          /* 162 xiao shiyuan 2002-7-18 */
-   "silenced",                         /* 163 xiao shiyuan 2002-7-18 */
-   "tracking-value",                   /* 164 xiao shiyuan 2002-7-18 */
-   "zone-members",                     /* 165 xiao shiyuan 2002-7-18 */
-   "life-safety-alarm-values",         /* 166 xiao shiyuan 2002-7-18 */
-   "max-segments-accepted",            /* 167 xiao shiyuan 2002-7-18 */
-   "profile-name",                     /* 168 xiao shiyuan 2002-7-18 */
-   "auto-slave-discovery",             /* 169 ljt 2005-10-12   */
-   "manual-slave-address-binding",     /* 170 ljt 2005-10-12   */
-   "slave-address-binding",            /* 171 ljt 2005-10-12   */
-   "slave-proxy-enable",               /* 172 ljt 2005-10-12   */
-   "last-notify-record",               /* 173 zhu zhenhua  2004-5-11 */
-   "schedule-default",                 // 174 shiyuan xiao 7/15/2005
-   "accepted-modes",                   // 175 shiyuan xiao 7/15/2005
-   "adjust-value",                     // 176 shiyuan xiao 7/15/2005
-   "count",                            // 177 shiyuan xiao 7/15/2005
-   "count-before-change",              // 178 shiyuan xiao 7/15/2005
-   "count-change-time",                // 179 shiyuan xiao 7/15/2005
-   "cov-period",                       // 180 shiyuan xiao 7/15/2005
-   "input-reference",                  // 181 shiyuan xiao 7/15/2005
-   "limit-monitoring-interval",        // 182 shiyuan xiao 7/15/2005
-   "logging-device",                   // 183 shiyuan xiao 7/15/2005
-   "logging-record",                   // 184 shiyuan xiao 7/15/2005
-   "prescale",                         // 185 shiyuan xiao 7/15/2005
+   "active-cov-subscriptions",         /* 152 */
+   "backup-failure-timeout",           /* 153 */
+   "configuration-files",              /* 154 */
+   "database-revision",                /* 155 */
+   "direct-reading",                   /* 156 */
+   "last-restore-time",                /* 157 */
+   "maintenance-required",             /* 158 */
+   "member-of",                        /* 159 */
+   "mode",                             /* 160 */
+   "operation-expected",               /* 161 */
+   "setting",                          /* 162 */
+   "silenced",                         /* 163 */
+   "tracking-value",                   /* 164 */
+   "zone-members",                     /* 165 */
+   "life-safety-alarm-values",         /* 166 */
+   "max-segments-accepted",            /* 167 */
+   "profile-name",                     /* 168 */
+   "auto-slave-discovery",             /* 169 */
+   "manual-slave-address-binding",     /* 170 */
+   "slave-address-binding",            /* 171 */
+   "slave-proxy-enable",               /* 172 */
+   "last-notify-record",               /* 173 */
+   "schedule-default",                 // 174
+   "accepted-modes",                   // 175
+   "adjust-value",                     // 176
+   "count",                            // 177
+   "count-before-change",              // 178
+   "count-change-time",                // 179
+   "cov-period",                       // 180
+   "input-reference",                  // 181
+   "limit-monitoring-interval",        // 182
+   "logging-object",                   // 183
+   "logging-record",                   // 184
+   "prescale",                         // 185
    "pulse-rate",                       // 186
    "scale",                            // 187
    "scale-factor",                     // 188

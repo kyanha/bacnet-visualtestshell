@@ -84,6 +84,7 @@ static bool ReadObjects(PICSdb *);
 static bool ReadCharsets(PICSdb *);
 static bool ReadFailTimes(PICSdb *);
 static bool ReadBIBBSupported(PICSdb *);
+static bool ReadDefaultPropertyValueRestrictions(PICSdb *);
 
 //static bool ParseLogRec(BACnetLogRecord *);
 static bool ParseTimeStamp(BACnetTimeStamp *);
@@ -125,20 +126,20 @@ static BACnetDeviceObjectPropertyReference *ParseDevObjPropReference(BACnetDevic
 static BACnetDeviceObjectReference *ParseDevObjReference(BACnetDeviceObjectReference *);
 
 
-// 135.1-2003 EPICS consistency checks added
+// 135.1-2013 EPICS consistency checks added
 static void ExpandBitstring(octet *pExpandedResult, octet *pBitstring, int nBits);
-static void CheckPICSConsistency2003(PICSdb *); // runs all checks
+static void CheckPICSConsistency2013(PICSdb *); // runs all checks
 static void CheckPICS_BIBB_Cross_Dependency(PICSdb *pd, int iSupportedBIBB, int iDependentBIBB);
 static void CheckPICSConsProperties(PICSdb *pd, generic_object *obj);
-static void CheckPICSCons2003A(PICSdb *pd);
-static void CheckPICSCons2003D(PICSdb *pd);
-static void CheckPICSCons2003E(PICSdb *pd);
-static void CheckPICSCons2003F(PICSdb *pd);
-static void CheckPICSCons2003G(PICSdb *pd);
-static void CheckPICSCons2003H(PICSdb *pd);
-static void CheckPICSCons2003I(PICSdb *pd);
-static void CheckPICSCons2003K(PICSdb *pd);
-static void CheckPICSCons2003L(PICSdb *pd);
+static void CheckPICSCons2013A(PICSdb *pd);
+static void CheckPICSCons2013D(PICSdb *pd);
+static void CheckPICSCons2013E(PICSdb *pd);
+static void CheckPICSCons2013F(PICSdb *pd);
+static void CheckPICSCons2013G(PICSdb *pd);
+static void CheckPICSCons2013H(PICSdb *pd);
+static void CheckPICSCons2013I(PICSdb *pd);
+static void CheckPICSCons2013K(PICSdb *pd);
+static void CheckPICSCons2013L(PICSdb *pd);
 
 static void PrintToFile(const char *);
 
@@ -284,8 +285,8 @@ PICSdb::~PICSdb()
 
 ///////////////////////////////////////////////////////////////////////
 // global variables
-UINT EPICSLengthProtocolServicesSupportedBitstring;    //msdanner 9/2004 - used by test 135.1-2003 (k)
-UINT EPICSLengthProtocolObjectTypesSupportedBitstring; //msdanner 9/2004 - used by test 135.1-2003 (l)
+UINT EPICSLengthProtocolServicesSupportedBitstring;    // used by test 135.1-2013 5(k)
+UINT EPICSLengthProtocolObjectTypesSupportedBitstring; // used by test 135.1-2013 5(l)
 ///////////////////////////////////////////////////////////////////////
 // local variables
 static bool    s_cancel = false;          //global cancel flag.  Set true to abort EPICS parsing
@@ -378,9 +379,9 @@ typedef struct {
 } bibbdef;
 
 
-// msdanner 8/31/04: added BIBBs definitions.
 // These are used by the parsing routines as well as the BIBB consistency checks.
-// The structure of these is similar to the old Functional Group definitions
+// The order MUST match the order of the enum BIBB in Db.h, as those values are
+// used as indexes into this array
 static bibbdef BIBBs[]={
          "DS-RP-A",
              { { ssInitiate, asReadProperty,  }
@@ -526,10 +527,12 @@ static bibbdef BIBBs[]={
              },
          "T-ATR-A",
              { { ssExecute,  asConfirmedEventNotification },
+               { ssExecute,  asUnconfirmedEventNotification },
                { ssInitiate, asReadRange                  }
              },
          "T-ATR-B",
              { { ssInitiate, asConfirmedEventNotification },
+               { ssInitiate, asUnconfirmedEventNotification },
                { ssExecute,  asReadRange                  }
              },
          "DM-DDB-A",
@@ -784,6 +787,29 @@ static bibbdef BIBBs[]={
                { ssExecute, asTimeSynchronization },
                { ssExecute, asUTCTimeSynchronization }
              },
+
+         // Added 26 August 2014
+         // TODO: bogus service lists yet
+         "T-VMMV-A",  // Deprecated in 135-2012
+             { { ssInitiate, asReadRange }
+             },
+         "T-VMMV-I-B",
+             { { ssExecute, asReadRange }
+             },
+         "T-VMMV-E-B",
+             { { ssExecute, asReadRange },
+               { ssInitiate, asReadPropertyMultiple }
+             },
+         "T-AMVR-A",
+             { { ssExecute,  asConfirmedEventNotification },
+               { ssExecute,  asUnconfirmedEventNotification },
+               { ssInitiate, asReadRange                  }
+             },
+         "T-AMVR-B",
+             { { ssInitiate, asConfirmedEventNotification },
+               { ssInitiate, asUnconfirmedEventNotification },
+               { ssExecute,  asReadRange                  }
+             },
          };
 
 // TODO: Duplicate of StringTables.cpp BACnetServicesSupported
@@ -936,6 +962,7 @@ static nameoctet Charsets[]={
          "ANSI X3.4",                     csANSI,  // As specified in 135.1-2013, which hasn't learned about UTF-8
          "ANSI X3.4/UTF-8",               csANSI,
          "ANSI X3.4 / UTF-8",             csANSI,
+         "UTF-8",                         csANSI,  // Not in 135.1-2013, but seen in an EPICS from BTF
          "IBM/Microsoft DBCS",            csDBCS,  // As specified in 135.1-2013
          "JIS C 6226",                    csJIS,   // As specified in 135.1-2013
          "ISO 10646 (UCS-4)",             csUCS4,  // As specified in 135.1-2013
@@ -1623,10 +1650,14 @@ bool APIENTRY ReadTextPICS(
    TRACE( "Errors logged to %s \n", fileName );
 
    pd->Database=NULL;
-   memset(pd->BACnetStandardObjects,soNotSupported,sizeof(pd->BACnetStandardObjects));      //added by xlp,2002-11
-   memset(pd->BACnetStandardServices,ssNotSupported,sizeof(pd->BACnetStandardServices));  //added by xlp,2002-11
+   memset(pd->BACnetStandardObjects,soNotSupported,sizeof(pd->BACnetStandardObjects));
+   memset(pd->BACnetStandardServices,ssNotSupported,sizeof(pd->BACnetStandardServices));
+
+   // Verify that the BIBBSupported is large enough to hold all the BIBBS
+   assert( (sizeof(pd->BIBBSupported)/sizeof(pd->BIBBSupported[0]) >= (sizeof(BIBBs)/sizeof(BIBBs[0]))) );
    // initialize to no BIBBs supported
    memset(pd->BIBBSupported,0,sizeof(pd->BIBBSupported));   //default is not supported
+
    memset(pd->BACnetFailTimes,ftNotSupported,sizeof(pd->BACnetFailTimes)); //default is not supported
    pd->BACnetFunctionalGroups=0;          //default is none
     // default is no data links supported
@@ -1737,10 +1768,10 @@ bool APIENTRY ReadTextPICS(
             {
                s_cancel = ReadSpecialFunctionality(pd);
             }
-//          else if (_stricmp(lb,"Default Property Value Restrictions")==0)
-//          {
-//             // TODO:
-//          }
+            else if (_stricmp(lb,"Default Property Value Restrictions")==0)
+            {
+               s_cancel = ReadDefaultPropertyValueRestrictions(pd);
+            }
             else if (_stricmp(lb,"Fail Times")==0)
             {
                s_cancel = ReadFailTimes(pd);
@@ -1762,11 +1793,11 @@ bool APIENTRY ReadTextPICS(
    // EPICS consistency Check
    if (!s_cancel)
    {
-      // New 135.1-2003 checks
+      // New 135.1-2013 checks
       if (lerrc == 0)  // if no syntax errors, proceed with EPICS consistency tests
       {
          lPICSErr = 0;                    // enables counting of consistency errors
-         CheckPICSConsistency2003(pd);    // EPICS consistency checks specified by 135.1-2003
+         CheckPICSConsistency2013(pd);    // EPICS consistency checks specified by 135.1-2013
          *errPICS = lPICSErr;             // return count of consistency errors
       }
    }
@@ -2182,7 +2213,33 @@ rsfwin:        if (ReadDW(&d) || (d<1) || (d>127))
 }
 
 ///////////////////////////////////////////////////////////////////////
-// Read Special Functionality Options section of a TPI file
+// Read Default Property Value Restrictions section of a TPI file
+//in: ifile    file stream
+//    pd       database structure to be filled in from PICS
+//out:   true     if cancel selected
+bool ReadDefaultPropertyValueRestrictions(PICSdb *)
+{
+   char     *p;
+
+   ReadNext();                         //point to next token
+   if (lp==NULL||*lp++!='{')           //no open token
+      return tperror("Expected { here",true);
+
+   // We currently read and IGNORE these...
+   while (lp!=NULL)
+   {
+      ReadNext();
+      if (*lp=='}'||lp==NULL) break;
+      if ((p=strchr(lp,':'))==NULL){         //colon in this one
+         return tperror("Missing colon and restriction value",true);
+      }
+   }
+
+   return false;
+}
+
+///////////////////////////////////////////////////////////////////////
+// Read Fail Times section of a TPI file
 //in: ifile    file stream
 //    pd       database structure to be filled in from PICS
 //out:   true     if cancel selected
@@ -4056,7 +4113,7 @@ oprfail:
 ///////////////////////////////////////////////////////////////////////
 // read a list BACnetCalendarEntrys from the buffer lp points to
 // ((m/d/y dow),(d-m-y dow),(m,wom,dow),(date..date)...)
-//  ((dow, d-m-y), (date..date)...) Shiyuan Xiao. According to standard 135.1-2003.
+//  ((dow, d-m-y), (date..date)...) Shiyuan Xiao. According to standard 135.1-2013.
 //
 //in: lp    points to current position in buffer lb
 //    calp  points to a variable which should point to a list of BACnetCalendarEntrys
@@ -6439,12 +6496,7 @@ const char *GetSpecialFunctionalityName(int i)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// Run all EPICS Consistency checks specified by standard 135.1-2003.
-//
-// The older EPICS consistency checks based on conformance class
-// and functional groups have been replaced by checks that are based on BIBBs.
-// Some of the older tests are still relevant and are launched from this
-// new function.
+// Run all EPICS Consistency checks specified by standard 135.1-2013.
 //
 // 5.  EPICS CONSISTENCY TESTS
 //
@@ -6453,112 +6505,107 @@ const char *GetSpecialFunctionalityName(int i)
 //
 // (a) All object types required by the specified BIBBs shall be indicated
 // as supported in the Standard Object Types Supported section of the
-// EPICS. (Similar to the old test "A", but using BIBBs instead of
-// conformance class.)
+// EPICS.
 //
 // (b) A minimum of one instance of each object type required by the
-// specified BIBBs shall be included in the test database. (Similar to the
-// old test "B", but using BIBBs instead of conformance class.)
+// specified BIBBs shall be included in the test database.
 //
 // (c) The Object_Types_Supported property of the Device object in the test
 // database shall indicate support for each object type required by the
-// supported BIBBs.  (Similar to the old test "C", but using BIBBs instead
-// of conformance class.)
+// supported BIBBs.
 //
 // (d) All application services required by the supported BIBBs shall be
 // indicated as supported in the BACnet Standard Application Services
 // Supported section of the EPICS with Initiate and Execute indicated as
-// required by the supported BIBBs. (Similar to the old test "D", but using
-// BIBBs instead of conformance class.)
+// required by the supported BIBBs.
 //
 // (e) The Application_Services_Supported property of the Device object in
 // the test database shall indicate support for each application service
 // for which the supported BIBBs requires support for execution of the
-// service. (Similar to the old test "E", but using BIBBs instead of
-// conformance class.)
+// service.
 //
 // (f) The object types listed in the Standard Object Types Supported
 // section of the EPICS shall have a one-to-one correspondence with object
 // types listed in the Object_Types_Supported property of the Device object
-// contained in the test database.  (Identical to the old test "K".)
+// contained in the test database.
 //
 // (g) For each object type listed in the Standard Object Types Supported
 // section of the EPICS there shall be at least one object of that type in
-// the test database. (Identical to the old test "L".)
+// the test database.
 //
 // (h) There shall be a one-to-one correspondence between the objects
 // listed in the Object_List property of the Device object and the objects
 // included in the test database. The Object_List property and the test
 // database shall both include all proprietary objects. Properties of
 // proprietary objects that are not required by BACnet Clause 23.4.3 need
-// not be included in the test database. (Identical to the old test "M".)
+// not be included in the test database.
 //
 // (i) For each object included in the test database, all required
 // properties for that object as defined in Clause 12 of BACnet shall be
 // present. In addition, if any of the properties supported for an object
 // require the conditional presence of other properties, their presence
-// shall be verified. (Identical to the old test "N".)
+// shall be verified.
 //
 // (j) For each property that is required to be writable, that property
-// shall be marked as writable in the EPICS. (New test.)
+// shall be marked as writable in the EPICS.
 //
 // (k) The length of the Protocol_Services_Supported bitstring shall have
 // the number of bits defined for BACnetProtocolServicesSupported for the
-// IUT's declared protocol revision.  (New test.)
+// IUT's declared protocol revision.
 //
 // (l) The length of the Protocol_Object_Types_Supported bitstring shall
 // have the number of bits defined for BACnetObjectTypesSupported for the
-// IUT's declared protocol revision. (New test.)
+// IUT's declared protocol revision.
 //
-void CheckPICSConsistency2003(PICSdb *pd)
+void CheckPICSConsistency2013(PICSdb *pd)
 {
    cConsistencyErrors=0;  // Reset global PICS error count.
 
    // Make sure that each Object Type required by a BIBB
    // exists in the Standard Object Types Supported section,
    // as well as cross dependencies between BIBBs.
-   // 135.1-2003, section 5.(a)
-   CheckPICSCons2003A(pd);
+   // 135.1-2013, section 5.(a)
+   CheckPICSCons2013A(pd);
 
-   // 135.1-2003, section 5.(b) is covered by test (g) below
+   // 135.1-2013, section 5.(b) is covered by test (g) below
 
-   // 135.1-2003, section 5.(c) is covered by test (f) below
+   // 135.1-2013, section 5.(c) is covered by test (f) below
 
-   // 135.1-2003, section 5.(d) test
+   // 135.1-2013, section 5.(d) test
    // Make sure application services required by each BIBB are
    // listed in the Standard Application Services Supported section.
-   CheckPICSCons2003D(pd);
+   CheckPICSCons2013D(pd);
 
-   // 135.1-2003, section 5.(e) test
+   // 135.1-2013, section 5.(e) test
    // Make sure the services marked "Execute" in the
    // 'BACnet Standard Application Services Supported' section match
    // the services marked supported in the Application_Services_Supported
    // Property of the Device Object.
    // This is a two-way check.
-   CheckPICSCons2003E(pd);
+   CheckPICSCons2013E(pd);
 
-   // 135.1-2003, section 5.(f)
+   // 135.1-2013, section 5.(f)
    // Make sure the Objects listed in the Standard Object Types section
    // match the bits in the Objects_Types_Supported property of the Device.
-   CheckPICSCons2003F(pd);
+   CheckPICSCons2013F(pd);
 
    // Make sure each Object type in the Standard Object Types Supported section
    // is represented in the test database.
-   // 135.1-2003, section 5.(b) & 5.(g)
-   CheckPICSCons2003G(pd);
+   // 135.1-2013, section 5.(b) & 5.(g)
+   CheckPICSCons2013G(pd);
 
-   // 135.1-2003, section 5.(h)
-   CheckPICSCons2003H(pd);
+   // 135.1-2013, section 5.(h)
+   CheckPICSCons2013H(pd);
 
-   // 135.1-2003, section 5.(i)
-   // 135.1-2003, section 5.(j)
-   CheckPICSCons2003I(pd);
+   // 135.1-2013, section 5.(i)
+   // 135.1-2013, section 5.(j)
+   CheckPICSCons2013I(pd);
 
-   // 135.1-2003, section 5.(k)
-   CheckPICSCons2003K(pd);
+   // 135.1-2013, section 5.(k)
+   CheckPICSCons2013K(pd);
 
-   // 135.1-2003, section 5.(l)
-   CheckPICSCons2003L(pd);
+   // 135.1-2013, section 5.(l)
+   CheckPICSCons2013L(pd);
 
 #if _DEBUG
    // TODO: Regression test: compare strdobjpr tables to DUDTOOL tables
@@ -6645,7 +6692,7 @@ void CheckPICS_BIBB_Cross_Dependency(PICSdb *pd, int iSupportedBIBB, int iDepend
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// EPICS Consistency test specified by 135.1-2003, section 5(a)
+// EPICS Consistency test specified by 135.1-2013, section 5(a)
 //
 // (a) All object types required by the specified BIBBs shall be indicated
 // as supported in the Standard Object Types Supported section of the
@@ -6653,13 +6700,13 @@ void CheckPICS_BIBB_Cross_Dependency(PICSdb *pd, int iSupportedBIBB, int iDepend
 // conformance class.)
 //
 // This function also runs checks for cross-BIBB dependencies,
-// which is not a test that is specified in 135.1-2003 section 5,
+// which is not a test that is specified in 135.1-2013 section 5,
 // but is clearly stated in the BIBB definition section of the BACnet standard.
 //
 // In addition, this function also checks for specific properties
 // that must be present for certain BIBBs. TODO
 //
-void CheckPICSCons2003A(PICSdb *pd)
+void CheckPICSCons2013A(PICSdb *pd)
 {
    int i;
    char opj[300];
@@ -6674,7 +6721,7 @@ void CheckPICSCons2003A(PICSdb *pd)
                if ( (pd->BACnetStandardObjects[OBJ_NOTIFICATIONCLASS]==soNotSupported) &&
                     (pd->BACnetStandardObjects[OBJ_EVENT_ENROLLMENT]==soNotSupported) )
                {
-                 sprintf(opj,"135.1-2003 5.(a): "
+                 sprintf(opj,"135.1-2013 5.(a): "
                    "BIBB AE-N-I-B requires support for Intrinsic or Algorithmic reporting, "
                    "which implies support for the Event Enrollment or Notification Class object "
                    "in the \"Standard Object Types Supported\" section.\n");
@@ -6687,7 +6734,7 @@ void CheckPICSCons2003A(PICSdb *pd)
                CheckPICS_BIBB_Cross_Dependency(pd,i,bibbDS_RP_A);
                if ( pd->BACnetStandardObjects[OBJ_EVENT_ENROLLMENT]==soNotSupported )
                {
-                 sprintf(opj,"135.1-2003 5.(a): "
+                 sprintf(opj,"135.1-2013 5.(a): "
                    "BIBB AE-N-E-B requires support for the Event Enrollment object "
                    "in the \"Standard Object Types Supported\" section.\n");
                  tperror(opj,false);
@@ -6698,7 +6745,7 @@ void CheckPICSCons2003A(PICSdb *pd)
                if ( (pd->BACnetStandardObjects[OBJ_LIFE_SAFETY_POINT]==soNotSupported) &&
                     (pd->BACnetStandardObjects[OBJ_LIFE_SAFETY_ZONE]==soNotSupported) )
                {
-                 sprintf(opj,"135.1-2003 5.(a): "
+                 sprintf(opj,"135.1-2013 5.(a): "
                    "BIBB AE-LS-B requires support for the Life Safety Point or Life Safety Zone object "
                    "in the \"Standard Object Types Supported\" section.\n");
                  tperror(opj,false);
@@ -6716,14 +6763,14 @@ void CheckPICSCons2003A(PICSdb *pd)
                CheckPICS_BIBB_Cross_Dependency(pd,i,bibbDS_WP_B);
                if ( pd->BACnetStandardObjects[OBJ_CALENDAR]==soNotSupported )
                {
-                 sprintf(opj,"135.1-2003 5.(a): "
+                 sprintf(opj,"135.1-2013 5.(a): "
                    "BIBB SCHED-I-B requires support for the Calendar object "
                    "in the \"Standard Object Types Supported\" section.\n");
                  tperror(opj,false);
                }
                if ( pd->BACnetStandardObjects[OBJ_SCHEDULE]==soNotSupported )
                {
-                 sprintf(opj,"135.1-2003 5.(a): "
+                 sprintf(opj,"135.1-2013 5.(a): "
                    "BIBB SCHED-I-B requires support for the Schedule object "
                    "in the \"Standard Object Types Supported\" section.\n");
                  tperror(opj,false);
@@ -6750,7 +6797,7 @@ void CheckPICSCons2003A(PICSdb *pd)
             case bibbT_ATR_B:
                if ( pd->BACnetStandardObjects[OBJ_TREND_LOG]==soNotSupported )
                {
-                 sprintf(opj,"135.1-2003 5.(a): "
+                 sprintf(opj,"135.1-2013 5.(a): "
                    "BIBB %s requires support for the Trend Log object "
                    "in the \"Standard Object Types Supported\" section.\n",
                    BIBBs[i].name );
@@ -6831,7 +6878,7 @@ void CheckPICSCons2003A(PICSdb *pd)
             }
             if ( pd->BACnetStandardObjects[OBJ_SCHEDULE]==soNotSupported )
             {
-               sprintf(opj,"135.1-2003 5.(a): "
+               sprintf(opj,"135.1-2013 5.(a): "
                        "BIBB SCHED-WS-I-B requires support for the Schedule object "
                        "in the \"Standard Object Types Supported\" section.\n");
                 tperror(opj,false);
@@ -6848,7 +6895,7 @@ void CheckPICSCons2003A(PICSdb *pd)
             }
             if ( pd->BACnetStandardObjects[OBJ_SCHEDULE]==soNotSupported )
             {
-               sprintf(opj,"135.1-2003 5.(a): "
+               sprintf(opj,"135.1-2013 5.(a): "
                        "BIBB SCHED-R-B requires support for the Schedule object "
                       "in the \"Standard Object Types Supported\" section.\n");
                 tperror(opj,false);
@@ -6871,6 +6918,41 @@ void CheckPICSCons2003A(PICSdb *pd)
             // replacing it with correct Dependency upon DS_RP_A
             CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_RP_A);
             break;
+
+         case bibbT_VMMV_A:  // Deprecated in 135-2012
+            break;
+         case bibbT_VMMV_I_B:
+            // Must support Trend-multiple object
+            if ( pd->BACnetStandardObjects[OBJ_TREND_LOG_MULTIPLE]==soNotSupported )
+            {
+               sprintf(opj,"135.1-2013 5.(a): "
+                       "BIBB T-VMMV-I-B requires support for the Trend Multiple object "
+                      "in the \"Standard Object Types Supported\" section.\n");
+                tperror(opj,false);
+            }
+            break;
+         case bibbT_VMMV_E_B:
+            if ( pd->BACnetStandardObjects[OBJ_TREND_LOG_MULTIPLE]==soNotSupported )
+            {
+               sprintf(opj,"135.1-2013 5.(a): "
+                       "BIBB T-VMMV-E-B requires support for the Trend Multiple object "
+                      "in the \"Standard Object Types Supported\" section.\n");
+                tperror(opj,false);
+            }
+            CheckPICS_BIBB_Cross_Dependency(pd, i, bibbT_VMMV_I_B);
+            CheckPICS_BIBB_Cross_Dependency(pd, i, bibbDS_RP_A);
+            break;
+         case bibbT_AMVR_A:
+            break;
+         case bibbT_AMVR_B:
+            if ( pd->BACnetStandardObjects[OBJ_TREND_LOG_MULTIPLE]==soNotSupported )
+            {
+               sprintf(opj,"135.1-2013 5.(a): "
+                       "BIBB T-AMVR-B requires support for the Trend Multiple object "
+                      "in the \"Standard Object Types Supported\" section.\n");
+                tperror(opj,false);
+            }
+            break;
          }
       }
    }
@@ -6880,7 +6962,7 @@ void CheckPICSCons2003A(PICSdb *pd)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// EPICS Consistency test specified by 135.1-2003, section 5(d)
+// EPICS Consistency test specified by 135.1-2013, section 5(d)
 //
 // (d) All application services required by the supported BIBBs shall be
 // indicated as supported in the BACnet Standard Application Services
@@ -6888,7 +6970,7 @@ void CheckPICSCons2003A(PICSdb *pd)
 // required by the supported BIBBs. (Similar to the old test "D", but using
 // BIBBs instead of conformance class.)
 //
-void CheckPICSCons2003D(PICSdb *pd)
+void CheckPICSCons2013D(PICSdb *pd)
 {
    int i;
    char opj[300];
@@ -6912,7 +6994,7 @@ void CheckPICSCons2003D(PICSdb *pd)
                else
                   errmsg = "Execute";
 
-               sprintf(opj,"135.1-2003 5.(d): "
+               sprintf(opj,"135.1-2013 5.(d): "
                        "BIBB %s requires the Device to %s the %s application service,"
                        " and support for this service has not been included in the "
                        "\"BACnet Standard Application Services Supported\" section.\n",
@@ -6928,7 +7010,7 @@ void CheckPICSCons2003D(PICSdb *pd)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// EPICS Consistency test specified by 135.1-2003, section 5(e)
+// EPICS Consistency test specified by 135.1-2013, section 5(e)
 //
 // (e) The Application_Services_Supported property of the Device object in
 // the test database shall indicate support for each application service
@@ -6942,7 +7024,7 @@ void CheckPICSCons2003D(PICSdb *pd)
 // Application Services Supported section and the Application_Services_Supported
 // property of the Device Object, but only for the "Execute" services.
 //
-void CheckPICSCons2003E(PICSdb *pd)
+void CheckPICSCons2013E(PICSdb *pd)
 {
    int i;
    char opj[300];
@@ -6963,7 +7045,7 @@ void CheckPICSCons2003E(PICSdb *pd)
       // If either is set and not the other, this is an error.
       if( (InStandardAppSection ^ Application_Services_Supported[i]) )  // XOR
       {
-         sprintf(opj,"135.1-2003 5.(e): "
+         sprintf(opj,"135.1-2013 5.(e): "
                  "Support for execution of the %s application service is not consistent "
                  "between the \"BACnet Standard Application Services Supported\" "
                  "section and the Application_Services_Supported Property of the Device Object.\n",
@@ -6975,14 +7057,14 @@ void CheckPICSCons2003E(PICSdb *pd)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// EPICS Consistency test specified by 135.1-2003, section 5(c) & 5(f)
+// EPICS Consistency test specified by 135.1-2013, section 5(c) & 5(f)
 //
-// Since the 2003A test covers which Objects should be in the
+// Since the 2013A test covers which Objects should be in the
 // Standard Object Types Supported section for each BIBB,
 // this function just needs to check that each object listed in that
 // section is indeed defined in the Object_Types_Supported property
 // of the Device Object in the database.  This covers both of the
-// following consistency checks in 135.1-2003:
+// following consistency checks in 135.1-2013:
 //
 // (c) The Object_Types_Supported property of the Device object in the test
 // database shall indicate support for each object type required by the
@@ -6994,7 +7076,7 @@ void CheckPICSCons2003E(PICSdb *pd)
 // types listed in the Object_Types_Supported property of the Device object
 // contained in the test database.  (Identical to the old test "K".)
 //
-void CheckPICSCons2003F(PICSdb *pd)
+void CheckPICSCons2013F(PICSdb *pd)
 {
    char errMsg[300];
    int  i, iNumStandardObjects;
@@ -7014,7 +7096,7 @@ void CheckPICSCons2003F(PICSdb *pd)
       // If either is set and not the other, this is an error.
       if( (InStandardObjectSection ^ ProtocolObjectSup[i]) )  // XOR
       {
-         sprintf(errMsg,"135.1-2003 5.(f): "
+         sprintf(errMsg,"135.1-2013 5.(f): "
             "Object type %s is not consistent between the \"Standard Object Types Supported\" "
             "section and the Object_Types_Supported Property of the Device Object.\n", StandardObjects[i]);
          tperror(errMsg,false);
@@ -7024,13 +7106,13 @@ void CheckPICSCons2003F(PICSdb *pd)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// EPICS Consistency test specified by 135.1-2003, section 5(b) & 5(g)
+// EPICS Consistency test specified by 135.1-2013, section 5(b) & 5(g)
 //
-// Since the 2003A test covers which Objects should be in the
+// Since the 2013A test covers which Objects should be in the
 // Standard Object Types Supported section for each BIBB,
 // this function just needs to check that each object listed in that
 // section is indeed in the database.  This covers both of the
-// following consistency checks in 135.1-2003:
+// following consistency checks in 135.1-2013:
 //
 // (b)   A minimum of one instance of each object type required by the
 // specified BIBBs shall be included in the test database. (Similar to the
@@ -7040,14 +7122,14 @@ void CheckPICSCons2003F(PICSdb *pd)
 // section of the EPICS there shall be at least one object of that type in
 // the test database. (Identical to the old test "L".)
 //
-void CheckPICSCons2003G(PICSdb *pd)
+void CheckPICSCons2013G(PICSdb *pd)
 {
    char errMsg[300];
    for(int i=0;i<MAX_DEFINED_OBJ;i++)
    {
       if( (pd->BACnetStandardObjects[i]) && !(ObjInTestDB[i].ObjIDSupported))
       {
-         sprintf(errMsg,"135.1-2003 5.(g): "
+         sprintf(errMsg,"135.1-2013 5.(g): "
             "Object type %s is listed in the \"Standard Object Types Supported\" section "
             "but no Objects of that type are defined in the test database.\n",StandardObjects[i]);
          tperror(errMsg,false);
@@ -7096,7 +7178,7 @@ bool FindObjectInObjectList(PICSdb *pd, dword ObjectID)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// EPICS Consistency test specified by 135.1-2003, section 5(h)
+// EPICS Consistency test specified by 135.1-2013, section 5(h)
 //
 // (h) There shall be a one-to-one correspondence between the objects
 // listed in the Object_List property of the Device object and the objects
@@ -7111,7 +7193,7 @@ bool FindObjectInObjectList(PICSdb *pd, dword ObjectID)
 // and making sure that every Object found is also in the Object_List.
 // This strategy should uncover any and all mismatches.
 //
-void CheckPICSCons2003H(PICSdb *pd)
+void CheckPICSCons2013H(PICSdb *pd)
 {
    char errMsg[300];
    generic_object *po;
@@ -7143,13 +7225,13 @@ void CheckPICSCons2003H(PICSdb *pd)
          SplitObjectId(id, &objtype, &objinstance);
          if (objtype < dwMaxStdObj)
          {
-            sprintf(errMsg,"135.1-2003 5.(h): "
+            sprintf(errMsg,"135.1-2013 5.(h): "
               "(%s,%u) is defined in the Object_List but does not appear in the test database.\n",
               StandardObjects[objtype], objinstance );
          }
          else
          {
-            sprintf(errMsg,"135.1-2003 5.(h): "
+            sprintf(errMsg,"135.1-2013 5.(h): "
               "(proprietary %u,%u) is defined in the Object_List but does not appear in the test database.\n",
               objtype, objinstance );
          }
@@ -7168,13 +7250,13 @@ void CheckPICSCons2003H(PICSdb *pd)
          SplitObjectId(id, &objtype, &objinstance);
          if (objtype < dwMaxStdObj)
          {
-            sprintf(errMsg,"135.1-2003 5.(h): "
+            sprintf(errMsg,"135.1-2013 5.(h): "
               "(%s,%u) is defined in the test database but does not appear in the Object_List.\n",
               StandardObjects[objtype], objinstance );
          }
          else
          {
-            sprintf(errMsg,"135.1-2003 5.(h): "
+            sprintf(errMsg,"135.1-2013 5.(h): "
               "(proprietary %u,%u) is defined in the test database but does not appear in the Object_List.\n",
               objtype, objinstance );
          }
@@ -7185,7 +7267,7 @@ void CheckPICSCons2003H(PICSdb *pd)
    return;
 }
 
-// Helper function for CheckPICSCons2003I.
+// Helper function for CheckPICSCons2013I.
 // This function is called for each object in the test database
 // to check if required (and writable) properties are present.
 // This function also handles the special case of the Device Object,
@@ -7225,7 +7307,7 @@ void CheckPICSConsProperties(PICSdb *pd, generic_object *obj)
            (dutRevision >= propdesc->firstRevision) )
       {
          sprintf(errMsg,
-                 "135.1-2003 5.(i): (%s,%u) must contain required property \"%s\".\n",
+                 "135.1-2013 5.(i): (%s,%u) must contain required property \"%s\".\n",
                  StandardObjects[objtype], objInstance,
                  NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( propdesc->PropID ));
          tperror(errMsg,false);
@@ -7240,7 +7322,7 @@ void CheckPICSConsProperties(PICSdb *pd, generic_object *obj)
                 (dutRevision >= propdesc->firstRevision) )
       {
          sprintf(errMsg,
-                 "135.1-2003 5.(j): (%s,%u) must have property \"%s\" marked writable.\n",
+                 "135.1-2013 5.(j): (%s,%u) must have property \"%s\" marked writable.\n",
                  StandardObjects[objtype], objInstance,
                  NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( propdesc->PropID ));
          tperror(errMsg,false);
@@ -7289,7 +7371,7 @@ void CheckPICSConsProperties(PICSdb *pd, generic_object *obj)
               (dutRevision >= propdesc->firstRevision) )
          {
             sprintf(errMsg,
-                    "135.1-2003 5.(i): (%s,%u) must contain conditionally required property \"%s\".\n",
+                    "135.1-2013 5.(i): (%s,%u) must contain conditionally required property \"%s\".\n",
                     StandardObjects[objtype], objInstance,
                     NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( propdesc->PropID ));
             tperror(errMsg,false);
@@ -7385,7 +7467,7 @@ void CheckPICSConsProperties(PICSdb *pd, generic_object *obj)
              (dutRevision >= propdesc->firstRevision))
          {
             sprintf(errMsg,
-                    "135.1-2003 5.(i): (%s,%u) must contain conditionally required property \"%s\".\n",
+                    "135.1-2013 5.(i): (%s,%u) must contain conditionally required property \"%s\".\n",
                     StandardObjects[objtype],
                     objInstance,
                     NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( propdesc->PropID ));
@@ -7396,7 +7478,7 @@ void CheckPICSConsProperties(PICSdb *pd, generic_object *obj)
                    (dutRevision >= propdesc->firstRevision) )
          {
             sprintf(errMsg,
-                    "135.1-2003 5.(i): (%s,%u) must have property \"%s\" marked writable.\n",
+                    "135.1-2013 5.(i): (%s,%u) must have property \"%s\" marked writable.\n",
                     StandardObjects[objtype],
                     objInstance,
                     NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( propdesc->PropID ));
@@ -7416,7 +7498,7 @@ void CheckPICSConsProperties(PICSdb *pd, generic_object *obj)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// EPICS Consistency test specified by 135.1-2003, section 5(i) & (j)
+// EPICS Consistency test specified by 135.1-2013, section 5(i) & (j)
 //
 // (i) For each object included in the test database, all required
 // properties for that object as defined in Clause 12 of BACnet shall be
@@ -7427,7 +7509,7 @@ void CheckPICSConsProperties(PICSdb *pd, generic_object *obj)
 // (j) For each property that is required to be writable, that property
 // shall be marked as writable in the EPICS. (New test.)
 //
-void CheckPICSCons2003I(PICSdb *pd)
+void CheckPICSCons2013I(PICSdb *pd)
 {
    generic_object *obj;
    obj=pd->Database;
@@ -7446,13 +7528,13 @@ void CheckPICSCons2003I(PICSdb *pd)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// EPICS Consistency test specified by 135.1-2003, section 5(k)
+// EPICS Consistency test specified by 135.1-2013, section 5(k)
 //
 // (k) The length of the Protocol_Services_Supported bitstring shall have
 // the number of bits defined for BACnetProtocolServicesSupported for the
 // IUT's declared protocol revision.  (New test.)
 //
-void CheckPICSCons2003K(PICSdb *pd)
+void CheckPICSCons2013K(PICSdb *pd)
 {
    char   errMsg[300];
    UINT ExpectedLength;
@@ -7470,7 +7552,7 @@ void CheckPICSCons2003K(PICSdb *pd)
    ExpectedLength = aCorrectLengthProtocolServicesSupportedBitstring[pDevice->protocol_rev];
    if (EPICSLengthProtocolServicesSupportedBitstring != ExpectedLength)
    {
-      sprintf(errMsg,"135.1-2003 5.(k): "
+      sprintf(errMsg,"135.1-2013 5.(k): "
          "For Protocol_Revision %d, the length of Protocol_Services_Supported "
          "must be %d bits, but it is %d bits.\n",
          pDevice->protocol_rev,
@@ -7482,13 +7564,13 @@ void CheckPICSCons2003K(PICSdb *pd)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// EPICS Consistency test specified by 135.1-2003, section 5(l)
+// EPICS Consistency test specified by 135.1-2013, section 5(l)
 //
 // (l) The length of the Protocol_Object_Types_Supported bitstring shall
 // have the number of bits defined for BACnetObjectTypesSupported for the
 // IUT's declared protocol revision. (New test.)
 //
-void CheckPICSCons2003L(PICSdb *pd)
+void CheckPICSCons2013L(PICSdb *pd)
 {
    char   errMsg[300];
    UINT ExpectedLength;
@@ -7506,7 +7588,7 @@ void CheckPICSCons2003L(PICSdb *pd)
    ExpectedLength = aCorrectLengthProtocolObjectTypesSupportedBitstring[pDevice->protocol_rev];
    if (EPICSLengthProtocolObjectTypesSupportedBitstring != ExpectedLength)
    {
-      sprintf(errMsg,"135.1-2003 5.(l): "
+      sprintf(errMsg,"135.1-2013 5.(l): "
          "For Protocol_Revision %d, the length of Protocol_Object_Types_Supported "
          "must be %d bits, but it is %d bits.\n",
          pDevice->protocol_rev,

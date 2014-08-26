@@ -188,7 +188,7 @@ enum BACnetPropertyIdentifier
    COV_PERIOD =                     180,
    INPUT_REFERENCE =                181,
    LIMIT_MONITORING_INTERVAL =      182,
-   LOGGING_DEVICE =                 183,
+   LOGGING_OBJECT =                 183,
    LOGGING_RECORD =                 184,
    PRESCALE =                       185,
    PULSE_RATE =                     186,
