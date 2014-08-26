@@ -1747,7 +1747,7 @@ propdescriptor ACProps[] =
    { VALUE_BEFORE_CHANGE,            oo(value_before_change),           uw,          0,        0,                  O|WithService|QVAL },
    { VALUE_SET,                      oo(value_set),                     uw,          0,        0,                  O|WithService },
    { LOGGING_RECORD,                 oo(logging_record),                eaclr,       0,        0,                  O },
-   { LOGGING_DEVICE,                 oo(logging_device.object_id),      ob_id,       0,        0,                  O },
+   { LOGGING_OBJECT,                 oo(logging_device.object_id),      ob_id,       0,        0,                  O },
    { PULSE_RATE,                     oo(pulse_rate),                    uw,          0,        0,                  O|WithService },
    { HIGH_LIMIT,                     oo(high_limit),                    uw,          Intr,     0,                  O|WithService },
    { LOW_LIMIT,                      oo(low_limit),                     uw,          Intr,     0,                  O|WithService },

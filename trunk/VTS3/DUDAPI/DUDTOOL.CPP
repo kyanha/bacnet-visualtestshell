@@ -1808,11 +1808,11 @@ bool AC_CreateProperty( accumulator_obj_type * pObj, BACnetPropertyIdentifier pr
          pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->value_set));
          break;
    case LOGGING_RECORD:
-      pbacnetAnyValue->SetObject(eaclr, new ::BACnetAccumulatorRecord(pObj->logging_record.timestamp,
+         pbacnetAnyValue->SetObject(eaclr, new ::BACnetAccumulatorRecord(pObj->logging_record.timestamp,
          pObj->logging_record.presentValue, pObj->logging_record.accumulatedValue,
          pObj->logging_record.accumulatorStatus));
           break;
-   case LOGGING_DEVICE:
+   case LOGGING_OBJECT:
           pbacnetAnyValue->SetObject(ob_id, new ::BACnetObjectIdentifier((unsigned int) pObj->logging_device.object_id));
           break;
    case PULSE_RATE:
@@ -3421,7 +3421,7 @@ static const BACnetPropertyIdentifier accumulator_PL[] =
    VALUE_BEFORE_CHANGE,
    VALUE_SET,
    LOGGING_RECORD,
-   LOGGING_DEVICE,
+   LOGGING_OBJECT,
    PULSE_RATE,
    HIGH_LIMIT,
    LOW_LIMIT,

@@ -468,10 +468,9 @@ enum BACnetAccumulatorStatus
    failed
 };
 
-// msdanner 9/04:
 // enumerated BIBBs
 // WARNING - This enumeration must match exactly with the 
-// definition of the BIBBs structure in Vtsapi32.cpp because these
+// definition of the BIBBs[] array in Vtsapi32.cpp because these
 // values are used as in index into that array.
 enum BIBB {
    bibbDS_RP_A = 0,  
@@ -545,7 +544,7 @@ enum BIBB {
    bibbNM_CE_B,
    bibbNM_RC_A,
    bibbNM_RC_B,
-// Added Workstation BIBBs 12/5/2007 LJT
+   // Added Workstation BIBBs 12/5/2007 LJT
    bibbDS_V_A,
    bibbDS_AV_A,
    bibbDS_M_A,
@@ -576,8 +575,13 @@ enum BIBB {
    bibbSCH_R_B,
    bibbSCH_I_B,
    bibbSCH_E_B,
+   // Added to VTS 26 August 2014
+   bibbT_VMMV_A,  // Deprecated in 135-2012
+   bibbT_VMMV_I_B,
+   bibbT_VMMV_E_B,
+   bibbT_AMVR_A,
+   bibbT_AMVR_B,
 };
-
 
 typedef struct tagPropertyReference {
 struct tagPropertyReference      *next;

@@ -499,7 +499,7 @@ List of Objects in Test Device:
     Value-Before-Change: 0
     Value-Set: 67
     Logging-Record: {(13-JUL-01,2),13:00:00.2,120,1,NORMAL}
-    Logging-Device: (Trend-Log, 100)
+    Logging-Object: (Trend-Log, 100)
     Pulse-Rate: 3
     High-Limit: 15
     Low-Limit: 0
@@ -788,7 +788,7 @@ List of Objects in Test Device:
     object-type: calendar
     description: "calendar object"
     present-value: false
-    date-list: ({(SAT,23-DEC-1995),(WED,3-JAN-1996)},{(MON,19-FEB-1996)},{X'010401'})
+    date-list: ({(SAT,23-DEC-1995),(WED,3-JAN-1996)},(MON,19-FEB-1996),X'010401')
     Property-List: ?
     profile-name: "calendar"
   }
@@ -1274,7 +1274,9 @@ List of Objects in Test Device:
 
     -- The datatype of the first reference is used to interpret present-value and schedule-default
     -- and weekly-schedule and exception-schedule
-    list-of-object-property-references: ({(binary-value,1),present-value})
+    list-of-object-property-references: ({(binary-value,1),present-value},
+                                         {(binary-value,10),present-value,,(device,666)} 
+                                        )
 
     priority-for-writing: 15
     status-flags: (F, F, T, F)
@@ -1291,7 +1293,12 @@ List of Objects in Test Device:
     enable: false w
     start-time: (6/10/2005,5),10:27:21.74
     stop-time: (6/10/2005,5),10:27:21.74
+    
     log-device-object-property: {(analog-input,2),present-value}
+--    log-device-object-property: {(analog-output,2),priority-array,2}
+--    log-device-object-property: {(analog-input,2),present-value,,(device,666)}
+--    log-device-object-property: {(analog-output,2),priority-array,2,(device,666)}
+
     log-interval: 30000
     cov-resubscription-interval: 0
     client-cov-increment: 1.0

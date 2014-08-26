@@ -18,7 +18,7 @@
 #define DEVICE_LOOPBACK     1       // set to zero to disable "looped" messages
 
 #define MAX_FAIL_TIMES         9    // Size of BACnetFailTimes array per 135.1-2013 4.5.9
-#define MAX_BIBBS            100    // Number of BIBBS (plus growing room)
+#define MAX_BIBBS            200    // Number of BIBBS (plus growing room)
 #define MAX_DATALINK_OPTIONS  30    // Size of array of supported datalinks from EPICS (plus growing room)
 
 // Just the name.  Each usage must use GetTempPath for the path
