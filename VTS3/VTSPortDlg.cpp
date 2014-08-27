@@ -377,7 +377,7 @@ void VTSPortDlg::OnNewPort()
    VTSPortPtr  curPort = new VTSPort();
 
    // If this is the first/only port, set default values per the Survival Guide
-   if (m_ports.GetCount() == 0)
+   if (m_ports.GetSize() == 0)
    {
       curPort->SetName( "MyPort" );
       curPort->SetPortType( ipPort );

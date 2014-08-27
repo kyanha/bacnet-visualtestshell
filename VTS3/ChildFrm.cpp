@@ -287,7 +287,9 @@ BOOL CChildFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
    // Moved default Hex to the bottom: four-wide is TOO wide.
    // Ideal (for me) would be to have hex view only below the list view, so that
    // Detail and EPICS views would get full height.
-   // But that would need splitter windows, not docking toolbars
+   // The user CAN move the hex view to the lower part of the detail or EPICS view,
+   // but apparently NOT just below the list view.
+   // And I don't see a simple way to do any of that programmatically.
    DockControlBar(m_pwndHexViewBar, AFX_IDW_DOCKBAR_BOTTOM);
 
    //////////////////////////////////////////////////////////////////////////////////

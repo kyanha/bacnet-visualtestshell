@@ -23,7 +23,7 @@ class DiscoveryExecutor : public SendReceiveExecutor
 {
 public:
    // Subclass BACnetAnyValue to prevent automatic delete
-   class DiscoAnyValue : public AnyValue
+   class DiscoAnyValue : public SendReceiveExecutor::AnyValue
    {
    public:
       DiscoAnyValue( UINT a_parseType, UINT a_propertyID );

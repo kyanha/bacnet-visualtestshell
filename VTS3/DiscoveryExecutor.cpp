@@ -556,7 +556,7 @@ void DiscoveryExecutor::DoDiscovery()
             {
                Sleep( 250 );
                now = GetTickCount();
-               int nDevices = m_discoveredDevices.GetCount();
+               int nDevices = m_discoveredDevices.GetSize();
                if (nDevices > nSeen)
                {
                   // One or more new devices.  Reset time
@@ -584,7 +584,7 @@ void DiscoveryExecutor::DoDiscovery()
    while (!m_bUserCancelled && (low < high));
 
    // Dump the device list.
-   for (int ix = 0; ix < m_discoveredDevices.GetCount(); ix++)
+   for (int ix = 0; ix < m_discoveredDevices.GetSize(); ix++)
    {
       const DiscoveryInfo *pElem  = m_discoveredDevices.GetAt( ix );
       str.Format( "Device %u at %s.  Vendor: %s.  maxAPDU:%u.  %s",
@@ -609,7 +609,7 @@ void DiscoveryExecutor::DoDiscovery()
 // Clear the list of discovered devices
 void DiscoveryExecutor::ClearDiscoveryList()
 {
-   for (int ix = 0; ix < m_discoveredDevices.GetCount(); ix++)
+   for (int ix = 0; ix < m_discoveredDevices.GetSize(); ix++)
    {
       delete m_discoveredDevices.GetAt( ix );
    }
@@ -654,7 +654,7 @@ void DiscoveryExecutor::SendWhoIs( int theLowInstance, int theHighInstance )
 int DiscoveryExecutor::InstanceAfter( int theInstance )
 {
    int nextInstance = 0x3FFFFF + 1;
-   for (int ix = 0; ix < m_discoveredDevices.GetCount(); ix++)
+   for (int ix = 0; ix < m_discoveredDevices.GetSize(); ix++)
    {
       int instance = m_discoveredDevices.GetAt( ix )->m_instance;
       if ((instance > theInstance) && (instance < nextInstance))
@@ -692,7 +692,7 @@ void DiscoveryExecutor::ReceiveAPDU( const BACnetAPDU &theAPDU )
       pInfo->m_vendorID = vendor.uintValue;
 
       // Add the data to the discovery list, sorting by device instance
-      for (int ix = 0; ix < m_discoveredDevices.GetCount(); ix++)
+      for (int ix = 0; ix < m_discoveredDevices.GetSize(); ix++)
       {
          const DiscoveryInfo *pElem  = m_discoveredDevices.GetAt( ix );
          if (pInfo->m_instance < pElem->m_instance)
