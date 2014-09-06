@@ -5098,15 +5098,16 @@ BACnetDateTime::BACnetDateTime( void )
    // Current time, so CTime is just fine
    CTime ctime = CTime::GetCurrentTime();
 
-   struct tm   *currtime = ctime.GetLocalTm(NULL);
+   struct tm currtime;
+   ctime.GetLocalTm( &currtime );
 
-   bacnetTime.hour   = currtime->tm_hour;
-   bacnetTime.minute = currtime->tm_min;
-   bacnetTime.second = currtime->tm_sec;
+   bacnetTime.hour   = currtime.tm_hour;
+   bacnetTime.minute = currtime.tm_min;
+   bacnetTime.second = currtime.tm_sec;
    bacnetTime.hundredths = 0;
-   bacnetDate.year  = currtime->tm_year;
-   bacnetDate.month = currtime->tm_mon + 1;
-   bacnetDate.day   = currtime->tm_mday;
+   bacnetDate.year  = currtime.tm_year;
+   bacnetDate.month = currtime.tm_mon + 1;
+   bacnetDate.day   = currtime.tm_mday;
    bacnetDate.CalcDayOfWeek();
 }
 
