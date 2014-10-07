@@ -41,6 +41,7 @@ BACnetAPDUSegment::BACnetAPDUSegment( const BACnetAPDU &apdu, BACnetTSMPtr tp )
 	segAPDU.apduSeq					= apdu.apduSeq;
 	segAPDU.apduWin					= apdu.apduWin;
 	segAPDU.apduMaxResp				= apdu.apduMaxResp;
+	segAPDU.apduMaxSegs				= apdu.apduMaxSegs;
 	segAPDU.apduService				= apdu.apduService;
 	segAPDU.apduInvokeID			= apdu.apduInvokeID;
 	segAPDU.apduAbortRejectReason	= apdu.apduAbortRejectReason;
@@ -102,6 +103,7 @@ const BACnetAPDU& BACnetAPDUSegment::operator[](const int indx)
 	switch (segAPDU.apduType) {
 		case confirmedRequestPDU:
 			segAPDU.apduMaxResp = segTSMPtr->tsmDevice->deviceMaxAPDUSize;
+			segAPDU.apduMaxSegs = segTSMPtr->tsmDevice->deviceMaxSegs;
 			segAPDU.apduInvokeID = segTSMPtr->tsmInvokeID;
 			
 			// segmented message?
@@ -171,6 +173,7 @@ int BACnetAPDUSegment::AddSegment( const BACnetAPDU &apdu )
 		segAPDU.apduSeq					= apdu.apduSeq;
 		segAPDU.apduWin					= apdu.apduWin;
 		segAPDU.apduMaxResp				= apdu.apduMaxResp;
+		segAPDU.apduMaxSegs				= apdu.apduMaxSegs;
 		segAPDU.apduService				= apdu.apduService;
 		segAPDU.apduInvokeID			= apdu.apduInvokeID;
 		segAPDU.apduAbortRejectReason	= apdu.apduAbortRejectReason;

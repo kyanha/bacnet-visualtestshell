@@ -74,6 +74,15 @@ typedef CSendGroupPtr *CSendGroupList;
 class ScriptNetFilter;
 typedef ScriptNetFilter *ScriptNetFilterPtr;
 
+// Version constants for storage schemas.
+// See comments on VTSDoc::Serialize
+#define VTS_DOC_SCHEMA_1 1    // Until October 4 2014 (last official release 3.6.2.0, July 9 2014)
+#define VTS_DOC_SCHEMA_2 2    // After Until October 4 2014
+                              // Adds properties to VTSDevice
+
+#define VTS_DOC_SCHEMA   VTS_DOC_SCHEMA_2  // Current schema when storing
+
+
 //
 // VTSPort
 //
@@ -152,7 +161,7 @@ class VTSPort : public CObject
       void UnbindDevice(void);
 
       const VTSPort& operator=(const VTSPort& rportSrc);
-      void Serialize( CArchive& archive );
+      void Serialize( CArchive& archive, UINT version );
 
       DECLARE_SERIAL(VTSPort)
 };
@@ -184,7 +193,7 @@ class VTSName : public CObject                     // serializable name element
 
       const VTSName& operator=(const VTSName& rnameSrc);
 
-      void Serialize( CArchive& archive );
+      void Serialize( CArchive& archive, UINT version );
       LPCSTR GetPortName(void) { return m_strPortNameTemp; }
       LPCSTR GetName(void) { return m_strName; }
       bool IsAddressMatch( const BACnetAddress &addr, VTSPort * pport );
@@ -273,7 +282,7 @@ class VTSFilter : public CObject                   // serializable filter elemen
 
       const VTSFilter& operator=(const VTSFilter& rfilterSrc);
 
-      void Serialize( CArchive& archive );
+      void Serialize( CArchive& archive, UINT version );
       LPCSTR GetPortName(void) { return m_strPortNameTemp; }
 
       bool TestAddress( const BACnetAddress &addr );
@@ -290,7 +299,7 @@ class VTSFilters : public CTypedPtrArray<CPtrArray, VTSFilter *>
 
       void DeepCopy( const VTSFilters * psrc );
       void KillContents( void );
-      void Serialize( CArchive& archive );
+      void Serialize( CArchive& archive, UINT version );
 
       void Remove( int i );                     // remove a filter
 
@@ -396,14 +405,19 @@ class VTSDevice : public CObject
       int         m_nAPDUSegmentTimeout;        // how long to wait between segments
       int         m_nAPDURetries;               // how many retries are acceptable
       int         m_nVendorID;                  // which vendor is this?
+      // End of VTS_DOC_SCHEMA_1 data
+
+      // VTS_DOC_SCHEMA_2 data
+      BACnetBitString   m_services_supported;
+      int               m_nEvents;
+      int               m_nMaxSegs;             // Maximum number of segments accepted
+      // End of VTS_DOC_SCHEMA_2 data
 
       VTSDevObjects m_devobjects;
 
-      BACnetBitString      m_services_supported;
-      int               m_nEvents;
       // End persistent data
 
-      BACnetBitString      m_objects_supported;
+      BACnetBitString   m_objects_supported;
 
       VTSDevice( void );
       ~VTSDevice( void );
@@ -432,9 +446,7 @@ class VTSDevice : public CObject
       VTSDevProperty * FindProperty( VTSDevObject * pobject, int nPropID );
 
       const VTSDevice& operator=(const VTSDevice& rdeviceSrc);
-      void Serialize( CArchive& archive );
-// Needed if we change schema and want alarm support configuration to be persistent
-//    UINT SerializeSchema (CArchive &ar, CRuntimeClass *pClass);
+      void Serialize( CArchive& archive, UINT version );
 
       DECLARE_SERIAL(VTSDevice)
    };

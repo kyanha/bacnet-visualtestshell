@@ -29,7 +29,7 @@
 			void DeepCopy( const class_name2 * psrc ); \
 			void KillContents( void ); \
 			element_name2 * Find( LPCSTR lpszName ); \
-			void Serialize( CArchive& archive ); \
+			void Serialize( CArchive& archive, UINT version ); \
 			DECLARE_SERIAL(class_name2);
 
 #define DECLARE_VTSPTRARRAY(class_name, element_name) \
@@ -60,11 +60,11 @@
 			if ( CString(GetAt(i)->GetName()).CompareNoCase(lpszName) == 0 ) \
 				return GetAt(i); \
 		return NULL; } \
-	void class_name::Serialize(CArchive& ar) { \
-		if (ar.IsStoring())	{ ar << GetSize(); for ( int i = 0; i < GetSize(); i++ ) GetAt(i)->Serialize(ar); } \
+	void class_name::Serialize(CArchive& ar, UINT version) { \
+		if (ar.IsStoring())	{ ar << GetSize(); for ( int i = 0; i < GetSize(); i++ ) GetAt(i)->Serialize(ar,version); } \
 		else {	int iSize; KillContents(); \
 			for ( ar >> iSize; iSize > 0; iSize-- ) { \
-			element_name * p = new element_name(); p->Serialize(ar); Add(p); } } } \
+			element_name * p = new element_name(); p->Serialize(ar,version); Add(p); } } } \
 	IMPLEMENT_SERIAL(class_name, CPtrArray, 1);
 
 
@@ -101,7 +101,7 @@ class VTSDevValue : public CObject
 		LPCSTR GetName(void) { return NULL; }
 
 		const VTSDevValue& operator=(const VTSDevValue& rdevvalueSrc);
-		void Serialize( CArchive& archive );
+		void Serialize( CArchive& archive, UINT version );
 		VTSDevValues * GetValueList(void) { return m_pdevvalues; }
 
 		DECLARE_SERIAL(VTSDevValue);
@@ -135,7 +135,7 @@ class VTSDevProperty : public CObject
 		static LPCSTR GetDescription( unsigned int nPropID );
 
 		const VTSDevProperty& operator=(const VTSDevProperty& rdevpropertySrc);
-		void Serialize( CArchive& archive );
+		void Serialize( CArchive& archive, UINT version );
 
 		DECLARE_SERIAL(VTSDevProperty);
 };
@@ -167,7 +167,7 @@ class VTSDevObject : public CObject
 		int GetType(void) { return (int) (GetID() >> 22); }
 		int GetInstance(void) { return (int) (GetID() & ((1 << 22) - 1)); }
 		const VTSDevObject& operator=(const VTSDevObject& rdevobjectSrc);
-		void Serialize( CArchive& archive );
+		void Serialize( CArchive& archive, UINT version );
 
 		DECLARE_SERIAL(VTSDevObject);
 };

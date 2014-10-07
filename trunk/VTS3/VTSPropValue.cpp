@@ -45,7 +45,7 @@ VTSDevValue::~VTSDevValue()
 }
 
 
-void VTSDevValue::Serialize(CArchive& ar)
+void VTSDevValue::Serialize(CArchive& ar, UINT version)
 {
 	if (ar.IsStoring())
 	{
@@ -59,7 +59,7 @@ void VTSDevValue::Serialize(CArchive& ar)
 		else
 		{
 			ar << 1;
-			m_pdevvalues->Serialize(ar);
+			m_pdevvalues->Serialize(ar, version);
 		}
 	}
 	else
@@ -72,7 +72,7 @@ void VTSDevValue::Serialize(CArchive& ar)
 		int nValueArray;
 		ar >> nValueArray;
 		if ( nValueArray  &&  AllocateNewValueList() )
-			m_pdevvalues->Serialize(ar);
+			m_pdevvalues->Serialize(ar, version);
 	}
 }
 
@@ -192,9 +192,9 @@ VTSDevProperty::~VTSDevProperty()
 
 // Encode for version 1
 
-void VTSDevProperty::Serialize(CArchive& ar)
+void VTSDevProperty::Serialize(CArchive& ar, UINT version)
 {
-	m_devvalues.Serialize(ar);
+	m_devvalues.Serialize(ar, version);
 	if (ar.IsStoring())
 	{
 		// Decode for version 1.  If changes are made, switch on schema and decode properly
@@ -258,9 +258,9 @@ CString VTSDevObject::GetDescription( void )
 
 // Encode for version 1
 
-void VTSDevObject::Serialize(CArchive& ar)
+void VTSDevObject::Serialize(CArchive& ar, UINT version)
 {
-	m_devproperties.Serialize(ar);
+	m_devproperties.Serialize(ar, version);
 
 	if (ar.IsStoring())
 	{

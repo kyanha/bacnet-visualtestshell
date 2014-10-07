@@ -50,6 +50,7 @@ void VTSDevicesTreeDevPage::ClearData(void)
 	m_Name = _T("");
 	m_nInstance = 0;
 	m_nSegSize = 0;
+	m_nMaxSegs = 0;
 	m_nWindowSize = 0;
 	m_nNextInvokeID = 0;
 	m_nMaxAPDUSize = 0;
@@ -70,6 +71,7 @@ void VTSDevicesTreeDevPage::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_NAME, m_Name);
 	DDX_Text(pDX, IDC_INSTANCE, m_nInstance);
 	DDX_Text(pDX, IDC_SEGSIZE, m_nSegSize);
+	DDX_Text(pDX, IDC_MAXSEGS, m_nMaxSegs);
 	DDX_Text(pDX, IDC_WINDOWSIZE, m_nWindowSize);
 	DDX_Text(pDX, IDC_NEXTINVOKEID, m_nNextInvokeID);
 	DDX_Text(pDX, IDC_MAXAPDUSIZE, m_nMaxAPDUSize);
@@ -95,6 +97,7 @@ BEGIN_MESSAGE_MAP(VTSDevicesTreeDevPage, VTSPropertyPage)
 	ON_BN_CLICKED(IDC_SEGNONE, OnSaveChange)
 	ON_BN_CLICKED(IDC_SEGRECEIVE, OnSaveChange)
 	ON_EN_CHANGE(IDC_SEGSIZE, OnSaveChange)
+	ON_EN_CHANGE(IDC_MAXSEGS, OnSaveChange)
 	ON_BN_CLICKED(IDC_SEGTRANSMIT, OnSaveChange)
 	ON_BN_CLICKED(IDC_SEGTYPE, OnSaveChange)
 	ON_EN_CHANGE(IDC_VENDORID, OnSaveChange)
@@ -148,6 +151,7 @@ void VTSDevicesTreeDevPage::DeviceToCtrl( VTSDevice * pdevice )
 	m_Name = pdevice->m_strName;
 	m_nInstance = pdevice->m_nInstance;
 	m_nSegSize = pdevice->m_nSegmentSize;
+	m_nMaxSegs = pdevice->m_nMaxSegs;
 	m_nWindowSize = pdevice->m_nWindowSize;
 	m_nNextInvokeID = pdevice->m_nNextInvokeID;
 	m_nMaxAPDUSize = pdevice->m_nMaxAPDUSize;
@@ -169,6 +173,7 @@ void VTSDevicesTreeDevPage::CtrlToDevice( VTSDevice * pdevice )
 	pdevice->m_nInstance = m_nInstance;
 	pdevice->m_fRouter = m_nRouter != 0;
 	pdevice->m_nSegmentSize = m_nSegSize;
+	pdevice->m_nMaxSegs = m_nMaxSegs;
 	pdevice->m_nWindowSize = m_nWindowSize;
 	pdevice->m_nMaxAPDUSize = m_nMaxAPDUSize;
 	pdevice->m_nNextInvokeID = m_nNextInvokeID;
@@ -185,6 +190,7 @@ void VTSDevicesTreeDevPage::EnableControls( bool fEnable )
 	GetDlgItem( IDC_NAME )->EnableWindow( fEnable );
 	GetDlgItem( IDC_INSTANCE )->EnableWindow( fEnable );
 	GetDlgItem( IDC_SEGSIZE )->EnableWindow( fEnable );
+	GetDlgItem( IDC_MAXSEGS )->EnableWindow( fEnable );
 	GetDlgItem( IDC_WINDOWSIZE )->EnableWindow( fEnable );
 	GetDlgItem( IDC_NEXTINVOKEID )->EnableWindow( fEnable );
 	GetDlgItem( IDC_MAXAPDUSIZE )->EnableWindow( fEnable );

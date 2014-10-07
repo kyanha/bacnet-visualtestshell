@@ -1596,7 +1596,7 @@ bool ScriptExecutor::SendPacket( void )
 		} 
 		else 
 		{
-            int i;					// MAG 11AUG05 add this line, remove local declaration below since i is used out of that scope
+			int i;
 			if (!pNet)
 				throw ExecError( "Network required", execPacket->baseLineStart );
 
@@ -3220,80 +3220,69 @@ void ScriptExecutor::SendDevAbort( BACnetAPDU &apdu )
 
 void ScriptExecutor::SendConfirmedRequest( CByteArray &packet )
 {
-	ScriptPacketExprPtr		pSegMsg, pMOR, pSegResp, pMaxResp, pInvokeID, pSeq, pWindow, pService
-	;
-	BACnetBoolean			alSegMsg, alMOR, alSegResp
-	;
-	BACnetInteger			alMaxResp, alInvokeID, alSeq, alWindow, alService
-	;
+	ScriptPacketExprPtr		pSegMsg, pMOR, pSegResp, pMaxResp, pMaxSegs, pInvokeID, pSeq, pWindow, pService;
+	BACnetBoolean			alSegMsg, alMOR, alSegResp;
+	BACnetInteger			alMaxResp, alMaxSegs, alInvokeID, alSeq, alWindow, alService;
 
-	// find segmentation inforamtion
+	// Segmented request?  Default is false, since it is almost impossible to do
+	// segmentation manually.  Easier to use SendDevConfirmedRequest.
 	pSegMsg = GetKeywordValue( NULL, kwSEGMSG, alSegMsg );
 	if (!pSegMsg)
 		pSegMsg = GetKeywordValue( NULL, kwSEGMENTEDMESSAGE, alSegMsg );
-	if (!pSegMsg)
-		throw "Segmented-message keyword required";
+//	if (!pSegMsg)
+//		throw "Segmented-message keyword required";
 
 	if (alSegMsg.boolValue) {
 		pMOR = GetKeywordValue( NULL, kwMOREFOLLOWS, alMOR );
 		if (!pMOR)
 			throw "More-follows keyword required";
-	} else
-		alMOR.boolValue = BACnetBoolean::bFalse;
+	}
 
+	// Do we accept a segmented response?  Default is false since it is almost
+	// impossible to do segmentation manually.  Easier to use SendDevConfirmedRequest.
 	pSegResp = GetKeywordValue( NULL, kwSEGRESP, alSegResp );
 	if (!pSegResp)
 		pSegResp = GetKeywordValue( NULL, kwSEGRESPACCEPTED, alSegResp );
-	if (!pSegResp)
-		throw "Segmented-response-accepted keyword required";
+//	if (!pSegResp)
+//		throw "Segmented-response-accepted keyword required";
 
-	// encode it
+	// encode the first byte of the APDU header
 	packet.Add( (0 << 4)
 			+ ((alSegMsg.boolValue ? 1 : 0) << 3)
 			+ ((alMOR.boolValue ? 1 : 0) << 2)
 			+ ((alSegResp.boolValue ? 1 : 0) << 1)
 		);
 
-	// lots of options for maximum response size
+	// Lots of options for maximum response size.
+	// Default to 480 for convenience in script writing.
+	alMaxResp.intValue = 480;
 	pMaxResp = GetKeywordValue( NULL, kwMAXRESP, alMaxResp );
 	if (!pMaxResp)
 		pMaxResp = GetKeywordValue( NULL, kwMAXRESPONSE, alMaxResp );
 	if (!pMaxResp)
 		pMaxResp = GetKeywordValue( NULL, kwMAXSIZE, alMaxResp );
-	if (!pMaxResp)
-		throw "Max response size keyword required";
+//	if (!pMaxResp)
+//		throw "Max response size keyword required";
 
 	// translate the max response size into the code
-	if (alMaxResp.intValue < 16)
-		;
-	else
-	if (alMaxResp.intValue <= 50)
-		alMaxResp.intValue = 0;
-	else
-	if (alMaxResp.intValue <= 128)
-		alMaxResp.intValue = 1;
-	else
-	if (alMaxResp.intValue <= 206)
-		alMaxResp.intValue = 2;
-	else
-	if (alMaxResp.intValue <= 480)
-		alMaxResp.intValue = 3;
-	else
-	if (alMaxResp.intValue <= 1024)
-		alMaxResp.intValue = 4;
-	else
-	if (alMaxResp.intValue <= 1476)
-		alMaxResp.intValue = 5;
-	else
-		alMaxResp.intValue = 6;
+	// Values less than 16 are encoded directly as the bit-field
+	if (alMaxResp.intValue >= 16)
+	{
+		alMaxResp.intValue = MaxAPDUEncode( alMaxResp.intValue );
+	}
 
-	// encode it
-	packet.Add( alMaxResp.intValue );
+	// Maximum number of response segments accepted.
+	// Default of 0 "unspecified" is the historical value used by VTS
+	pMaxSegs = GetKeywordValue( NULL, kwMAXSEGS, alMaxSegs );
+	alMaxSegs.intValue = MaxSegsEncode( alMaxSegs.intValue );
 
-	// get the invoke ID
+	// encode the second byte of the APDU header
+	packet.Add( (alMaxSegs.intValue << 4) | alMaxResp.intValue );
+
+	// Get the invoke ID.  Default to 0 for convenience in script writing.
 	pInvokeID = GetKeywordValue( NULL, kwINVOKEID, alInvokeID );
-	if (!pInvokeID)
-		throw "Invoke ID keyword required";
+//	if (!pInvokeID)
+//		throw "Invoke ID keyword required";
 	if ((alInvokeID.intValue < 0) || (alInvokeID.intValue > 255))
 		throw "Invoke ID out of range (0..255)";
 
@@ -3305,7 +3294,7 @@ void ScriptExecutor::SendConfirmedRequest( CByteArray &packet )
 		pSeq		= GetKeywordValue( NULL, kwSEQUENCENR, alSeq );
 		if (!pSeq) throw "Sequence number (SEQUENCENR) keyword required";
 		pWindow		= GetKeywordValue( NULL, kwWINDOWSIZE, alWindow );
-		if (!pWindow) throw "Window size keyword required";
+		if (!pWindow) throw "Window size (WINDOWSIZE) keyword required";
 
 		// encode it
 		packet.Add( alSeq.intValue );
@@ -8034,7 +8023,7 @@ void ScriptExecutor::ExpectALBitString( ScriptPacketExprPtr spep, BACnetAPDUDeco
 	}
 	else
 	{
-		// OK... the dang thing isn't a reference, isn't an assignment, isn't a don't are and isn't a hunk o' bits...
+		// OK... the dang thing isn't a reference, isn't an assignment, isn't a don't care and isn't a hunk o' bits...
 		// so, it must be a string of bit values like FALSE, F, T, 0, 1, etc...   Suck 'em out.
 
 		for ( int nBitIndex = 0; indx < tlist.Length(); indx++ )

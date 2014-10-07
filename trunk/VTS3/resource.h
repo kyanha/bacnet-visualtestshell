@@ -380,6 +380,7 @@
 #define IDC_WINDOWSIZE                  1058
 #define IDC_INDEX                       1058
 #define IDC_REJECTCOMBO                 1059
+#define IDC_MAXSEGS                     1059
 #define IDC_ABORTCOMBO                  1060
 #define IDC_DEVICEID                    1061
 #define IDC_MAXAPDULENGTH               1062

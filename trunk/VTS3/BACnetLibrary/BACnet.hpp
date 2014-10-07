@@ -2247,11 +2247,11 @@ typedef BACnetPort *BACnetPortPtr;
 //
 
 enum BACnetAPDUType
-   { confirmedRequestPDU      = 0x00
-   , unconfirmedRequestPDU    = 0x01
+   { confirmedRequestPDU   = 0x00
+   , unconfirmedRequestPDU = 0x01
    , simpleAckPDU          = 0x02
-   , complexAckPDU            = 0x03
-   , segmentAckPDU            = 0x04
+   , complexAckPDU         = 0x03
+   , segmentAckPDU         = 0x04
    , errorPDU              = 0x05
    , rejectPDU             = 0x06
    , abortPDU              = 0x07
@@ -2261,18 +2261,19 @@ class BACnetAPDU : public BACnetAPDUEncoder  {
    public:
       BACnetAddress     apduAddr;            // source/destination address
       BACnetAPDUType    apduType;
-      bool           apduSeg;          // segmented
-      bool           apduMor;          // more follows
-      bool           apduSA;              // segmented response accepted
-      bool           apduSrv;          // sent by server
-      bool           apduNak;          // negative acknowledgement
-      int               apduSeq;          // sequence number
-      int               apduWin;          // actual/proposed window size
+      bool              apduSeg;             // segmented
+      bool              apduMor;             // more follows
+      bool              apduSA;              // segmented response accepted
+      bool              apduSrv;             // sent by server
+      bool              apduNak;             // negative acknowledgement
+      int               apduSeq;             // sequence number
+      int               apduWin;             // actual/proposed window size
       int               apduMaxResp;         // max response accepted (decoded)
+      int               apduMaxSegs;         // max segments accepted
       int               apduService;
       int               apduInvokeID;
       int               apduAbortRejectReason;
-      int               apduExpectingReply;     // see 6.2.2 (1 or 0)
+      int               apduExpectingReply;  // see 6.2.2 (1 or 0)
       int               apduNetworkPriority; // see 6.2.2 (0, 1, 2, or 3)
 
       BACnetAPDU( int initBuffSize = kDefaultBufferSize );     // new buffer
@@ -2497,14 +2498,15 @@ class BACnetDeviceInfo {
    public:
       unsigned int         deviceInst;
       BACnetAddress        deviceAddr;
-      BACnetSegmentation      deviceSegmentation;        // supports segments requests
+      BACnetSegmentation   deviceSegmentation;        // supports segments requests
       int                  deviceSegmentSize;         // how to divide up chunks
-      int                  deviceWindowSize;       // how many to send
+      int                  deviceWindowSize;          // how many to send
       int                  deviceMaxAPDUSize;         // maximum APDU size
       int                  deviceNextInvokeID;        // next invoke ID for client
 //    int                  deviceVendorID;            // which vendor is this
+      int                  deviceMaxSegs;             // Maximum number of response segments accepted
       
-      BACnetDeviceInfo     *deviceNext;            // list of information blocks
+      BACnetDeviceInfo     *deviceNext;               // list of information blocks
    };
 
 typedef BACnetDeviceInfo *BACnetDeviceInfoPtr;
@@ -2546,8 +2548,11 @@ class BACnetDevice : public BACnetNetClient, public BACnetDeviceInfo {
 
 typedef BACnetDevice *BACnetDevicePtr;
 
-BACnetOctet MaxAPDUEncode( int siz );
-int MaxAPDUDecode( BACnetOctet siz );
+int MaxAPDUEncode( int siz );
+int MaxAPDUDecode( int siz );
+
+int MaxSegsEncode( int siz );
+int MaxSegsDecode( int siz );
 
 //
 // BACnetAPDUSegment
@@ -2597,34 +2602,34 @@ enum BACnetTSMState
 class BACnetTSM : public BACnetTask {
       friend class BACnetDevice;
       friend class BACnetAPDUSegment;
-      
+
    protected:
       BACnetTSMState       tsmState;
       BACnetAPDUSegmentPtr tsmSeg;
-      
+
       BACnetAddress        tsmAddr;
       int                  tsmInvokeID;
-      
       int                  tsmRetryCount;
-      
-      BACnetSegmentation      tsmSegmentation;
+
+      BACnetSegmentation   tsmSegmentation;
       int                  tsmSegmentSize;            // how big are chunks
       int                  tsmSegmentRetryCount;
       int                  tsmSegmentCount;
       int                  tsmSegmentsSent;
-      
+      int                  tsmMaxSegs;
+
       int                  tsmInitialSequenceNumber;  // first sequence number
       int                  tsmLastSequenceNumber;     // last valid seq number received
       
       int                  tsmActualWindowSize;
       int                  tsmProposedWindowSize;
-      
+
    public:
-      BACnetDevicePtr         tsmDevice;              // bound device
-      
+      BACnetDevicePtr      tsmDevice;                 // bound device
+
       BACnetTSM( BACnetDevicePtr dp );
       virtual ~BACnetTSM( void );
-      
+
       void StartTimer( int msecs );
       void StopTimer( void );
       void RestartTimer( int msecs );

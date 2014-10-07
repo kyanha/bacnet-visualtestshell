@@ -74,10 +74,11 @@ void BACnetClientTSM::Indication( const BACnetAPDU &apdu )
 			// if we support segmented responses, set the bit
 			tsmSeg->segAPDU.apduSA = ((tsmDevice->deviceSegmentation == segmentedReceive)
 								   || (tsmDevice->deviceSegmentation == segmentedBoth));
-			
+
 			// encode the maximum response
 			tsmSeg->segAPDU.apduMaxResp = tsmDevice->deviceMaxAPDUSize;
-			
+			tsmSeg->segAPDU.apduMaxSegs = tsmDevice->deviceMaxSegs;
+
 			// get an invoke ID
 			tsmInvokeID = tsmDevice->GetInvokeID();
 			tsmSeg->segAPDU.apduInvokeID = tsmInvokeID;

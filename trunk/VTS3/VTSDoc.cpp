@@ -655,22 +655,47 @@ CSend * VTSDoc::DoSendWindow( int iGroup, int iItem )
 /////////////////////////////////////////////////////////////////////////////
 // VTSDoc serialization
 
+// Rather oddly, VTSDoc is not declared DECLARE_SERIAL/IMPLEMENT_SERIAL
+// but its members, persisted below, are.
+// That means the members could be simply << or >> to the archive.
+// But that isn't how the first version was done.  Since it would
+// presumably put extra class-data in the archive, I don't see that we can
+// change course now if we want to be able to load old documents.
+// In our usage, I am pretty sure that the DECLARE_SERIAL/IMPLEMENT_SERIAL
+// are meaningless and unnecessary, but we have left them in place.
+//
+// For some reason, CArchive::GetObjectSchema can only be called ONCE.
+// So any change to the schema for any member requires that we change
+// VTSDoc's version, and pass the version to each member, which is
+// what we have done here, adding a parameter to member Serialize methods.
+// That causes no problems, since we don't use IMPLEMENT_SERIAL (which
+// relies on an overload of virtual Serialize(CArchive)) anyway.
+//
 void VTSDoc::Serialize(CArchive& ar)
 {
+   UINT version = VTS_DOC_SCHEMA;
+   ar.SetObjectSchema( VTS_DOC_SCHEMA );
+
    if (ar.IsStoring())
    {
       ar << m_strLogFilename;
    }
    else
    {
+      version = ar.GetObjectSchema();
+      if (version == (UINT)-1)
+      {
+         // Turn unspecified version into something nice.
+         version = VTS_DOC_SCHEMA_1;
+      }
       ar >> m_strLogFilename;
    }
 
-   m_ports.Serialize(ar);
-   m_names.Serialize(ar);
-   m_devices.Serialize(ar);
-   m_captureFilters.Serialize(ar);
-   m_displayFilters.Serialize(ar);
+   m_ports.Serialize(ar, version);
+   m_names.Serialize(ar, version);
+   m_devices.Serialize(ar, version);
+   m_captureFilters.Serialize(ar, version);
+   m_displayFilters.Serialize(ar, version);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1543,7 +1568,7 @@ void VTSPort::SetDevice( VTSDevice * pdevice )
 }
 
 
-void VTSPort::Serialize(CArchive& ar)
+void VTSPort::Serialize(CArchive& ar, UINT version)
 {
    if (ar.IsStoring())
    {
@@ -1579,7 +1604,6 @@ void VTSPort::Serialize(CArchive& ar)
 IMPLEMENT_SERIAL(VTSPort, CObject, 1);
 
 IMPLEMENT_VTSPTRARRAY(VTSPorts, VTSPort);
-
 
 IMPLEMENT_SERIAL(VTSName, CObject, 1);
 
@@ -1623,7 +1647,7 @@ const VTSName& VTSName::operator=(const VTSName& rnameSrc)
 }
 
 
-void VTSName::Serialize(CArchive& ar)
+void VTSName::Serialize(CArchive& ar, UINT version)
 {
    if (ar.IsStoring())
    {
@@ -1798,7 +1822,7 @@ const VTSFilter& VTSFilter::operator=(const VTSFilter& rfilterSrc)
    return *this;
 }
 
-void VTSFilter::Serialize(CArchive& ar)
+void VTSFilter::Serialize(CArchive& ar, UINT version)
 {
    if (ar.IsStoring())
    {
@@ -2192,12 +2216,12 @@ void VTSFilters::DeepCopy( const VTSFilters * psrc )
 // VTSFilters::Serialize
 //
 
-void VTSFilters::Serialize( CArchive& ar )
+void VTSFilters::Serialize( CArchive& ar, UINT version )
 {
    if (ar.IsStoring())  {
       ar << GetSize();
       for ( int i = 0; i < GetSize(); i++ )
-         GetAt(i)->Serialize(ar);
+         GetAt(i)->Serialize(ar, version);
    } else {
       KillContents();
 
@@ -2207,7 +2231,7 @@ void VTSFilters::Serialize( CArchive& ar )
       int iSize;
       for ( ar >> iSize; iSize > 0; iSize-- ) {
          VTSFilter * p = new VTSFilter();
-         p->Serialize(ar);
+         p->Serialize(ar, version);
          Add(p);
       }
    }
@@ -3266,9 +3290,7 @@ void VTSServer::EventNotification( const BACnetAPDU &apdu )
 // VTSDevice::VTSDevice
 //
 
-//IMPLEMENT_SERIAL(VTSDevice, CObject, VERSIONABLE_SCHEMA|2);
 IMPLEMENT_SERIAL(VTSDevice, CObject, 1);
-
 
 #pragma warning( disable : 4355 )
 
@@ -3308,10 +3330,10 @@ VTSDevice::VTSDevice()
    m_services_supported = BACnetBitString(40);
 
    // Set basic services supported
-   m_services_supported.SetBit(0);    // acknowledgeAlarm
-   m_services_supported.SetBit(1);    // confirmedCOVNotification
-   m_services_supported.SetBit(2);    // confirmedEventNotification
-   m_services_supported.SetBit(3);    // getAlarmSummary
+   m_services_supported.SetBit(0);   // acknowledgeAlarm
+   m_services_supported.SetBit(1);   // confirmedCOVNotification
+   m_services_supported.SetBit(2);   // confirmedEventNotification
+   m_services_supported.SetBit(3);   // getAlarmSummary
    m_services_supported.SetBit(12);  // readProperty,
 // m_services_supported.SetBit(14);  // readPropertyMultiple -- Does not really support!!!!
    m_services_supported.SetBit(15);  // writeProperty,
@@ -3320,6 +3342,8 @@ VTSDevice::VTSDevice()
    m_services_supported.SetBit(26);  // i-am
    m_services_supported.SetBit(34);  // who-is
    m_services_supported.SetBit(39);  // getEventInformation
+
+   m_nMaxSegs = 0;
 
    devPort = NULL;
    devPortEndpoint = NULL;
@@ -3336,13 +3360,14 @@ void VTSDevice::CopyToLive()
    devDevice.deviceAPDUTimeout      = m_nAPDUTimeout;
    devDevice.deviceAPDUSegmentTimeout = m_nAPDUSegmentTimeout;
    devDevice.deviceAPDURetries      = m_nAPDURetries;
-   devDevice.deviceInst       = m_nInstance;
-   devDevice.deviceSegmentation  = (BACnetSegmentation)m_segmentation;
+   devDevice.deviceInst             = m_nInstance;
+   devDevice.deviceSegmentation     = (BACnetSegmentation)m_segmentation;
    devDevice.deviceSegmentSize      = m_nSegmentSize;
-   devDevice.deviceWindowSize    = m_nWindowSize;
+   devDevice.deviceWindowSize       = m_nWindowSize;
    devDevice.deviceMaxAPDUSize      = m_nMaxAPDUSize;
-   devDevice.deviceNextInvokeID  = m_nNextInvokeID;
-// devDevice.deviceVendorID      = m_nVendorID;
+   devDevice.deviceNextInvokeID     = m_nNextInvokeID;
+// devDevice.deviceVendorID         = m_nVendorID;
+   devDevice.deviceMaxSegs          = m_nMaxSegs;
 
    // BACnetRouter   devRouter;
    // This is never set, and seems not to be used
@@ -3354,14 +3379,10 @@ void VTSDevice::Activate()
    // bind the device to the router (global Bind(), not our local one)
    ::Bind( &devDevice, &devRouter );
 
-// Not sure what all this is about !!
-//ASSERT(0);
    // create a dummy port
-// devPort = new VTSPort( 0, 0 );
    devPort = new VTSPort();
 
    // the port name matches the device name
-// strcpy( devPort->portDesc.portName, devDesc.deviceName );
    devPort->SetName(GetName());
 
    // create a funny endpoint that redirects requests back to this device
@@ -3456,8 +3477,7 @@ void VTSDevice::IAm( void )
 
 void VTSDevice::SendAPDU( const BACnetAPDU &apdu )
 {
-   bool  asClient
-   ;
+   bool  asClient;
 
    switch (apdu.apduType) {
       case confirmedRequestPDU:
@@ -3505,51 +3525,11 @@ void VTSDevice::SendAPDU( const BACnetAPDU &apdu )
    }
 }
 
-/*
-UINT VTSDevice::SerializeSchema (CArchive &ar, CRuntimeClass *pClass)
+void VTSDevice::Serialize(CArchive& ar, UINT version)
 {
-  ar.SerializeClass(pClass);
-  UINT schema=(ar.IsLoading ()) ? ar.GetObjectSchema () : (UINT) -1;
-  return schema;
-}
-*/
-
-void VTSDevice::Serialize(CArchive& ar)
-{
-// UINT nSchema=SerializeSchema (ar, RUNTIME_CLASS (VTSDevice));
-
-   if (ar.IsStoring())
+   if (ar.IsLoading())
    {
-      // Switch on schema when loading 
-      // Schema 1
-
-      ar << m_strName;
-      ar << m_nInstance;
-      int n = m_fRouter ? 1 : 0;
-      ar << m_fRouter;
-      ar << m_segmentation;
-      ar << m_nSegmentSize;
-      ar << m_nWindowSize;
-      ar << m_nMaxAPDUSize;
-      ar << m_nNextInvokeID;
-      ar << m_nAPDUTimeout;
-      ar << m_nAPDUSegmentTimeout;
-      ar << m_nAPDURetries;
-      ar << m_nVendorID;
-      // new for schema 2
-//    ar << m_nEvents;
-
-//    CString dec;
-//    m_services_supported.Encode( dec.GetBuffer(100 ) );
-//    dec.ReleaseBuffer();
-
-//    ar << dec;
-
-   }
-   else
-   {
-//    UINT nSchema = ar.GetObjectSchema();
-      // nSchema = 1
+      // VTS_DOC_SCHEMA_1 and VTS_DOC_SCHEMA_2 data
       ar >> m_strName;
       ar >> m_nInstance;
       ar >> m_fRouter;
@@ -3565,30 +3545,46 @@ void VTSDevice::Serialize(CArchive& ar)
       ar >> m_nAPDURetries;
       ar >> m_nVendorID;
 
-/*
-      if ( nSchema == 2 )
+      if (version >= VTS_DOC_SCHEMA_2)
       {
-         // new for schema 2
-         // TODO: can't serialize directly  Read CString and get array of chars then encode into BitString
-//       ar >> m_services_supported;
-         ar >> m_nEvents;
-
+         // Can't serialize directly  Read CString and get array of chars then encode into BitString
          CString tmp;
          ar >> tmp;
-//       BACnetBitString tmp_str;
-//       tmp_str.Decode( tmp );
          m_services_supported.Decode( tmp );
-//       m_services_supported |= tmp_str;
-
          tmp = m_services_supported.ToString();
+
+         ar >> m_nEvents;
+         ar >> m_nMaxSegs;
       }
-*/
+   }
+   else
+   {
+      // VTS_DOC_SCHEMA_1 and VTS_DOC_SCHEMA_2 data
+      ar << m_strName;
+      ar << m_nInstance;
+      ar << m_fRouter;
+      ar << m_segmentation;
+      ar << m_nSegmentSize;
+      ar << m_nWindowSize;
+      ar << m_nMaxAPDUSize;
+      ar << m_nNextInvokeID;
+      ar << m_nAPDUTimeout;
+      ar << m_nAPDUSegmentTimeout;
+      ar << m_nAPDURetries;
+      ar << m_nVendorID;
+
+      // VTS_DOC_SCHEMA_2 data
+      CString dec;
+      m_services_supported.Encode( dec, BACnetEncodeable::FMT_EPICS );
+      ar << dec;
+      ar << m_nEvents;
+      ar << m_nMaxSegs;
    }
 
    // Copy to live objects
    CopyToLive();
 
-   m_devobjects.Serialize(ar);
+   m_devobjects.Serialize(ar,version);
 }
 
 
@@ -3810,9 +3806,9 @@ int VTSDevice :: InternalReadProperty( BACnetObjectIdentifier * pbacnetobjectid,
             BACnetUnsigned(m_nAPDUSegmentTimeout).Encode( *pAPDUEncoder );
          }
          break;
-      case MAX_SEGMENTS_ACCEPTED: //Added by Zhu Zhenhua, 2003-11-21
+      case MAX_SEGMENTS_ACCEPTED:
          {
-            BACnetUnsigned(m_nSegmentSize).Encode( *pAPDUEncoder );
+            BACnetUnsigned(m_nMaxSegs).Encode( *pAPDUEncoder );
          }
          break;
 
@@ -4158,9 +4154,10 @@ const VTSDevice& VTSDevice::operator=(const VTSDevice& rdeviceSrc)
    m_nVendorID = rdeviceSrc.m_nVendorID;
    m_nEvents = rdeviceSrc.m_nEvents;
    m_services_supported = rdeviceSrc.m_services_supported;
+   m_nMaxSegs = rdeviceSrc.m_nMaxSegs;
 
    m_devobjects.DeepCopy(&rdeviceSrc.m_devobjects);
-   
+
    return *this;
 }
 

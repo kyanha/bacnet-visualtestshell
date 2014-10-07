@@ -59,7 +59,7 @@ void VTSDevicesTreeOptPage::ClearData(void)
 void VTSDevicesTreeOptPage::DoDataExchange(CDataExchange* pDX)
 {
 	CPropertyPage::DoDataExchange(pDX);
-	//{{AFX_DATA_MAP(VTSDevicesTreeDevPage)
+	//{{AFX_DATA_MAP(VTSDevicesTreeOptPage)
 	DDX_Text(pDX, IDC_EVENTS, m_nEvents);
 	DDX_Check(pDX, IDC_SASUM, m_bAlarmSummary);
 	DDX_Check(pDX, IDC_SESUM, m_bEventSummary);
