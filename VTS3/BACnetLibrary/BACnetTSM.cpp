@@ -17,10 +17,16 @@ static char THIS_FILE[] = __FILE__;
 //
 
 BACnetTSM::BACnetTSM( BACnetDevicePtr dp )
-	: tsmState(tsmIdle), tsmSeg(0)
+	: tsmState(tsmIdle)
+	, tsmSeg(0)
 	, tsmInvokeID(0)
 	, tsmRetryCount(0)
+	, tsmSegmentation(noSegmentation)
+	, tsmSegmentSize(0)
 	, tsmSegmentRetryCount(0)
+	, tsmSegmentCount(0)
+	, tsmSegmentsSent(0)
+	, tsmMaxSegs(0)
 	, tsmInitialSequenceNumber(0)
 	, tsmLastSequenceNumber(0)
 	, tsmActualWindowSize(0)
@@ -76,12 +82,11 @@ void BACnetTSM::RestartTimer( int msecs )
 void BACnetTSM::FillWindow( int seqNum )
 {
 	for (int i = 0; i < tsmActualWindowSize; i++ ) {
-		const BACnetAPDU &apdu = (*tsmSeg)[ seqNum + i ]
-		;
-		
+		const BACnetAPDU &apdu = (*tsmSeg)[ seqNum + i ];
+
 		// send the message to the device
 		tsmDevice->Indication( apdu );
-		
+
 		// check for no more follows
 		if ((apdu.pktBuffer[0] & 0x04) == 0)
 			return;

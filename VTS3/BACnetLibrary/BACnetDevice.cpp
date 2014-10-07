@@ -32,6 +32,7 @@ BACnetDevice::BACnetDevice( void )
 	// these parameters should come from the endpoint somehow
 	deviceSegmentSize	= 1024;				// how big to divide up chunks
 	deviceMaxAPDUSize	= 1024;				// maximum APDU size
+	deviceMaxSegs	= 0;						// maximum number of segments accepted ("unspecified")
 	
 	deviceAPDUTimeout	= 3000;				// how long to wait for ack
 	deviceAPDUSegmentTimeout = 1000;		// how long to wait between segments
@@ -403,38 +404,72 @@ again:
 	
 	return newID;
 }
-//
-//	MaxAPDUEncode
-//
 
-BACnetOctet MaxAPDUEncode( int siz )
+// Convert a maxAPDU value into 4 bits suitable for the Confirmed-Request header
+int MaxAPDUEncode( int siz )
 {
-	switch (siz) {
-		case   50:	return 0;
-		case  128:	return 1;
-		case  206:	return 2;
-		case  480:	return 3;
-		case 1024:	return 4;
-		case 1476:	return 5;
-		default:
-			return 0;
-	}
+   if (siz <= 50)
+      return 0;
+   if (siz <= 128)
+      return 1;
+   if (siz <= 206)
+      return 2;
+   if (siz <= 480)
+      return 3;
+   if (siz <= 1024)
+      return 4;
+   if (siz <= 1476)
+      return 5;
+   return 0;
 }
 
-//
-//	MaxAPDUDecode
-//
-
-int MaxAPDUDecode( BACnetOctet siz )
+// Convert the 4-bit value from the Confirmed-Request header into maxAPDU
+int MaxAPDUDecode( int siz )
 {
-	switch (siz) {
-		case 0:	return 50;
-		case 1:	return 128;
-		case 2:	return 206;
-		case 3:	return 480;
-		case 4:	return 1024;
-		case 5:	return 1476;
-		default:
-			return 0;
-	}
+   switch (siz) {
+   case 0:	return 50;
+   case 1:	return 128;
+   case 2:	return 206;
+   case 3:	return 480;
+   case 4:	return 1024;
+   case 5:	return 1476;
+   default:
+      return 0;
+   }
+}
+
+// Convert a maxSegmentsAccepted value into 3 bits suitable for the Confirmed-Request header
+int MaxSegsEncode( int siz )
+{
+   if (siz < 2)
+      return 0;
+   if (siz == 2)
+      return 1;
+   if (siz <= 4)
+      return 2;
+   if (siz <= 8)
+      return 3;
+   if (siz <= 16)
+      return 4;
+   if (siz <= 32)
+      return 5;
+   if (siz <= 64)
+      return 6;
+   return 7;
+}
+
+// Convert the 3-bit value from the Confirmed-Request header into maxSegmentsAccepted
+int MaxSegsDecode( int siz )
+{
+   switch (siz) {
+   case 0:	return 0;
+   case 1:	return 2;
+   case 2:	return 4;
+   case 3:	return 8;
+   case 4:	return 16;
+   case 5:	return 32;
+   case 6:	return 64;
+   default:
+      return 128;       // Not specified by 20.1.2.4, but passing to MaxSegsEncode will return 7
+   }
 }

@@ -102,6 +102,7 @@ void BACnetServerTSM::Confirmation( const BACnetAPDU &apdu )
 			// initialize the segmentation support and size from the device
 			tsmSegmentation = tsmDevice->deviceSegmentation;
 			tsmSegmentSize = tsmDevice->deviceSegmentSize;
+			tsmMaxSegs = tsmDevice->deviceMaxSegs;
 
 			// Compute the segment count:
 			// ASHRAE 135.1 clause 9.20.1.12 calculation shows that max_APDU INCLUDES 

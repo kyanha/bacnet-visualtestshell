@@ -15,8 +15,8 @@ module:     BACSN015.cpp
 last edit:  03-Sep-03 [002] LCX add new lines in the Detail View to display less tagging
                         information,but more actual data within each context or 
                         application tagged section.
-         16-Jul-03 [001] LCX add more AL information to the summary line.
-          5-Mar-10 JLH: rework and cleanup
+            16-Jul-03 [001] LCX add more AL information to the summary line.
+             5-Mar-10 JLH: rework and cleanup
 
 TODO:
 - Use a fixed width font in the detail tree to line up the indentations?
@@ -699,15 +699,12 @@ int interp_bacnet_BVLL( char *header, int length)  /* BVLL interpreter */
 /**************************************************************************/
 {
    pi_data_current = pi_data_bacnet_BVLL;
-   
+
    if (pi_data_bacnet_BVLL->do_sum) {
       pif_init( pi_data_bacnet_BVLL, header, length );
-      
-      switch (pif_get_byte(0)) {
-         case 0x01:
-            // TODO: this is an error here: BACnet WITHOUT BVLL
-            interp_bacnet_NL( header, length );
-            break;
+
+      int version = pif_get_byte(0);
+      switch (version) {
          case 0x81:
             switch (pif_get_byte(1)) {
                case 0x04:     // Forwarded-NPDU
@@ -727,26 +724,29 @@ int interp_bacnet_BVLL( char *header, int length)  /* BVLL interpreter */
                      }
                      else
                      {
-                        sprintf( pStr, "Unknown BVLL function %u", fn );
+                        sprintf( pStr, "Unknown BVLC function %u", fn );
                      }
                   }
                   break;
             }
             break;
+         case 0x01:
+            // This formerly called interp_bacnet_NL( header, length );
+            // But IP without BVLCI is NOT street-legal BACnet, so fall through to show error.
+         default:
+            {
+               char *pStr = get_sum_line(pi_data_bacnet_BVLL);
+               sprintf( pStr, "Expected BVLC Type 0x81.  Got 0x%02X", version );
+            }
+            break;
       }
    }
-   
+
    if (pi_data_bacnet_BVLL->do_int) {
       pif_init( pi_data_bacnet_BVLL, header, length );
       pif_header( length, "BACnet Virtual Link Layer Detail" );
 
       switch (pif_get_byte(0)) {
-         case 0x01:
-          // TODO: this is an error here: BACnet WITHOUT BVLL
-//            pif_show_ascii( 0, "Empty BVLL" );
-            pif_show_space();
-            return interp_bacnet_NL( header, length );
-            break;
          case 0x81:
             show_str_eq_str("BVLC Type","BACnet/IP",1);
             pif_offset += 1;
@@ -843,12 +843,17 @@ int interp_bacnet_BVLL( char *header, int length)  /* BVLL interpreter */
             break;
          }
          break;
+      case 0x01:
+         // This formerly called interp_bacnet_NL( header, length );
+         // But IP without BVLCI is NOT street-legal BACnet, so fall through to show error.
+         // pif_show_space();
+         // return interp_bacnet_NL( header, length );
       default:
-         pif_show_byte("Unknown BVLC Version               = %u");
+         pif_show_byte("Unknown BVLC Type               = 0x%02X");
          break;
       }
    }
-   
+
    return length;
 }
 
@@ -875,14 +880,14 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
    pi_data_current = pi_data_bacnet_NL;
    npdu_length = 2;
    /* Summary line? */
-   if (pi_data_bacnet_NL->do_sum) {       
+   if (pi_data_bacnet_NL->do_sum) {
       /* Figure out length of NPCI */
       pif_init(pi_data_bacnet_NL, header, length);
 
       if(length < 2)
       {
          strcpy( get_sum_line(pi_data_bacnet_NL), "Invalid NPDU (too short)" );
-         return length;       
+         return length;
       }
 
       buff = pif_get_byte(1);
@@ -2115,9 +2120,9 @@ void show_confirmed( unsigned char x )
       show_authenticate,                /* 24 */
       show_requestKey,                  /* 25 */
       show_ReadRange,                   /* 26 */
-      NULL,                      /* 27 TODO: implement show_LifeSafetyOperation */
-     show_subscribeCOV_Property,    /* 28 */
-     show_getEventInformation          /* 29 Added by Zhu Zhenhua, 2004-5-25*/
+      NULL,                             /* 27 TODO: implement show_LifeSafetyOperation */
+     show_subscribeCOV_Property,        /* 28 */
+     show_getEventInformation           /* 29 */
    };
 
    /* --- display the confirmed service header detail --- */
@@ -3916,7 +3921,7 @@ void get_bac_charstring(unsigned int tagLen, char *pOut, unsigned int bufLen, un
    switch(c)
    {
    case 0: /* ASCII */
-    case 5: /* ISO 8859-1 */
+   case 5: /* ISO 8859-1 */
       // Append as characters
       // TODO: worry about bytes greater than 127 for ANSI/UTF-8, for 8859-1 depending on installed fonts
       *pOut++ = '"';
@@ -3933,9 +3938,9 @@ void get_bac_charstring(unsigned int tagLen, char *pOut, unsigned int bufLen, un
       break;
 
    case 1: /* MS DBCS */
-    case 2: /* JIS C 6226 */
-    case 3: /* ISO 10646(UCS-4) */
-    case 4: /* ISO 10646(UCS-2) */
+   case 2: /* JIS C 6226 */
+   case 3: /* ISO 10646(UCS-4) */
+   case 4: /* ISO 10646(UCS-2) */
       // Append as a lump of hex
       {
          *pOut++ = 'X';
@@ -4748,7 +4753,7 @@ void show_bac_object_identifier( unsigned int len )
    
    bac_show_nbytes( 4, "BACnet Object Identifier" );
    
-   // TODO: 
+   // TODO:
    if(obj_type > 63) { /* proprietary object type */
       sprintf(get_int_line(pi_data_current, pif_offset - 4, 4),
          "               Proprietary Object Type");

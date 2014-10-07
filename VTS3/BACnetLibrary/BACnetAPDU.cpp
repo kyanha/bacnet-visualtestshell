@@ -77,7 +77,7 @@ void BACnetAPDU::Encode( BACnetAPDUEncoder& enc ) const
 					+ (apduMor ? 0x04 : 0)
 					+ (apduSA ? 0x02 : 0)
 				);
-			enc.Append( MaxAPDUEncode(apduMaxResp) );
+			enc.Append( (MaxSegsEncode(apduMaxSegs) << 4) | MaxAPDUEncode(apduMaxResp) );
 			enc.Append( apduInvokeID );
 			if (apduSeg) {
 				enc.Append( apduSeq );
@@ -160,7 +160,8 @@ void BACnetAPDU::Decode( const BACnetAPDUDecoder& dec )
 			apduSeg = ((dec.pktBuffer[0] & 0x08) != 0);
 			apduMor = ((dec.pktBuffer[0] & 0x04) != 0);
 			apduSA = ((dec.pktBuffer[0] & 0x02) != 0);
-			apduMaxResp = MaxAPDUDecode( dec.pktBuffer[1] );
+			apduMaxResp = MaxAPDUDecode( dec.pktBuffer[1] & 0x0F );
+			apduMaxSegs = MaxSegsDecode( (dec.pktBuffer[1] >> 4) & 0x07 );
 			apduInvokeID = dec.pktBuffer[2];
 			if (apduSeg) {
 				apduSeq = dec.pktBuffer[3];

@@ -844,7 +844,7 @@ void VTSDevicesTreeDlg::OnExport()
       fprintf(mfile, "\tapdu-segment-timeout: %d\n", p->m_nAPDUSegmentTimeout);
       fprintf(mfile, "\tapdu-timeout: %d\n", p->m_nAPDUTimeout);
       fprintf(mfile, "\tmax-apdu-length-accepted: %d\n", p->m_nMaxAPDUSize);
-      fprintf(mfile, "\tmax-segments-accepted: %d\n", p->m_nSegmentSize);
+      fprintf(mfile, "\tmax-segments-accepted: %d\n", p->m_nMaxSegs);
       fprintf(mfile, "\tvendor-identifier: %d\n", p->m_nVendorID);
       fprintf(mfile, "\tsegmentation-supported: %s\n", NetworkSniffer::BAC_STRTAB_BACnetSegmentation.m_pStrings[p->m_segmentation]);
       fprintf(mfile, "\t}\n");

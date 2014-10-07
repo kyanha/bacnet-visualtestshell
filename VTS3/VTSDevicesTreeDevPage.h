@@ -33,6 +33,7 @@ public:
 	CString	m_Name;
 	int		m_nInstance;
 	int		m_nSegSize;
+	int		m_nMaxSegs;
 	int		m_nWindowSize;
 	int		m_nNextInvokeID;
 	int		m_nMaxAPDUSize;
