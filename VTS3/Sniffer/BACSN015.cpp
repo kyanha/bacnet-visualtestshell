@@ -2932,7 +2932,7 @@ void show_EventNotification( BACnetSequence &seq )
          seq.Enumerated( 3, "operationExpected", &BAC_STRTAB_BACnetLifeSafetyOperation );
          seq.ClosingTag();
       }
-      else if (seq.OpeningTag( 9, "Extended Notification Parameters", BSQ_CHOICE ))
+      else if (seq.OpeningTag( 9, "Extended Notification parameters", BSQ_CHOICE ))
       {
          seq.Unsigned(   0, "vendor-id" );
          seq.Unsigned(   1, "extended-event-type" );
@@ -2942,13 +2942,18 @@ void show_EventNotification( BACnetSequence &seq )
             seq.BeginChoice();
             seq.Null( -1, "null", BSQ_CHOICE );
             seq.Real( -1, "real", BSQ_CHOICE );
-            seq.Unsigned( -1, "integer", BSQ_CHOICE );
+            seq.Unsigned( -1, "unsigned", BSQ_CHOICE );
             seq.Boolean( -1, "boolean", BSQ_CHOICE );
+            seq.Integer( -1, "integer", BSQ_CHOICE );
             seq.Double( -1, "double", BSQ_CHOICE );
             seq.OctetString( -1, "octet", BSQ_CHOICE );
+            seq.TextString( -1, "octet", BSQ_CHOICE );
             seq.BitString( -1, "bitstring", NULL, BSQ_CHOICE );
             seq.Enumerated( -1, "enumerated", NULL, BSQ_CHOICE );
-            if (seq.OpeningTag( 0, "PropertyValue", BSQ_CHOICE ))
+            seq.Date( -1, "date", BSQ_CHOICE );
+            seq.Time( -1, "time", BSQ_CHOICE );
+            seq.ObjectIdentifier( -1, "objectIdentifier", BSQ_CHOICE );
+            if (seq.OpeningTag( 0, "propertyValue", BSQ_CHOICE ))
             {
                show_bac_dev_obj_prop_val( seq );
                seq.ClosingTag();
@@ -2958,7 +2963,7 @@ void show_EventNotification( BACnetSequence &seq )
 
          seq.ClosingTag();
       }
-      else if (seq.OpeningTag( 10, "Buffer-Ready Notification Parameters", BSQ_CHOICE ))
+      else if (seq.OpeningTag( 10, "Buffer-Ready Notification parameters", BSQ_CHOICE ))
       {
          if (seq.OpeningTag( 0, "buffer-property", BSQ_CHOICE ))
          {
@@ -2969,11 +2974,97 @@ void show_EventNotification( BACnetSequence &seq )
          seq.Unsigned( 2, "current-notification" );
          seq.ClosingTag();
       }
-      else if (seq.OpeningTag( 11, "Unsigned-range Notification Parameters", BSQ_CHOICE ))
+      else if (seq.OpeningTag( 11, "Unsigned-range Notification parameters", BSQ_CHOICE ))
       {
          seq.Unsigned(  0, "exceeding-value" );
          seq.BitString( 1, "status-flags", &BAC_STRTAB_BACnetStatusFlags );
          seq.Unsigned(  2, "exceeded-limit" );
+         seq.ClosingTag();
+      }
+      // Tag 12 is not used
+      else if (seq.OpeningTag( 13, "Access Event parameters", BSQ_CHOICE ))
+      {
+         seq.Unsigned(   0, "accessEvent" ); // TODO: should be Enumerated AccessEvent
+         seq.BitString(  1, "statusFlags", &BAC_STRTAB_BACnetStatusFlags );
+         seq.Unsigned(   2, "accessEventTag" );
+         show_time_stamp( seq, 3, "accessEventTime" );
+         seq.OpeningTag( 4, "accessCredential" );
+         show_bac_dev_obj_ref( seq );
+         seq.ClosingTag();
+
+         // Should be BACnetAuthenticationFactor
+         if (seq.ListOf(     5, "authenticationFactor", BSQ_OPTIONAL ))
+         {
+            while (seq.HasListElement())
+            {
+               seq.AnyTaggedItem();
+            }
+         }
+
+         seq.ClosingTag();
+      }
+      else if (seq.OpeningTag( 14, "Double Out of Range parameters", BSQ_CHOICE ))
+      {
+         seq.Double(    0, "exceedingValue" );
+         seq.BitString( 1, "statusFlags", &BAC_STRTAB_BACnetStatusFlags );
+         seq.Double(    2, "deadband" );
+         seq.Double(    3, "exceededLimit" );
+
+         seq.ClosingTag();
+      }
+      else if (seq.OpeningTag( 15, "Signed Out of Range parameters", BSQ_CHOICE ))
+      {
+         seq.Integer(   0, "exceedingValue" );
+         seq.BitString( 1, "statusFlags", &BAC_STRTAB_BACnetStatusFlags );
+         seq.Integer(   2, "deadband" );
+         seq.Integer(   3, "exceededLimit" );
+
+         seq.ClosingTag();
+      }
+      else if (seq.OpeningTag( 16, "Unsigned Out of Range parameters", BSQ_CHOICE ))
+      {
+         seq.Unsigned(  0, "exceedingValue" );
+         seq.BitString( 1, "statusFlags", &BAC_STRTAB_BACnetStatusFlags );
+         seq.Unsigned(  2, "deadband" );
+         seq.Unsigned(  3, "exceededLimit" );
+
+         seq.ClosingTag();
+      }
+      else if (seq.OpeningTag( 17, "Change of Character String parameters", BSQ_CHOICE ))
+      {
+         seq.TextString( 0, "changedValue" );
+         seq.BitString(  1, "statusFlags", &BAC_STRTAB_BACnetStatusFlags );
+         seq.TextString( 2, "alarmValue" );
+
+         seq.ClosingTag();
+      }
+      else if (seq.OpeningTag( 18, "Change of Status Flags parameters", BSQ_CHOICE ))
+      {
+         // Optional ABSTRACT-SYNTAX.&Type
+         if (seq.ListOf(    0, "presentValue", BSQ_OPTIONAL ))
+         {
+            while (seq.HasListElement())
+            {
+               seq.AnyTaggedItem();
+            }
+         }
+
+         seq.BitString( 1, "statusFlags", &BAC_STRTAB_BACnetStatusFlags );
+
+         seq.ClosingTag();
+      }
+
+      else if (seq.OpeningTag( 19, "Change of Reliability parameters", BSQ_CHOICE ))
+      {
+         seq.Enumerated( 0, "reliability", &BAC_STRTAB_BACnetReliability );
+         seq.BitString(  1, "status-flags", &BAC_STRTAB_BACnetStatusFlags );
+         if (seq.ListOf( 2, "property-values" ))
+         {
+            while (seq.HasListElement())
+            {
+               show_bac_property_value( seq, objectType );
+            }
+         }
          seq.ClosingTag();
       }
 

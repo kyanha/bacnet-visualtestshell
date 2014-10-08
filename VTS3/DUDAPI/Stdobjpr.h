@@ -56,7 +56,7 @@ static etable etObjectTypes={
    "load-control",         // Addendum e, 135-2004
    "structured-view",
    "access-door",
-   "lighting-output",
+   "objtype-31",           // This was lighting-out during an early review, but unused in 135-2012
    "access-credential",
    "access-point",
    "access-rights",
@@ -2218,7 +2218,7 @@ stdobjtype  StdObjects[MAX_DEFINED_OBJ]={
    sizeof(lc_obj_type),               LCProps,
    sizeof(sv_obj_type),               SVProps,
    sizeof(ad_obj_type),               ADProps,
-   sizeof(placeholder_obj_type),      PlaceholderProps,   // TODO: "Lighting-Output",
+   sizeof(placeholder_obj_type),      PlaceholderProps,   // unused-31 was lighting-output in an early review
    sizeof(placeholder_obj_type),      PlaceholderProps,   // TODO: "Access-Credential",
    sizeof(placeholder_obj_type),      PlaceholderProps,   // TODO: "Access-Point",
    sizeof(placeholder_obj_type),      PlaceholderProps,   // TODO: "Access-Rights",
