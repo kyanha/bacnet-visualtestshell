@@ -41,6 +41,8 @@ int cvt$convert_float( const void *, int, void *, int, int );
 // Replacements for character classification functions that can handle character values above 127
 // (Microsoft's debug versions assert on >255 or less than 0, which is a problem for
 // ISO 8859-1 since char is signed)
+// Of course, NONE of these work correctly for UTF-8, which has replaced ASCII
+// as BACnet character set 0...
 int IsSpace( int theChar )
 {
    return isspace( theChar & 0xFF );
@@ -4112,6 +4114,9 @@ void BACnetDate::Decode( const char *dec )
    // If the date has slashes, then month first, else day first
    bool monthFirst = strchr( dec, '/' ) != NULL;
 
+   // Set true below if no day of week information is provided
+   bool calculateDOW = false;
+
    // Check for dow
    if ( *dec == '*' )
    {
@@ -4138,7 +4143,12 @@ void BACnetDate::Decode( const char *dec )
       if ( dayOfWeek == DATE_DONT_CARE )
          throw_(91);                         // code for bad supplied day (interpreted in caller's context)
    }
-   
+   else
+   {
+      // No Day of Week provided
+      calculateDOW = true;
+   }
+
    // Skip over space and comma
    while (*dec && IsSpace(*dec)) dec++;
    if (*dec == ',')
@@ -4229,6 +4239,11 @@ void BACnetDate::Decode( const char *dec )
    }
 
    // if we've gotten this far, all values have been read in and are correct
+   if (calculateDOW)
+   {
+      // Calculate the day of week (NOP if Y M or D is wildcard or date pattern)
+      CalcDayOfWeek();
+   }
 }
 
 // Convert to integer time in 100 nsec ticks since 1 Jan 1600 (FILETIME)
@@ -6269,19 +6284,19 @@ void BACnetOpeningTag::Decode( BACnetAPDUDecoder& dec )
    // check the type
    if ((tag & 0x0F) != 0x0E)
       throw_(72) /* mismatched tag class */;
-   
+
    // check for a big context
    if ((tag & 0xF0) == 0xF0) {
       if (dec.pktLength < 1)
          throw_(73) /* not enough data */;
       dec.pktLength -= 1;
+      dec.pktBuffer += 1;
    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
 //
 // BACnetDaysOfWeek
-//Added by Zhu Zhenhua 2003-9-4
 
 IMPLEMENT_DYNAMIC(BACnetDaysOfWeek, BACnetBitString)
 
@@ -6309,7 +6324,6 @@ BACnetDaysOfWeek::BACnetDaysOfWeek(
 void BACnetDaysOfWeek::StringToValue( const char *dec )
 {
    static char *DaysNames[]={"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"};
-   // char* dec = "Monday, Tuesday, Wednesday, Thursday, Friday, Sunday";
    int i = 0;
    int count = 1;
    for( i = 0; i < 7; i++ )
@@ -6323,7 +6337,8 @@ void BACnetDaysOfWeek::StringToValue( const char *dec )
          break;
       }
       count++;
-      while ( *dec == ' ' || *dec == ',' )   {
+      while ( *dec == ' ' || *dec == ',' )
+      {
          dec++;
       }
       for( i = 0; i < 7; i++ )
@@ -6928,9 +6943,8 @@ void BACnetClosingTag::Decode( BACnetAPDUDecoder& dec )
       if (dec.pktLength < 1)
          throw_(76) /* not enough data */;
       dec.pktLength -= 1;
+      dec.pktBuffer += 1;
    }
-
-   // TODO: shouldn't we check the tag value?
 }
 
 // Handle decoding of arbitrary tagged items in an APDU
@@ -9014,6 +9028,27 @@ void BACnetAPDUTag::Decode( BACnetAPDUDecoder& dec )
       ;
    else if (dec.pktLength < tagLVT)
       throw_(82);
+}
+
+// This really a debug method to dump a parsed tag
+void BACnetAPDUTag::Encode( CString &enc, Format /*theFormat*/ ) const
+{
+   switch (tagClass)
+   {
+   case applicationTagClass:
+      enc.Format( "%s of length %d", 
+                  NetworkSniffer::BAC_STRTAB_ApplicationTypes.EnumString(tagNumber), tagLVT );
+      break;
+   case contextTagClass:
+      enc.Format( "[%d] of length %d", tagNumber, tagLVT );
+      break;
+   case openingTagClass:
+      enc.Format( "Opening [%d]", tagNumber );
+      break;
+   case closingTagClass:
+      enc.Format( "Closing [%d]", tagNumber );
+      break;
+   }
 }
 
 

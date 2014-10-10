@@ -966,14 +966,14 @@ BOOL ScriptDocument::CheckSyntax( void )
       if (curTest)
          SequenceTest( curTest );
    }
-   catch (char *errMsg)
+   catch (const char *errMsg)
    {
       scannerStack[scannerStack.GetSize()-1]->ReportSyntaxError( &tok, errMsg);
       delete curBase;
       curBase = NULL;
       checkok = false;
    }
-   catch (CString strThrowMessage) 
+   catch (const CString &strThrowMessage) 
    {
       scannerStack[scannerStack.GetSize()-1]->ReportSyntaxError( &tok, strThrowMessage);
       delete curBase;
