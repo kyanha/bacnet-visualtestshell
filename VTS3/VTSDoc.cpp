@@ -654,41 +654,75 @@ CSend * VTSDoc::DoSendWindow( int iGroup, int iItem )
 
 /////////////////////////////////////////////////////////////////////////////
 // VTSDoc serialization
-
+//
 // Rather oddly, VTSDoc is not declared DECLARE_SERIAL/IMPLEMENT_SERIAL
-// but its members, persisted below, are.
-// That means the members could be simply << or >> to the archive.
+// even through its members, persisted below, are.
+// That means that the doc file HAS NO VERSION INFORMATION: it starts
+// with our first data item.
+// It also means that CArchive::GetObjectSchema/SetObjectSchema can't be used.
+//
+// Since the members are DECLARE_SERIAL/IMPLEMENT_SERIAL, they could have been
+// simply << or >> to the archive.
 // But that isn't how the first version was done.  Since it would
 // presumably put extra class-data in the archive, I don't see that we can
 // change course now if we want to be able to load old documents.
 // In our usage, I am pretty sure that the DECLARE_SERIAL/IMPLEMENT_SERIAL
-// are meaningless and unnecessary, but we have left them in place.
+// are meaningless and unnecessary, but I have left them in place cuz I am chicken.
 //
-// For some reason, CArchive::GetObjectSchema can only be called ONCE.
-// So any change to the schema for any member requires that we change
-// VTSDoc's version, and pass the version to each member, which is
-// what we have done here, adding a parameter to member Serialize methods.
-// That causes no problems, since we don't use IMPLEMENT_SERIAL (which
-// relies on an overload of virtual Serialize(CArchive)) anyway.
+// For these sad reasons, we implement versioning "by hand", and pass the
+// version to member Serialize methods.
+// Note that these Serialize(CArchive,UINT) methods differ from the
+// virtual Serialize(CArchive)) methods that IMPLEMENT_SERIAL would use.
 //
 void VTSDoc::Serialize(CArchive& ar)
 {
+   // In the original format (now called VTS_DOC_SCHEMA_1), the first thing in
+   // the file is the log filename.
+   // In later versions, the file will begin with a string that is invalid
+   // as a filename and which contains the schema number.
+   static const char versionTemplate[] = ":::new-format:::%u:::update-VTS:::";
+   CString str;
    UINT version = VTS_DOC_SCHEMA;
-   ar.SetObjectSchema( VTS_DOC_SCHEMA );
-
    if (ar.IsStoring())
    {
+      // Turn the version into a string and store it
+      str.Format( versionTemplate, version );
+      ar << str;
+
+      // Store our class data
       ar << m_strLogFilename;
    }
    else
    {
-      version = ar.GetObjectSchema();
-      if (version == (UINT)-1)
+      ar >> str;
+      if (sscanf( str, versionTemplate, &version ) == 1)
       {
-         // Turn unspecified version into something nice.
-         version = VTS_DOC_SCHEMA_1;
+         if (version > VTS_DOC_SCHEMA)
+         {
+            // The file is newer than we are.
+            str.Format( "The file \"%s\"\n"
+                        "is format version %u.\n"
+                        "This version of VTS supports only versions 1 through %u.\n"
+                        "Either update VTS to a newer version, or use \"File\", \"Workspace\"\n"
+                        "to select or create a different workspace.",
+                        (LPCTSTR)ar.GetFile()->GetFilePath(),
+                        version, VTS_DOC_SCHEMA );
+            AfxMessageBox( str, MB_OK );
+
+            // Not really clear how to abort loading.
+            // If we call CArchive::Abort, the doc crashes.
+            return;
+         }
+
+         // Get the log file as the SECOND string in the file
+         ar >> m_strLogFilename;
       }
-      ar >> m_strLogFilename;
+      else
+      {
+         // Assume a legacy file: initial string is the log file.
+         version = VTS_DOC_SCHEMA_1;
+         m_strLogFilename = str;
+      }
    }
 
    m_ports.Serialize(ar, version);
