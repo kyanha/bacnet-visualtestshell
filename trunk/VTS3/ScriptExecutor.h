@@ -211,12 +211,10 @@ class ScriptExecutor : public BACnetTask {
 	private:
 		class ExecError {
 			public:
-				const char		*errMsg;
+				CString			errMsg;
 				int				errLineNo;
-				char			szBuf[512];
 
 				ExecError( const char *msg, int lineNo = -1 );
-				ExecError( CString & str, int lineNo = -1 );
 			};
 
 		ScriptExecMsgQueue		execMsgQueue;	// messages to application
