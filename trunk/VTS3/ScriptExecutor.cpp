@@ -1,4 +1,3 @@
-
 // ScriptExecutor.cpp: implementation of the ScriptExecutor class.
 //
 //////////////////////////////////////////////////////////////////////
@@ -59,25 +58,9 @@ static char THIS_FILE[]=__FILE__;
 ScriptExecutor    gExecutor;
 ScriptFilterList  gMasterFilterList;
 
-
-// some useful matching functions
-
-//Added by Yajun Zhou, 2002-7-16
 #include "math.h"
-const float FLOAT_EPSINON = (float)1e-005;
-const double DOUBLE_EPSINON = 1e-010;
-/////////////////////////////
-
-
-bool Match( int op, int a, int b );
-//madanner 9/24/02, needed for expanded BACnetUsigned internal value
-//bool Match( int op, unsigned long a, unsigned long b );
-bool Match( int op, unsigned long a, unsigned long b );
-bool Match( int op, float a, float b );
-bool Match( int op, double a, double b );
-LPCSTR OperatorToString(int iOperator);
-
-
+const float FLOAT_EPSILON = (float)1e-005;
+const double DOUBLE_EPSILON = 1e-010;
 
 // VTSQueue<ScriptExecMsg>
 
@@ -8844,14 +8827,9 @@ LPCSTR OperatorToString(int iOperator)
 }
 
 
-
-
-
-
 //
 // Matching Functions
 //
-
 
 bool Match( int op, int a, int b )
 {
@@ -8883,24 +8861,57 @@ bool Match( int op, unsigned long a, unsigned long b )
    return false;
 }
 
+// Return true if the value is Not a Number
+bool IsNaN( float theValue )
+{
+   // IEEE 754 defines 32-bit NaN values as:
+   // - sign bit is don't care
+   // - 8 exponent bits all set
+   // - 23 mantissa bits, not all 0
+   ASSERT( sizeof(float) == sizeof(UINT) );
+   UINT uVal = *(UINT*)&theValue;
+   return ((uVal & 0x7F800000) == 0x7F800000) & ((uVal & 0x007FFFFF) != 0);
+}
+
+// Return true if the value is Not a Number
+bool IsNaN( double theValue )
+{
+   // IEEE 754 defines 64-bit NaN values as:
+   // - sign bit is don't care
+   // - 11 exponent bits all set
+   // - 52 mantissa bits, not all 0
+   ASSERT( sizeof(double) == sizeof(unsigned long long) );
+   unsigned long long uVal = *(unsigned long long*)&theValue;
+   return ((uVal & 0x7FF0000000000000) == 0x7FF0000000000000) & ((uVal & 0x000FFFFFFFFFFFFF) != 0);
+}
+
 bool Match( int op, float a, float b )
 {
    switch (op) {
-      //Modified by Yajun Zhou, 2002-7-16
-      //case "=": return (a == b);
-      //case '<': return (a < b);
-      //case '>': return (a > b);
-      //case '<=': return (a <= b);
-      //case '>=': return (a >= b);
-      //case '!=': return (a != b);
       case '?=':  return true;   // don't care case
-      case '=': return (fabs(a - b) < FLOAT_EPSINON);
-      case '<': return (a < b && fabs(a - b) > FLOAT_EPSINON);
-      case '>': return (a > b && fabs(a - b) > FLOAT_EPSINON);
-      case '<=': return (a < b || fabs(a - b) < FLOAT_EPSINON);
-      case '>=': return (a > b || fabs(a - b) < FLOAT_EPSINON);
-      case '!=': return (fabs(a - b) > FLOAT_EPSINON);
-      ///////////////////////////////////
+
+      // If either or even BOTH values are NaN, all C comparisons except inequality
+      // return false. That is nice mathematically, but when we compare for
+      // equality of a value read from a device to the value specified in an EPICS,
+      // we mean "NaN is a NaN". So we do some fussing for equality and inequality.
+      case '=':
+         if (IsNaN(a))
+         {
+            return IsNaN(b);                          // true only if BOTH are NaN
+         }
+         return (fabs(a - b) < FLOAT_EPSILON);        // within +-epsilon of the same
+      case '!=':
+         // Equality is affected only if BOTH are NaN
+         if (IsNaN(a))
+         {
+            return !IsNaN(b);                         // true is EITHER is NaN, but NOT if both
+         }
+         return (fabs(a - b) > FLOAT_EPSILON);
+
+      case '<': return ((a - b) < -FLOAT_EPSILON);    // more than epsilon below
+      case '>': return ((a - b) > FLOAT_EPSILON);     // more than epsilon above
+      case '<=': return ((a - b) < FLOAT_EPSILON);    // not more than epsilon above
+      case '>=': return ((a - b) > -FLOAT_EPSILON);   // not more than epsilon below
    }
 
    return false;
@@ -8909,24 +8920,202 @@ bool Match( int op, float a, float b )
 bool Match( int op, double a, double b )
 {
    switch (op) {
-      //Modified by Yajun Zhou, 2002-7-16
-      //case "=": return (a == b);
-      //case '<': return (a < b);
-      //case '>': return (a > b);
-      //case '<=': return (a <= b);
-      //case '>=': return (a >= b);
-      //case '!=': return (a != b);
       case '?=':  return true;   // don't care case
-      case '=': return (fabs(a - b) < DOUBLE_EPSINON);
-      case '<': return (a < b && fabs(a - b) > DOUBLE_EPSINON);
-      case '>': return (a > b && fabs(a - b) > DOUBLE_EPSINON);
-      case '<=': return (a < b || fabs(a - b) < DOUBLE_EPSINON);
-      case '>=': return (a > b || fabs(a - b) < DOUBLE_EPSINON);
-      case '!=': return (fabs(a - b) > DOUBLE_EPSINON);
-      ///////////////////////////////////
+
+      // If either or even BOTH values are NaN, all C comparisons except inequality
+      // return false. That is nice mathematically, but when we compare for 
+      // equality of a value read from a device to the value specified in an EPICS,
+      // we mean "NaN is a NaN". So we do some fussing for equality and inequality.
+      case '=':
+         if (IsNaN(a))
+         {
+            return IsNaN(b);                          // true only if BOTH are NaN
+         }
+         return (fabs(a - b) < FLOAT_EPSILON);        // within +-epsilon of the same
+      case '!=':
+         // Equality is affected only if BOTH are NaN
+         if (IsNaN(a))
+         {
+            return !IsNaN(b);                         // true is EITHER is NaN, but NOT if both
+         }
+
+      case '<': return ((a - b) < -DOUBLE_EPSILON);   // more than epsilon below
+      case '>': return ((a - b) > DOUBLE_EPSILON);    // more than epsilon above
+      case '<=': return ((a - b) < DOUBLE_EPSILON);   // not more than epsilon above
+      case '>=': return ((a - b) > -DOUBLE_EPSILON);  // not more than epsilon below
    }
 
    return false;
+}
+
+// Convert theValue into a string.  Special values are shown as NaN, +inf, and -inf.
+const char* FloatToString( CString &theString, float theValue )
+{
+   // IEEE 754 defines 32-bit NaN values as:
+   // - sign bit is don't care
+   // - 8 exponent bits all set
+   // - 23 mantissa bits, not all 0
+   // INF is the same, but with all mantissa bits 0, and sign bit matters
+   UINT uVal = *(UINT*)&theValue;
+   if ((uVal & 0x7F800000) == 0x7F800000)
+   {
+      if ((uVal & 0x007FFFFF) != 0)
+      {
+         theString = "NaN";
+      }
+      else if (uVal & 0x80000000)
+      {
+         theString = "-inf";
+      }
+      else
+      {
+         theString = "+inf";
+      }
+   }
+   else
+   {
+      // Use %g to avoid silly decimal point position with very large and small numbers.
+      // # ensures that a decimal point is always shown.
+      theString.Format( "%#g", theValue );
+   }
+
+   return (const char*)theString;
+}
+
+// Convert theValue into a string.  Special values are shown as NaN, +inf, and -inf.
+const char* DoubleToString( CString &theString, double theValue )
+{
+   // IEEE 754 defines 64-bit NaN values as:
+   // - sign bit is don't care
+   // - 11 exponent bits all set
+   // - 52 mantissa bits, not all 0
+   // INF is the same, but with all mantissa bits 0, and sign bit matters
+   unsigned long long uVal = *(unsigned long long*)&theValue;
+   if ((uVal & 0x7FF0000000000000) == 0x7FF0000000000000)
+   {
+      if ((uVal & 0x000FFFFFFFFFFFFF) != 0)
+      {
+         theString = "NaN";
+      }
+      else if (uVal & 0x8000000000000000)
+      {
+         theString = "-inf";
+      }
+      else
+      {
+         theString = "+inf";
+      }
+   }
+   else
+   {
+      // Use %g to avoid silly decimal point position with very large and small numbers.
+      // # ensures that a decimal point is always shown.
+      theString.Format( "%#lg", theValue );
+   }
+
+   return (const char*)theString;
+}
+
+// Convert string into a floating point number.
+// Accepts special values NaN, inf, +inf, and -inf.
+// Returns the number of characters (if any) read from the string.
+// In order that the count be unambiguous, DOES NOT accept leading whitespace.
+int StringToFloat( const char *pString, float &theValue )
+{
+   int retval = 0;
+   UINT special;
+
+   if (_strnicmp( pString, "inf", 3 ) == 0)
+   {
+      // Plus infinity: sign bit, 8 exponent bits all set, 23 mantissa bits all 0
+      special = 0x7F800000;
+      theValue = *(float*)&special;
+      retval = 3;
+   }
+   else if (_strnicmp( pString, "+inf", 4 ) == 0)
+   {
+      // Plus infinity: sign bit, 8 exponent bits all set, 23 mantissa bits all 0
+      special = 0x7F800000;
+      theValue = *(float*)&special;
+      retval = 4;
+   }
+   else if (_strnicmp( pString, "-inf", 4 ) == 0)
+   {
+      // Minus infinity: sign bit, 8 exponent bits all set, 23 mantissa bits all 0
+      special = 0xFF800000;
+      theValue = *(float*)&special;
+      retval = 4;
+   }
+   else if (_strnicmp( pString, "NaN", 3 ) == 0)
+   {
+      // Not a number: sign bit, 8 exponent bits all set, 23 mantissa bits not all 0
+      // We set bit22, which makes this a quiet NaN according to IEEE 754.
+      special = 0x7FC00001;
+      theValue = *(float*)&special;
+      retval = 3;
+   }
+   else
+   {
+      // Get a float, count characters
+      int nChar;
+      if (sscanf( pString, "%f%n", &theValue, &nChar ) == 1)
+      {
+         retval = nChar;
+      }
+   }
+
+   return retval;
+}
+
+// Convert string into a floating point number.
+// Accepts special values NaN, inf, +inf, and -inf.
+// Returns the number of characters (if any) read from the string.
+// In order that the count be unambiguous, DOES NOT accept leading whitespace.
+int StringToDouble( const char *pString, double &theValue )
+{
+   int retval = 0;
+   unsigned long long special;
+
+   if (_strnicmp( pString, "inf", 3 ) == 0)
+   {
+      // Plus infinity: sign bit, 11 exponent bits all set, 52 mantissa bits all 0
+      special = 0x7FF0000000000000;
+      theValue = *(double*)&special;
+      retval = 3;
+   }
+   else if (_strnicmp( pString, "+inf", 4 ) == 0)
+   {
+      // Plus infinity: sign bit, 11 exponent bits all set, 52 mantissa bits all 0
+      special = 0x7FF0000000000000;
+      theValue = *(double*)&special;
+      retval = 4;
+   }
+   else if (_strnicmp( pString, "-inf", 4 ) == 0)
+   {
+      // Minus infinity: sign bit, 11 exponent bits all set, 52 mantissa bits all 0
+      special = 0xFFF0000000000000;
+      theValue = *(double*)&special;
+      retval = 4;
+   }
+   else if (_strnicmp( pString, "NaN", 3 ) == 0)
+   {
+      // Not a Number: sign bit, 11 exponent bits all set, 52 mantissa bits not all 0
+      // We set bit51, which makes this a quiet NaN according to IEEE 754.
+      special = 0x7FF8000000000001;
+      theValue = *(double*)&special;
+      retval = 3;
+   }
+   else
+   {
+      // Get a double, count characters
+      int nChar;
+      if (sscanf( pString, "%lf%n", &theValue, &nChar ) == 1)
+      {
+         retval = nChar;
+      }
+   }
+
+   return retval;
 }
 
 
