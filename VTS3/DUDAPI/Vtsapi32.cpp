@@ -141,8 +141,6 @@ static void CheckPICSCons2013I(PICSdb *pd);
 static void CheckPICSCons2013K(PICSdb *pd);
 static void CheckPICSCons2013L(PICSdb *pd);
 
-static void PrintToFile(const char *);
-
 /////////////////////////////////////////////////////////////
 
 static BACnetActionCommand *ReadActionCommands(void);
@@ -154,10 +152,12 @@ static octet whatTimestampChoice(char str[]);
 static void readline();
 static bool PeekNextIs(char);  // non-consuming test
 static bool NextIs(char);      // optional consuming test
+static bool NextIs(const char*); // optional consuming string test
 static bool NextIsWildcard();  // optional consuming test
 static bool MustBe(char);      // required consuming test
 static bool NextInBufferIs(char); // optional consuming test, do not read more
 static bool tperror(const char *, bool);
+static void Message(const char *, bool);
 static void rtrim(char *);
 static void preprocstr(char *str);
 
@@ -1087,7 +1087,7 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 {
    word  i;
    void *vp,*vq,*vr;
-   char errMsg[300];
+   CString errMsg;
 
    switch (p->object_type)                 //release this object's special fields
    {
@@ -1585,12 +1585,9 @@ void  APIENTRY DeletePICSObject(generic_object *p)
 
    default:
       // Someone forgot to implement delete code for this object type
-      sprintf( errMsg, "**WARNING**: No delete code for this object %s (type = %d), will probably leak \n",
-               p->object_name, p->object_type );
-      // tperror( errMsg, true);
-      // PrintToFile( errMsg );
-      OutputDebugString( _T( errMsg ) );
-      // assert(false);     // upside the head for developers
+      errMsg.Format( "**WARNING**: No delete code for this object %s (type = %d), will probably leak \n",
+                     p->object_name, p->object_type );
+      OutputDebugString( errMsg );
       // Attempt the deletion anyway
       break;
    }
@@ -2595,21 +2592,6 @@ nextobject:
    return false;
 }
 
-////////////////////////////////////////////////////////////////////////
-// Print text to a log file.
-//in:
-//out:
-void PrintToFile(const char *outBuf)
-{
-   if (lPICSErr != -1)
-      lPICSErr++;
-
-   if ((outBuf != NULL) && (pfileError != NULL))
-   {
-      fprintf(pfileError,"%s",outBuf);
-   }
-}
-
 ///////////////////////////////////////////////////////////////////////
 // parse a property value
 //in: pn    points to property name string
@@ -3199,18 +3181,20 @@ bool ParseProperty(const char *pn, generic_object *pobj, word objtype)
          {
             if ((_strnicmp(pn, "vendor", 6) == 0) || (_strnicmp(pn, "proprietary", 11) == 0 ))
             {
-               // Proprietary property: just skip it
-               return tperror( "Skipping proprietary property", true );
+               // Proprietary property: return true to skip parsing the value.
+               Message( "Skipping proprietary property", true );
+               return true;
             }
             else
             {
-               return tperror( "Invalid or unknown Property Name - check spelling", true );
+               return tperror( "Invalid or unknown property", true );
             }
          }
          else
          {
-            //ignore unknown property of proprietary objects
-            return tperror( "Skipping property of proprietary object", true );
+            // Ignore unknown property of proprietary objects
+            Message( "Skipping property of proprietary object", true );
+            return true;
          }
       }
       pd++;                         //advance to next table entry
@@ -5951,7 +5935,7 @@ bool ReadEnum(word *pVal, etable *etp)
       //   ending in a non-negative decimal numeric. Each must start with the word
       //   "proprietary": Object_Type, proprietary-object-type-653;"
       // But this means that we COPIED the digits into buffer e.
-      // To call ReadDW, we need to back up the cursor
+      // To call ReadDW, we need to back up the cursor to the first digit.
       if (_strnicmp(e,"proprietary",11)==0)
       {
          if (etp->propes == 0)
@@ -5962,9 +5946,10 @@ bool ReadEnum(word *pVal, etable *etp)
          {
             // Back up the cursor looking for digits
             bool hasDigits = false;
-            while (IsDigit(*--lp))
+            while (IsDigit(lp[-1]))
             {
                hasDigits = true;
+               lp -= 1;
             }
 
             if (hasDigits)
@@ -6212,6 +6197,29 @@ bool NextIs(char c)
 }
 
 ///////////////////////////////////////////////////////////////////////
+// check for a character string during parsing.
+// For convenience, strips blanks before testing.
+// Checks only characters in the buffer after blank stripping.
+//in: pStr     the expected string
+//    lp       points to the next buffer character
+//out:   true  the string was found, lp points after it.
+//       else false and lp points at non-blank
+bool NextIs(const char *pStr)
+{
+   skipwhitespace();
+
+   int len = strlen( pStr );
+   bool retval = _strnicmp( lp, pStr, len ) == 0;
+   if (retval)
+   {
+      // Bypass the matched characters
+      lp += len;
+   }
+
+   return retval;
+}
+
+///////////////////////////////////////////////////////////////////////
 // check for one or more consecutive "*" or "?" characters during parsing.
 // For convenience, strips blanks before testing.
 //in: lp       points to the next buffer character
@@ -6248,7 +6256,6 @@ bool NextInBufferIs(char c)
    return retval;
 }
 
-
 ///////////////////////////////////////////////////////////////////////
 // check for a character during parsing and complain if not found.
 // For convenience, strips blanks before and after.
@@ -6269,56 +6276,29 @@ bool MustBe(char c)
 }
 
 ///////////////////////////////////////////////////////////////////////
-// display an error message dialog and update the error count
-//in: mp       points to specific message
-//    showline true if need to show source line and position
-//out:   true  always, and s_error true
-//             Formerly returned true only if cancel was selected
-//             in a dialog that hasn't been shown for years.
-//             The old way caused parse errors to continue trying
-//             to parse, which seldom worked.
-//             The new method allows parsing to abort, and allows
-//             ParseProperty to skip any additional value lines until
-//             the next property.
-// (also sets cancel=true)
-
+// Body of error logging
 // TODO: This function highlights the character at lp as the source of
 // the error, which it often is NOT - for example an invalid enumeration.
 // Ideally, would pass in begin and end pointers for the offending
 // string.  We dream of a parser object to eat whitespace, and have
 // pointers to start of token as well as cursor...
-
-bool tperror(const char *mp, bool showline)
+void LoggingGuts(CString &msg, const char *mp, bool showline)
 {
    // Avoid buffer overflow headaches
-   CString m, str;
+   CString  str;
    char     c;
-
-   if (lPICSErr == -1)
-      lerrc++;
-
-   // add error title to account for usage of afx (no title beyond VTS)
-   if (pfileError == NULL)
-      m +="Read Text PICS Error:\n\n";
-
-   // if logging consistency errors, include the error number on each line.
-   if (lPICSErr > -1)
-   {
-      str.Format("%d) ", lPICSErr+1); // plus 1 because it has not been incremented yet
-      m += str;
-   }
 
    if (showline)
    {
       str.Format("Line %u: ", lc);     // add line number
-      m += str;
+      msg += str;
    }
 
    if ( pfileError == NULL || !showline )
       str.Format("%s\n",mp);
    else
       str.Format("%s:  ",mp);
-   m += str;
+   msg += str;
 
    if (showline)
    {
@@ -6333,21 +6313,76 @@ bool tperror(const char *mp, bool showline)
       {
          str.Format("%s\n",lb);
       }
-      m += str;
+      msg += str;
    }
 
-   if ( pfileError == NULL )
-      s_cancel = AfxMessageBox(m,  MB_ICONEXCLAMATION | (showline ? MB_OKCANCEL : MB_OK)) == IDCANCEL;
+   if (pfileError == NULL)
+   {
+      s_cancel = AfxMessageBox(msg, MB_ICONEXCLAMATION | (showline ? MB_OKCANCEL : MB_OK)) == IDCANCEL;
+   }
    else
-      PrintToFile((LPCTSTR)m);
+   {
+      fputs(msg, pfileError);
+   }
+}
+
+///////////////////////////////////////////////////////////////////////
+// Display an error message in the file or dialog and update the error count
+//in: mp       points to specific message
+//    showline true if need to show source line and position
+//out:   true  always, and s_error true
+//             Formerly returned true only if cancel was selected
+//             in a dialog that hasn't been shown for years.
+//             The old way caused parse errors to continue trying
+//             to parse, which seldom worked.
+//             The new method allows parsing to abort, and allows
+//             ParseProperty to skip any additional value lines until
+//             the next property.
+// (also sets cancel=true)
+//
+bool tperror(const char *mp, bool showline)
+{
+   CString str, msg;
+
+   // If displaying in a dialog, add error title
+   if (pfileError == NULL)
+      msg +="Read Text PICS Error:\n\n";
+
+   if (lPICSErr == -1)
+   {
+      // Not doing consistency checks: count a parse error
+      lerrc++;
+   }
+   else
+   {
+      // Count a PICS consistency error
+      lPICSErr++;
+      str.Format("%d) ", lPICSErr);
+      msg += str;
+   }
+
+   LoggingGuts( msg, mp, showline );
 
    // Circuit breaker: don't parse total junk
    if (lerrc > 200)
+   {
       s_cancel = true;
+   }
 
    s_error = true;
    return true;
 }
+
+///////////////////////////////////////////////////////////////////////
+// Display a message in the file or dialog and update the error count
+//in: mp       points to specific message
+//    showline true if need to show source line and position
+void Message(const char *mp, bool showline)
+{
+   CString str;
+   LoggingGuts( str, mp, showline );
+}
+
 
 // Returns the maximum number of standard services
 int GetStandardServicesSize()
@@ -7750,21 +7785,23 @@ bool ReadFloat(float *pVal, char mustBe)
 {
    bool retval = false;
 
-   // Get a float with optional leading whitespace, count characters
-   int nChar;
-   if (sscanf( lp, " %f%n", pVal, &nChar ) != 1)
+   skipwhitespace();
+   int nChar = StringToFloat( lp, *pVal );
+   if (nChar = 0)
    {
-      retval = tperror("Expected floating point number here...",true);
+      // Failed to get a value
+      retval = true;
    }
    else
    {
+      // Skip the value
       lp += nChar;
+
       if (mustBe != 0)
       {
          retval = MustBe( mustBe );
       }
    }
-
    return retval;
 }
 
@@ -7864,7 +7901,7 @@ bool ReadW(word *pVal, char mustBe)
    return retval;
 }
 
-// read an object identifier (objecttype,instance) from the stream
+// Read an object identifier (objecttype,instance) from the stream
 // Advance lp to the character after the number.
 // if mustBe is non-zero, call MustBe.
 // Return true on error with cancel.
@@ -7887,19 +7924,10 @@ bool ReadObjectID(dword *pVal, char mustBe )
       // Integer object type (useful, even though not 135.1)
       if (ReadW(&objtype)) return true;
    }
-   else if (_strnicmp(lp, "proprietary", 11) == 0)
+   else if (_strnicmp(lp, "proprietary ", 12) == 0)
    {
-      lp += 11;
-      if (*lp == '-')
-      {
-         // 135.1 "proprietary-NNNN"
-         lp += 1;
-      }
-      else
-      {
-         // Legacy VTS "proprietary NNN"
-         skipwhitespace();
-      }
+      // Legacy VTS "proprietary NNN"
+      lp += 12;
       if (ReadW(&objtype)) return true;
    }
    else if (_strnicmp(lp, "vendor-", 7) == 0)
@@ -7907,6 +7935,7 @@ bool ReadObjectID(dword *pVal, char mustBe )
       lp += 7;
       if (ReadW(&objtype)) return true;
    }
+   // ReadEnum also accepts 135.1 "proprietarywhatever-123" and VTS-style "unknown:123"
    else if (ReadEnum(&objtype, &etObjectTypes))
    {
       // Error shown by ReadEnum

@@ -59,7 +59,7 @@ ENDITEM
 
 ;===============================================================================
 ITEM Date
-Date = [(FRIDAY,1/29/2010)]
+Date = [(Monday,27-October-2014)]
 ENDITEM
 
 ;===============================================================================
@@ -138,22 +138,22 @@ SECTION Constructed Datatypes
 
 ITEM BACnetCalendarEntry - date CHOICE
 OpenTag 0
-   Date [(Thursday,2/4/2010)]
+   Date = [(Monday,27-October-2014)]
 CloseTag 0
 ENDITEM
 
 ;===============================================================================
 ITEM BACnetCalendarEntry - date range CHOICE
 OpenTag 1
-   Date [(Thursday,2/4/2010)]
-   Date [(Tuesday,2/16/2010)]
+   Date = [(Monday,27-October-2014)]
+   Date = [(Wednesday,29-October-2014)]
 CloseTag 1
 ENDITEM
 
 ;===============================================================================
 ITEM BACnetCalendarEntry - WeekNDay CHOICE
 OpenTag 2
-   -- Month 1-12, 13=odd, 14=even or 0xFF; Week 1-5, 6=last or 0xFF; Day 1-7 or 0xFF
+   -- Month 1-12, 13=odd, 14=even or 0xFF; Week 1-5, 6=last or 0xFF; Day 1-7 (1=Monday) or 0xFF
    Octetstring X'000000'
 CloseTag 2
 ENDITEM
@@ -187,6 +187,31 @@ ENDITEM
 ITEM BACnetAddress
 Unsigned your_network_number
 Octetstring your_mac_address
+ENDITEM
+
+;===============================================================================
+ITEM BACnetDeviceObjectPropertyReference
+Object   = 0, your_object_id__or_type_and_instance
+Property = 1, your_property
+Unsigned = 2, index_if_you_need_it
+Object   = 3, your_device_id_if_you_need_it
+ENDITEM
+
+;===============================================================================
+ITEM BACnetDeviceObjectPropertyValue
+Object   = 0, your_device_id
+Object   = 1, your_object_id__or_type_and_instance
+Property = 2, your_property
+Unsigned = 3, index_if_you_need_it
+OpenTag    4
+   -- <your_value_here>
+CloseTag   4
+ENDITEM
+
+;===============================================================================
+ITEM BACnetDeviceObjectReference
+Object   = 0, your_device_id_if_you_need_it
+Object   = 1, your_object_id__or_type_and_instance
 ENDITEM
 
 ;===============================================================================
@@ -717,8 +742,8 @@ SEND (
    DA  = GlobalBroadcast
    PDU = Unconfirmed-Request
    Service = TimeSynchronization
-   date = [(FRIDAY,1/29/2010)]
-   time = [8:36:12.00]
+   Date = [(Monday,27-October-2014)]
+   Time = [8:36:12.00]
 )
 
 ENDITEM
@@ -730,8 +755,8 @@ SEND (
    DA  = GlobalBroadcast
    PDU = Unconfirmed-Request
    Service = UTCTimeSynchronization
-   date = [(FRIDAY,1/29/2010)]
-   time = [8:36:12.00]
+   Date = [(Monday,27-October-2014)]
+   Time = [8:36:12.00]
 )
 
 ENDITEM
@@ -750,15 +775,15 @@ SEND (
    Enumerated 2,       your_eventStateAcknowledged
    OpenTag 3
       OpenTag 2
-         date = [(FRIDAY,1/29/2010)]
-         time = [8:36:12.0]
+         Date = [(Monday,27-October-2014)]
+         Time = [8:36:12.0]
       CloseTag 2
    CloseTag 3
    Characterstring 4,  your_acknowledgmentSource
    OpenTag 5
       OpenTag 2
-         date = [(MONDAY,4/26/2010)]
-         time = [8:36:12.0]
+         Date = [(Monday,27-October-2014)]
+         Time = [8:36:12.0]
       CloseTag 2
    CloseTag 5
 )
@@ -858,16 +883,16 @@ EXPECT (
       OpenTag     3
          -- 3 BACnetTimeStamps.  Using DateTime here.
          OpenTag 2
-            date = [(FRIDAY,1/29/2010)]
-            time = [8:36:12.00]
+            Date = [(Monday,27-October-2014)]
+            Time = [8:36:12.00]
          CloseTag 2
          OpenTag 2
-            date = [(FRIDAY,1/29/2010)]
-            time = [8:36:12.00]
+            Date = [(Monday,27-October-2014)]
+            Time = [8:36:12.00]
          CloseTag 2
          OpenTag 2
-            date = [(FRIDAY,1/29/2010)]
-            time = [8:36:12.00]
+            Date = [(Monday,27-October-2014)]
+            Time = [8:36:12.00]
          CloseTag 2
       CloseTag    3
       enum      = 4, your_BACnetNotifyType
@@ -1453,8 +1478,236 @@ ITEM ErrorCode NOT_CONFIGURED_FOR_TRIGGERED_LOGGING
 Enum 78 -- ErrorCode NOT_CONFIGURED_FOR_TRIGGERED_LOGGING
 ENDITEM
 
+ITEM ErrorCode UNKNOWN_SUBSCRIPTION
+Enum 79 -- ErrorCode UNKNOWN_SUBSCRIPTION
+ENDITEM
+
+ITEM ErrorCode PARAMETER_OUT_OF_RANGE
+Enum 80 -- ErrorCode PARAMETER_OUT_OF_RANGE
+ENDITEM
+
+ITEM ErrorCode LIST_ELEMENT_NOT_FOUND
+Enum 81 -- ErrorCode LIST_ELEMENT_NOT_FOUND
+ENDITEM
+
+ITEM ErrorCode BUSY
+Enum 82 -- ErrorCode BUSY
+ENDITEM
+
 ITEM ErrorCode COMMUNICATION_DISABLED
 Enum 83 -- ErrorCode COMMUNICATION_DISABLED
+ENDITEM
+
+ITEM ErrorCode SUCCESS
+Enum 84 -- ErrorCode SUCCESS
+ENDITEM
+
+ITEM ErrorCode EC_ACCESS_DENIED
+Enum 85 -- ErrorCode EC_ACCESS_DENIED
+ENDITEM
+
+ITEM ErrorCode BAD_DESTINATION_ADDRESS
+Enum 86 -- ErrorCode BAD_DESTINATION_ADDRESS
+ENDITEM
+
+ITEM ErrorCode BAD_DESTINATION_DEVICE_ID
+Enum 87 -- ErrorCode BAD_DESTINATION_DEVICE_ID
+ENDITEM
+
+ITEM ErrorCode BAD_SIGNATURE
+Enum 88 -- ErrorCode BAD_SIGNATURE
+ENDITEM
+
+ITEM ErrorCode BAD_SOURCE_ADDRESS
+Enum 89 -- ErrorCode BAD_SOURCE_ADDRESS
+ENDITEM
+
+ITEM ErrorCode BAD_TIMESTAMP
+Enum 90 -- ErrorCode BAD_TIMESTAMP
+ENDITEM
+
+ITEM ErrorCode CANNOT_USE_KEY
+Enum 91 -- ErrorCode CANNOT_USE_KEY
+ENDITEM
+
+ITEM ErrorCode CANNOT_VERIFY_MESSAGE_ID
+Enum 92 -- ErrorCode CANNOT_VERIFY_MESSAGE_ID
+ENDITEM
+
+ITEM ErrorCode CORRECT_KEY_REVISION
+Enum 93 -- ErrorCode CORRECT_KEY_REVISION
+ENDITEM
+
+ITEM ErrorCode DESTINATION_DEVICE_ID_REQUIRED
+Enum 94 -- ErrorCode DESTINATION_DEVICE_ID_REQUIRED
+ENDITEM
+
+ITEM ErrorCode DUPLICATE_MESSAGE
+Enum 95 -- ErrorCode DUPLICATE_MESSAGE
+ENDITEM
+
+ITEM ErrorCode ENCRYPTION_NOT_CONFIGURED
+Enum 96 -- ErrorCode ENCRYPTION_NOT_CONFIGURED
+ENDITEM
+
+ITEM ErrorCode ENCRYPTION_REQUIRED
+Enum 97 -- ErrorCode ENCRYPTION_REQUIRED
+ENDITEM
+
+ITEM ErrorCode INCORRECT_KEY
+Enum 98 -- ErrorCode INCORRECT_KEY
+ENDITEM
+
+ITEM ErrorCode INVALID_KEY_DATA
+Enum 99 -- ErrorCode INVALID_KEY_DATA
+ENDITEM
+
+ITEM ErrorCode KEY_UPDATE_IN_PROGRESS
+Enum 100 -- ErrorCode KEY_UPDATE_IN_PROGRESS
+ENDITEM
+
+ITEM ErrorCode MALFORMED_MESSAGE
+Enum 101 -- ErrorCode MALFORMED_MESSAGE
+ENDITEM
+
+ITEM ErrorCode NOT_KEY_SERVER
+Enum 102 -- ErrorCode NOT_KEY_SERVER
+ENDITEM
+
+ITEM ErrorCode SECURITY_NOT_CONFIGURED
+Enum 103 -- ErrorCode SECURITY_NOT_CONFIGURED
+ENDITEM
+
+ITEM ErrorCode SOURCE_SECURITY_REQUIRED
+Enum 104 -- ErrorCode SOURCE_SECURITY_REQUIRED
+ENDITEM
+
+ITEM ErrorCode TOO_MANY_KEYS
+Enum 105 -- ErrorCode TOO_MANY_KEYS
+ENDITEM
+
+ITEM ErrorCode UNKNOWN_AUTHENTICATION_TYPE
+Enum 106 -- ErrorCode UNKNOWN_AUTHENTICATION_TYPE
+ENDITEM
+
+ITEM ErrorCode UNKNOWN_KEY
+Enum 107 -- ErrorCode UNKNOWN_KEY
+ENDITEM
+
+ITEM ErrorCode UNKNOWN_KEY_REVISION
+Enum 108 -- ErrorCode UNKNOWN_KEY_REVISION
+ENDITEM
+
+ITEM ErrorCode UNKNOWN_SOURCE_MESSAGE
+Enum 109 -- ErrorCode UNKNOWN_SOURCE_MESSAGE
+ENDITEM
+
+ITEM ErrorCode NOT_ROUTER_TO_DNET
+Enum 110 -- ErrorCode NOT_ROUTER_TO_DNET
+ENDITEM
+
+ITEM ErrorCode ROUTER_BUSY
+Enum 111 -- ErrorCode ROUTER_BUSY
+ENDITEM
+
+ITEM ErrorCode UNKNOWN_NETWORK_MESSAGE
+Enum 112 -- ErrorCode UNKNOWN_NETWORK_MESSAGE
+ENDITEM
+
+ITEM ErrorCode MESSAGE_TOO_LONG
+Enum 113 -- ErrorCode MESSAGE_TOO_LONG
+ENDITEM
+
+ITEM ErrorCode SECURITY_ERROR
+Enum 114 -- ErrorCode SECURITY_ERROR
+ENDITEM
+
+ITEM ErrorCode ADDRESSING_ERROR
+Enum 115 -- ErrorCode ADDRESSING_ERROR
+ENDITEM
+
+ITEM ErrorCode WRITE_BDT_FAILED
+Enum 116 -- ErrorCode WRITE_BDT_FAILED
+ENDITEM
+
+ITEM ErrorCode READ_BDT_FAILED
+Enum 117 -- ErrorCode READ_BDT_FAILED
+ENDITEM
+
+ITEM ErrorCode REGISTER_FOREIGN_DEVICE_FAILED
+Enum 118 -- ErrorCode REGISTER_FOREIGN_DEVICE_FAILED
+ENDITEM
+
+ITEM ErrorCode READ_FDT_FAILED
+Enum 119 -- ErrorCode READ_FDT_FAILED
+ENDITEM
+
+ITEM ErrorCode DELETE_FDT_ENTRY_FAILED
+Enum 120 -- ErrorCode DELETE_FDT_ENTRY_FAILED
+ENDITEM
+
+ITEM ErrorCode DISTRIBUTE_BROADCAST_FAILED
+Enum 121 -- ErrorCode DISTRIBUTE_BROADCAST_FAILED
+ENDITEM
+
+ITEM ErrorCode UNKNOWN_FILE_SIZE
+Enum 122 -- ErrorCode UNKNOWN_FILE_SIZE
+ENDITEM
+
+ITEM ErrorCode ABORT_APDU_TOO_LONG
+Enum 123 -- ErrorCode ABORT_APDU_TOO_LONG
+ENDITEM
+
+ITEM ErrorCode ABORT_APPLICATION_EXCEEDED_REPLY_TIME
+Enum 124 -- ErrorCode ABORT_APPLICATION_EXCEEDED_REPLY_TIME
+ENDITEM
+
+ITEM ErrorCode ABORT_OUT_OF_RESOURCES
+Enum 125 -- ErrorCode ABORT_OUT_OF_RESOURCES
+ENDITEM
+
+ITEM ErrorCode ABORT_TSM_TIMEOUT
+Enum 126 -- ErrorCode ABORT_TSM_TIMEOUT
+ENDITEM
+
+ITEM ErrorCode ABORT_WINDOW_SIZE_OUT_OF_RANGE
+Enum 127 -- ErrorCode ABORT_WINDOW_SIZE_OUT_OF_RANGE
+ENDITEM
+
+ITEM ErrorCode FILE_FULL
+Enum 128 -- ErrorCode FILE_FULL
+ENDITEM
+
+ITEM ErrorCode INCONSISTENT_CONFIGURATION
+Enum 129 -- ErrorCode INCONSISTENT_CONFIGURATION
+ENDITEM
+
+ITEM ErrorCode INCONSISTENT_OBJECT_TYPE
+Enum 130 -- ErrorCode INCONSISTENT_OBJECT_TYPE
+ENDITEM
+
+ITEM ErrorCode INTERNAL_ERROR
+Enum 131 -- ErrorCode INTERNAL_ERROR
+ENDITEM
+
+ITEM ErrorCode NOT_CONFIGURED
+Enum 132 -- ErrorCode NOT_CONFIGURED
+ENDITEM
+
+ITEM ErrorCode OUT_OF_MEMORY
+Enum 133 -- ErrorCode OUT_OF_MEMORY
+ENDITEM
+
+ITEM ErrorCode VALUE_TOO_LONG
+Enum 134 -- ErrorCode VALUE_TOO_LONG
+ENDITEM
+
+ITEM ErrorCode ABORT_INSUFFICIENT_SECURITY
+Enum 135 -- ErrorCode ABORT_INSUFFICIENT_SECURITY
+ENDITEM
+
+ITEM ErrorCode ABORT_SECURITY_ERROR
+Enum 136 -- ErrorCode ABORT_SECURITY_ERROR
 ENDITEM
 
 ;===============================================================================
@@ -1498,7 +1751,7 @@ Reject-Reason 8 -- UNDEFINED_ENUMERATION
 ENDITEM
 
 ITEM RejectReason UNRECOGNIZED_SERVICE
-Reject-Reason  -- UNRECOGNIZED_SERVICE
+Reject-Reason 9 -- UNRECOGNIZED_SERVICE
 ENDITEM
 
 ITEM AbortReason OTHER

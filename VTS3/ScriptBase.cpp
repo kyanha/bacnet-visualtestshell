@@ -722,12 +722,9 @@ void ScriptScanner::ReportSyntaxError( ScriptToken * ptok, LPCSTR lpszErrorMsg )
 
 void ScriptScanner::Next( ScriptToken& tok )
 {
-   const char  *tStart
-   ;
-   char     c, *dst
-   ;
-   bool     signFound = false
-   ;
+   const char  *tStart;
+   char     c, *dst;
+   bool     signFound = false;
 
    // prepare for token value
    tok.tokenLength = 0;
@@ -744,7 +741,6 @@ void ScriptScanner::Next( ScriptToken& tok )
    if ( m_pdocSource != NULL || m_fileSource != NULL ) {
       tok.tokenLine = scanLine;
       tok.tokenOffset = m_nLineOffset + (scanSrc - scanLineBuffer);
-//    tok.tokenOffset = m_pdocSource->m_editData->LineIndex( scanLine ) + (scanSrc - scanLineBuffer);
    }
 
    // check for end-of-line
@@ -782,7 +778,7 @@ void ScriptScanner::Next( ScriptToken& tok )
             *dst++ = *scanSrc++;
 
          Deblank();
-   
+
          // copy a blank before the next word
          if (*scanSrc)
             *dst++ = ' ';
@@ -795,7 +791,6 @@ void ScriptScanner::Next( ScriptToken& tok )
       tok.tokenType = scriptEOL;
       tok.tokenLength = (scanSrc - tStart);        // actual parsed length, not result length
       tok.tokenValue = scanValueBuffer;
-
       return;
    }
 
@@ -809,15 +804,14 @@ void ScriptScanner::Next( ScriptToken& tok )
    // special chars are the next easiest
    switch (c) {
       case '=':
-//    case '?':            // madanner 11/4/02, now used as don't care value (don't know what it was previously)
-      case '*':            //add by Liangping Xu
+      case '*':
       case ',':
       case '/':
       case ':':
       case '(':
       case ')':
-      case '}':            //add by GJB  12/21/2003
-      case '|':            //add by GJB  12/21/2003
+      case '}':
+      case '|':
          tok.tokenType = scriptSymbol;
          tok.tokenSymbol = c;
          break;
@@ -865,22 +859,16 @@ void ScriptScanner::Next( ScriptToken& tok )
       case '+':
       case '-':
          signFound = true;
-         // Added by Yajun Zhou, 2002-9-4
-         if(*scanSrc == '&')
+         if (*scanSrc == '&')
          {
-            *dst++ = c = ToUpper(*scanSrc++);
+            // Signed integer in specified format
+            *dst++ = c = *scanSrc++;
             *dst = 0;
             goto FORMAT1;
          }
-         if(*scanSrc == '0' && !IsDigit(*(scanSrc+1)))
-         {
-            *dst++ = c = ToUpper(*scanSrc++);
-            *dst = 0;
-            break;
-         }
-         //////////////////////////////////////
-         if (!IsDigit(*scanSrc))
-            FormatError( tok, "Invalid character in numeric constant" );
+         // This formerly required at least one digit.
+         // But we now want to accept +inf and -inf.
+         // This also blocked any possible use of + and - as operators
          break;
 
       case '&':
@@ -891,10 +879,7 @@ FORMAT1: if (*scanSrc == 'D') {
             while (IsDigit(*scanSrc))
                *dst++ = *scanSrc++;
          } else
-         //Modified by Yajun Zhou, 2002-8-16
-         //if (*scanSrc == 'H') {
          if (*scanSrc == 'X' ) {
-         ///////////////////////////////////
             tok.tokenType = scriptValue;
             tok.tokenEnc = scriptHexEnc;
             *dst++ = *scanSrc++;
@@ -1025,6 +1010,23 @@ FORMAT1: if (*scanSrc == 'D') {
 
          *dst = 0;
          break;
+
+      default:
+         break;
+   }
+
+   // Check for special float/double constants
+   if ((_strnicmp(scanSrc, "inf", 3) == 0) || (_strnicmp(scanSrc, "NaN", 3) == 0))
+   {
+      tok.tokenType = scriptValue;
+      tok.tokenEnc = scriptFloatEnc;
+
+      // The constant may include a sign character processed above.
+      strncpy( dst, scanSrc, 3 );
+      dst += 3;
+      *dst = 0;
+      scanSrc += 3;
+      // tokenType will cause return below
    }
 
    // clean up if a token was found
@@ -1190,7 +1192,6 @@ FORMAT1: if (*scanSrc == 'D') {
 
          while (IsDigit(*scanSrc))
             *dst++ = *scanSrc++;
-
       }
 
       // check for exponential

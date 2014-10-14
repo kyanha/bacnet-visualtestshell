@@ -30,7 +30,7 @@
 #include "scbarcf.h"
 #include <afxdlgs.h>
 
-// Replacements for character classification functions that can handle ISO-8859-1 character 
+// Replacements for character classification functions that can handle ISO-8859-1 character
 // values, which appear as values -128 to -1, since char is signed.
 // Microsoft's debug versions of the "normal" versions assert on int values >255 or less than 0.
 // The release versions index into a table.  Either way, we need to deal with it by using
@@ -45,6 +45,27 @@ int IsUpper( int theChar );
 int IsLower( int theChar );
 int ToUpper( int theChar );
 int ToLower( int theChar );
+
+// Declare matching prototypes for globals defined in ScriptExecutor...
+bool Match( int op, int a, int b );
+bool Match( int op, unsigned long a, unsigned long b );
+bool Match( int op, float a, float b );
+bool Match( int op, double a, double b );
+LPCSTR OperatorToString(int iOperator);
+
+// Return true if the value is Not a Number
+bool IsNaN( float theValue );
+bool IsNaN( double theValue );
+
+// Convert theValue into a string.  Special values are shown as NaN, +inf, and -inf.
+const char* FloatToString( CString &theString, float theValue );
+const char* DoubleToString( CString &theString, double theValue );
+
+// Convert string into a floating point number.
+// Accepts special values NaN, inf, +inf, and -inf.
+// Returns the number of characters (if any) read from the string.
+int StringToFloat( const char *pString, float &theValue );
+int StringToDouble( const char *pString, double &theValue );
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.

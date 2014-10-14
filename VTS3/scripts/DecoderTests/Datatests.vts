@@ -48,12 +48,34 @@ REFERENCE None
 
          integer = 77 -- verify comment here
          integer = 7, 77     -- verify comment here
+         integer = -77 -- verify comment here
+         integer = 7, -77     -- verify comment here
 
          real = 3.131 -- verify comment here
          real = 8, 3.131 -- verify comment here
+         real = -3.131 -- verify comment here
+         real = 8, -3.131 -- verify comment here
+         real = inf -- verify comment here
+         real = 8, inf -- verify comment here
+         real = +inf -- verify comment here
+         real = 8, +inf -- verify comment here
+         real = -inf -- verify comment here
+         real = 8, -inf -- verify comment here
+         real = NaN -- verify comment here
+         real = 8, NaN -- verify comment here
 
          double = 3.131 -- verify comment here
          double = 8, 3.131 -- verify comment here
+         double = -3.131 -- verify comment here
+         double = 8, -3.131 -- verify comment here
+         double = inf -- verify comment here
+         double = 8, inf -- verify comment here
+         double = +inf -- verify comment here
+         double = 8, +inf -- verify comment here
+         double = -inf -- verify comment here
+         double = 8, -inf -- verify comment here
+         double = NaN -- verify comment here
+         double = 8, NaN -- verify comment here
 
          octetstring = X'010203' -- verify comment here
          octetstring = 0, X'010203' -- verify comment here
@@ -105,10 +127,9 @@ REFERENCE None
          time = 12, [8:36:12.*] -- verify comment here
          time = [*:*:*.*] -- verify comment here
 
--- 135.1-2007 enclosed object identifiers on parenthesis
---         objectidentifier = (analog-output, 5)
-         objectidentifier = [(analog-output, 5)]
-         objectidentifier = 12, [(analog-output, 5)]
+-- 135.1-2007 encloses object identifiers on parenthesis
+         objectidentifier = analog-output, 5
+         objectidentifier = 12, analog-output, 5
          objectidentifier = analog-output, 5 -- verify comment here
          objectidentifier = 13, analog-output, 5 -- verify comment here
 

@@ -192,17 +192,6 @@ int stricmp( const char *a, const char *b )
 
 const char * apszBinaryPVNames[] = {"INACTIVE", "ACTIVE"};
 
-
-// Declare matching prototypes for globals defined in ScriptExecutor...
-bool Match( int op, int a, int b );
-//madanner 9/24/02, needed for expanded BACnetUsigned internal value
-//bool Match( int op, unsigned long a, unsigned long b );
-bool Match( int op, unsigned long a, unsigned long b );
-bool Match( int op, float a, float b );
-bool Match( int op, double a, double b );
-LPCSTR OperatorToString(int iOperator);
-
-
 bool ValuesEqual( int v1, int v2 );
 bool ValuesGreater( int v1, int v2 );
 bool ValuesLess( int v1, int v2 );
@@ -1979,38 +1968,15 @@ void BACnetReal::Decode( BACnetAPDUDecoder& dec )
 
 void BACnetReal::Encode( CString &enc, Format /*theFormat*/ ) const
 {
-   // Use %g to avoid silly decimal point position with very large and small numbers.
-   // # ensures that a decimal point is always shown.
-   // Shows +INF as "1.#INF0", -INF as "-1.#INF0", and our NAN as "1.#QNAN"
-   enc.Format( "%#g", realValue );
+   // We use FloatToString() to get nice treatment of NaN and inf
+   FloatToString( enc, realValue );
 }
 
 void BACnetReal::Decode( const char *dec )
 {
-   // Check for special values
-   // The "1.#INF0" styles are what Visual Studio shows for %g
-   UINT special;
-   if ((_stricmp( dec, "INF" ) == 0) || (_stricmp( dec, "1.#INF0" ) == 0))
-   {
-      // Plus infinity: sign bit, 8 exponent bits, all set, 23 mantissa bits, all 0
-      special = 0x7F800000;
-      realValue = *(float*)&special;
-   }
-   else if ((_stricmp( dec, "-INF" ) == 0) || (_stricmp( dec, "-1.#INF0" ) == 0))
-   {
-      // Plus infinity: sign bit, 8 exponent bits, all set, 23 mantissa bits, all 0
-      special = 0xFF800000;
-      realValue = *(float*)&special;
-   }
-   else if ((_stricmp( dec, "NAN" ) == 0) || (_stricmp( dec, "1.#QNAN" ) == 0) || (_stricmp( dec, "1.#SNAN" ) == 0))
-   {
-      // Not a number: sign bit, 8 exponent bits, all set, 23 mantissa bits, not all 0
-      special = 0x7F800001;
-      realValue = *(float*)&special;
-   }
-
-   // check for valid format (also accepts 1e10 format)
-   else if (sscanf( dec, "%f", &realValue ) != 1)
+   // We use StringToFloat() to also accept NaN and inf
+   int nChar = StringToFloat( dec, realValue );
+   if (nChar != strlen(dec))
       throw_(36) /* format error */;
 }
 
@@ -2146,15 +2112,15 @@ void BACnetDouble::Decode( BACnetAPDUDecoder& dec )
 
 void BACnetDouble::Encode( CString &enc, Format /*theFormat*/ ) const
 {
-   // Use %g to avoid silly decimal point position with very large and small numbers.
-   // # ensures that a decimal point is always shown.
-   enc.Format( "%#lg", doubleValue );
+   // We use DoubleToString() to get nice treatment of NaN and inf
+   DoubleToString( enc, doubleValue );
 }
 
 void BACnetDouble::Decode( const char *dec )
 {
-   // check for valid format (also accepts 1e10 format)
-   if (sscanf( dec, "%lf", &doubleValue ) != 1)
+   // We use StringToDouble() to also accept NaN and inf
+   int nChar = StringToDouble( dec, doubleValue );
+   if (nChar != strlen(dec))
       throw_(39) /* format error */;
 }
 
@@ -2175,7 +2141,10 @@ bool BACnetDouble::Match( BACnetEncodeable &rbacnet, int iOperator, CString * ps
    if ( PreMatch(iOperator) )
       return true;
 
-   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDouble)));
+   // Don't assert here because we might be comparing Double value with Null value from priority array
+   // This is normal and assert is getting in the way.
+
+//   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDouble)));
 
    if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDouble)) ||
        !::Match(iOperator, doubleValue, ((BACnetDouble &) rbacnet).doubleValue ) )

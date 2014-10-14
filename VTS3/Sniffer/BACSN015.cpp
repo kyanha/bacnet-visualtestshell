@@ -4227,9 +4227,9 @@ void show_bac_date( unsigned int len )
 void show_bac_double( unsigned int len )
 /**************************************************************************/
 {
+   CString dStr;
    double dx;
    unsigned char fstr[8];
-   char double_str[60];
    unsigned int i;
 
    if (len != 8)
@@ -4247,9 +4247,8 @@ void show_bac_double( unsigned int len )
 #endif
    dx = *(double*)fstr;
 
-   sprintf(double_str, "%#g", dx );
    sprintf(outstr,"%"FW"s = %%s","Value of double");
-   sprintf(get_int_line(pi_data_current,pif_offset,8),outstr,double_str);
+   sprintf(get_int_line(pi_data_current,pif_offset,8),outstr,DoubleToString(dStr,dx));
    pif_offset += 8;
 }
 
@@ -4257,9 +4256,9 @@ void show_bac_double( unsigned int len )
 void show_bac_real( unsigned int len )
 /**************************************************************************/
 {
-   double dx;
+   CString fStr;
+   float fx;
    unsigned char fstr[4];
-   char float_str[40];
    unsigned int i;
 
    if (len != 4)
@@ -4275,11 +4274,10 @@ void show_bac_real( unsigned int len )
    for (i=0;i<4;i++) 
       fstr[i] = pif_get_byte(i);
 #endif   
-   dx = (double)(*(float *)fstr);
+   fx = *(float *)fstr;
 
-   sprintf(float_str, "%#g", dx );
    sprintf(outstr,"%"FW"s = %%s","Value of float");
-   sprintf(get_int_line(pi_data_current,pif_offset,4),outstr,float_str);
+   sprintf(get_int_line(pi_data_current,pif_offset,4),outstr,FloatToString(fStr,fx));
    pif_offset += 4;
 }
 
@@ -5433,7 +5431,6 @@ void show_head_octet_string( unsigned int offset , const char* type , int tagval
              "[%d] %s:  X'%s'", tagval, type, outstr);
 }
 
-//Lei Chengxin 2003-8-23
 // offset points at first data octet
 void show_head_signed( unsigned int offset , const char* type , int tagval )
 {
@@ -5457,10 +5454,9 @@ void show_head_signed( unsigned int offset , const char* type , int tagval )
          "[%d] %s:  %d", tagval, type, (int)val);
 }
 
-//Lei Chengxin 2003-8-23
 void show_head_real( unsigned int offset , const char* type , int tagval )
 {
-   double dx;
+   float fx;
    unsigned char fstr[4];
    unsigned int i;
 
@@ -5478,15 +5474,16 @@ void show_head_real( unsigned int offset , const char* type , int tagval )
    for (i=0;i<4;i++) 
       fstr[i] = pif_get_byte(offset+i);
 #endif
-   dx = (double)(*(float *)fstr);
+   fx = *(float*)fstr;
 
-   // Change from %f to %g to avoid l000000000000000ng strings and buffer overflow
-   if(tagval == -1)
+   // We use FloatToString() to get nice treatment of NaN and inf
+   CString fStr;
+   if (tagval == -1)
       sprintf(get_int_line(pi_data_current,pif_offset,4+1,NT_ITEM_HEAD), 
-              "%s:  %#g", type, dx);
+              "%s:  %s", type, FloatToString(fStr,fx));
    else
       sprintf(get_int_line(pi_data_current,pif_offset,4+1,NT_ITEM_HEAD), 
-              "[%d] %s:  %#g", tagval, type, dx);
+              "[%d] %s:  %s", tagval, type, FloatToString(fStr,fx));
 }
 
 // offset points at tag octet
@@ -5514,13 +5511,14 @@ void show_head_double( unsigned int offset, const char* type , int tagval )
 #endif
    dx = *(double*)fstr;
 
-   // Change from %f to %g to avoid l000000000000000ng strings and buffer overflow
+   // We use DoubleToString() to get nice treatment of NaN and inf
+   CString fStr;
    if(tagval == -1)
       sprintf(get_int_line(pi_data_current,pif_offset,offset+8,NT_ITEM_HEAD), 
-              "%s:  %#g", type, dx);
+              "%s:  %s", type, DoubleToString(fStr,dx));
    else
       sprintf(get_int_line(pi_data_current,pif_offset,offset+8,NT_ITEM_HEAD), 
-              "[%d] %s:  %#g", tagval, type, dx);
+              "[%d] %s:  %s", tagval, type, DoubleToString(fStr,dx));
 }
 
 // offset points at tag octet
