@@ -2330,14 +2330,14 @@ bool ReadObjects(PICSdb *pd)
 {
    char  objname[512];
    bool  weKnowObjectType;
-   word  objtype;                   //enumeration value for object type
-   dword objid;                     //object identifier
+   word  objtype;                      //enumeration value for object type
+   dword objid = 0;                    //object identifier
    octet fType,fID,fName;
-   generic_object *pobj,*po,*polast;      //pointers to objects
+   generic_object *pobj,*po,*polast;   //pointers to objects
    int    i;
 
-   ReadNext();                      //point to next token
-   if (lp==NULL || *lp++!='{')        //no open token
+   ReadNext();                         //point to next token
+   if (lp==NULL || *lp++!='{')         //no open token
       return tperror("Expected { here",true);
 
    // Loop on objects
@@ -4779,7 +4779,6 @@ bool ParseTime(BACnetTime *tp)
 bool ParseBitstring(octet *bsp, UINT nbits, UINT *nbf)
 {
    octet db = 0x80;
-   char  openWrap = 0;
 
    memset(bsp,0,(nbits+7)/8);          //initialize to 0
    if (nbf) *nbf = 0;                  //no bits found yet
@@ -6125,11 +6124,11 @@ void rtrim(char *p)
 void preprocstr(char *str)
 {
    char* p;
-   while (p = strchr(str, '-'))
+   while ((p = strchr(str, '-')) != NULL)
    {
       *p = ' ';
    }
-   while (p = strchr(str, '_'))
+   while ((p = strchr(str, '_')) != NULL)
    {
       *p = ' ';
    }
@@ -6437,7 +6436,7 @@ void GetDataLinkString(int i, PICSdb *pd, char *pstrResult)
 {
    int j;
    char *pz;
-   dword *dp;
+   dword *dp = NULL;
 
    if (!pstrResult)
       return;
@@ -7787,7 +7786,7 @@ bool ReadFloat(float *pVal, char mustBe)
 
    skipwhitespace();
    int nChar = StringToFloat( lp, *pVal );
-   if (nChar = 0)
+   if (nChar == 0)
    {
       // Failed to get a value
       retval = true;
