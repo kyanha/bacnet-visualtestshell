@@ -48,7 +48,7 @@ BACnetStringTable::BACnetStringTable( const char* const *pStrings,
 
 // Return a string containing text for the specified enumerated value.
 // If the value is undefined, the string will show the pUndefined title and the numeric value.
-// If pUndefined is NULL, show "Reserved-XXX" or "Vendor-XXX" depending on the value
+// If pUndefined is NULL, show "Reserved-XXX" or "Proprietary-XXX" depending on the value
 const char* BACnetStringTable::EnumString( int theIndex, const char *pUndefined /* = NULL */ ) const
 {
    const char *pRet;
@@ -60,14 +60,14 @@ const char* BACnetStringTable::EnumString( int theIndex, const char *pUndefined 
    {
       if (pUndefined == NULL)
       {
-         // TODO: Vendor versus proprietary
+         // Vendor versus proprietary
          // 135.1 clause 4.4i says "proprietary" + anything_but_space + integer enumerations
          // 135.1 clause 4.4l says "proprietary" + space + integer for object IDs
-         // But VTS has customarily used "Vendor"
+         // But VTS historically used "Vendor"
 
-         // "Vendor" only if in an extensible range, else "Reserved"
+         // "Proprietary" only if in an extensible range, else "Reserved"
          pUndefined = ((theIndex >= m_nReserved) && (theIndex < m_nMax))
-                      ? "Vendor-" : "Reserved-";
+                      ? "Proprietary-" : "Reserved-";
       }
 
       char *pTxt = TempTextBuffer();

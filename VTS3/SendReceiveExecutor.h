@@ -25,7 +25,7 @@ struct BACnetNPDU;
 class SendReceiveExecutor : public BACnetTask
 {
 public:
-   // Subclass BACnetAnyValue to prevent automatic delete
+   // Subclass BACnetAnyValue to prevent automatic deletion of contents
    class AnyValue : public BACnetAnyValue
    {
    public:
@@ -95,15 +95,15 @@ protected:
 
    bool SendExpectReadProperty( BACnetObjectIdentifier   &objID,
                                 BACnetEnumerated         &propID,
-                                AnyValue                 &propValue,
+                                BACnetAnyValue           &propValue,
                                 int                      propIndex = -1 );
    bool SendReadPropertyOptional( BACnetObjectIdentifier   &objID,
                                   BACnetEnumerated         &propID,
-                                  AnyValue                 &propValue,
+                                  BACnetAnyValue           &propValue,
                                   int                      propIndex = -1 );
    bool SendExpectWriteProperty( BACnetObjectIdentifier  &objID,
                                  BACnetEnumerated        &propID,
-                                 AnyValue                &propValue,
+                                 BACnetAnyValue          &propValue,
                                  int                     propIndex = -1 );
    bool SendExpectWhoIs( BACnetObjectIdentifier          &iAmDeviceID,
                          BACnetUnsigned                  &maxAPDULenAccepted );

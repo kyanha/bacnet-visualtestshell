@@ -630,7 +630,7 @@ void SendReceiveExecutor::Msg(const char* errMsg)
 
 bool SendReceiveExecutor::SendExpectReadProperty( BACnetObjectIdentifier &objID,
                                                   BACnetEnumerated       &propID,
-                                                  AnyValue               &propValue,
+                                                  BACnetAnyValue         &propValue,
                                                   int                    propIndex /*= -1*/)
 {
    m_bExpectAPDU = true;
@@ -686,7 +686,7 @@ bool SendReceiveExecutor::SendExpectReadProperty( BACnetObjectIdentifier &objID,
 // As SendExpectReadProperty, but never throw: log any error and return false
 bool SendReceiveExecutor::SendReadPropertyOptional( BACnetObjectIdentifier   &objID,
                                                     BACnetEnumerated         &propID,
-                                                    AnyValue                 &propValue,
+                                                    BACnetAnyValue           &propValue,
                                                     int                      propIndex )
 {
    bool retval = false;
@@ -712,7 +712,7 @@ bool SendReceiveExecutor::SendReadPropertyOptional( BACnetObjectIdentifier   &ob
 
 bool SendReceiveExecutor::SendExpectWriteProperty( BACnetObjectIdentifier &objID,
                                                    BACnetEnumerated       &propID,
-                                                   AnyValue               &propValue,
+                                                   BACnetAnyValue         &propValue,
                                                    int                    propIndex )
 {
    m_bExpectAPDU = true;

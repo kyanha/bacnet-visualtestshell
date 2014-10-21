@@ -30,6 +30,7 @@ VTSDiscoveryDlg::VTSDiscoveryDlg(bool doEpics,
    m_strPort = _T("");
    m_strDevObjInst = _T("");
    m_includeAllValues = 0;
+   m_includeUnsupported = 0;
    //}}AFX_DATA_INIT
 }
 
@@ -45,6 +46,7 @@ void VTSDiscoveryDlg::DoDataExchange(CDataExchange* pDX)
    DDX_Text(pDX, IDC_DEVICEOBJINST, m_strDevObjInst);
    DDV_MaxChars(pDX, m_strDevObjInst, 7);
    DDX_Check(pDX, IDC_CHECK1, m_includeAllValues);
+   DDX_Check(pDX, IDC_CHECK2, m_includeUnsupported);
    //}}AFX_DATA_MAP
 }
 
@@ -113,6 +115,7 @@ BOOL VTSDiscoveryDlg::OnInitDialog()
    GetDlgItem( IDC_STATIC4 )->ShowWindow( show );
    GetDlgItem( IDC_DEVICEOBJINST )->ShowWindow( show );
    GetDlgItem( IDC_CHECK1 )->ShowWindow( show );
+   GetDlgItem( IDC_CHECK2 )->ShowWindow( show );
    GetDlgItem( IDC_STATIC5 )->ShowWindow( show );
    GetDlgItem( IDC_FILENAME )->ShowWindow( show );
    GetDlgItem( IDC_BROWSE )->ShowWindow( show );

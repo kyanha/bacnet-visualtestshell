@@ -22,8 +22,7 @@ class VTSInconsistentParsProgressDlg;
 class DiscoveryExecutor : public SendReceiveExecutor
 {
 public:
-   // Subclass BACnetAnyValue to prevent automatic delete
-   class DiscoAnyValue : public SendReceiveExecutor::AnyValue
+   class DiscoAnyValue : public BACnetAnyValue
    {
    public:
       DiscoAnyValue( UINT a_parseType, UINT a_propertyID );
@@ -61,12 +60,20 @@ protected:
    void SendWhoIs( int theLowInstance, int theHightInstance );
    int  InstanceAfter( int theInstance );
    void DumpDeviceProperties();
+   void Show( const char *pTheString ) const;
+   int* DumpPropertyList( const BACnetGenericArray &thePropList ) const;
+   void DumpSpecialProperties( const BACnetObjectIdentifier &objID,
+                               const int                    *pTheProperties ) const;
+   void DumpBitString( const char                              *pPropName,
+                       const BACnetBitString                   &theBitString,
+                       const NetworkSniffer::BACnetStringTable &theStringTable ) const;
 
    FunctionToExecute    m_funToExe;
    CString              m_fileName;
    FILE                 *m_pFile;
    UINT                 m_protocolRevision;
    bool                 m_includeAllValues;
+   bool                 m_includeUnsupported;
 
    // Information about a discovered device
    struct DiscoveryInfo

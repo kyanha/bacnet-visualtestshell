@@ -47,6 +47,8 @@ DiscoveryExecutor::DiscoveryExecutor()
 , m_fileName()
 , m_pFile(NULL)
 , m_protocolRevision(0)
+, m_includeAllValues(false)
+, m_includeUnsupported(false)
 , m_discoveredDevices()
 {
 }
@@ -70,7 +72,7 @@ void DiscoveryExecutor::ExecuteTest( FunctionToExecute theFunction )
 
    if (m_execState != execIdle)
    {
-      TRACE0( "Error: invalid executor state\n" );
+      TRACE( "Error: invalid executor state\n" );
       lock.Unlock();
       return;
    }
@@ -110,6 +112,7 @@ void DiscoveryExecutor::ExecuteTest( FunctionToExecute theFunction )
       m_fileName = dlg.m_strFileName;
 
       m_includeAllValues = (dlg.m_includeAllValues != 0);
+      m_includeUnsupported = (dlg.m_includeUnsupported != 0);
    }
    else
    {
@@ -322,9 +325,39 @@ bool DiscoveryExecutor::ReadProtocolRevision()
 }
 
 //=============================================================================
+// Return a pointer to the propdescriptor for the specified property, or
+// NULL if we don't know about the property
+static const PICS::propdescriptor* GetPropDesc( const PICS::propdescriptor     *pTheTable,
+                                                PICS::BACnetPropertyIdentifier thePropertyID)
+{
+   const PICS::propdescriptor *pRetval = NULL;
+   while (true)
+   {
+      if (pTheTable->PropID == thePropertyID)
+      {
+         // Found the property
+         pRetval = pTheTable;
+         break;
+      }
+
+      if (pTheTable->PropGroup & LAST)
+      {
+         // End of table
+         break;
+      }
+
+      pTheTable++;
+   }
+
+   return pRetval;
+}
+
+//=============================================================================
 // Read and dump the properties of the specified object in the current device
 bool DiscoveryExecutor::ReadObjectProperties( BACnetObjectIdentifier &objID )
 {
+   int *pProps = NULL;
+
    CString str, msg;
    objID.Encode(str, BACnetEncodeable::FMT_EPICS );
 
@@ -356,22 +389,35 @@ bool DiscoveryExecutor::ReadObjectProperties( BACnetObjectIdentifier &objID )
                if (!m_includeAllValues && (pd->PropFlags & QVAL))
                {
                   // Show a "?" for this oft-changing value
-                  str = "?";
+                  msg.Format( "    %s: ?", propName );
+                  Show(msg);
+               }
+               else if ((propID.m_enumValue == PICS::PROPERTY_LIST) &&
+                        (propValue.GetObject()->IsKindOf( RUNTIME_CLASS(BACnetGenericArray) )))
+               {
+                  // PropertyList gets special handling.
+                  pProps = DumpPropertyList( *(BACnetGenericArray*)propValue.GetObject() );
+               }
+               else if ((propID.m_enumValue == PICS::PROTOCOL_OBJECT_TYPES_SUPPORTED) &&
+                        (propValue.GetObject()->IsKindOf( RUNTIME_CLASS(BACnetBitString) )))
+               {
+                  DumpBitString( propName,
+                                 *(const BACnetBitString*)propValue.GetObjectA(),
+                                 NetworkSniffer::BAC_STRTAB_BACnetObjectType );
+               }
+               else if ((propID.m_enumValue == PICS::PROTOCOL_SERVICES_SUPPORTED) &&
+                        (propValue.GetObject()->IsKindOf( RUNTIME_CLASS(BACnetBitString) )))
+               {
+                  DumpBitString( propName,
+                                 *(const BACnetBitString*)propValue.GetObjectA(),
+                                 NetworkSniffer::BAC_STRTAB_BACnetServicesSupported );
                }
                else
                {
-                  // Show the value
+                  // Dump the property value
                   propValue.Encode( str, BACnetEncodeable::FMT_EPICS );
-               }
-
-               if (m_pFile)
-               {
-                  fprintf( m_pFile, "    %s: %s\n", propName, (LPCTSTR)str );
-               }
-               else
-               {
-                  msg.Format( "  %s: %s", propName, (LPCTSTR)str );
-                  m_pOutputDlg->OutMessage( msg );
+                  msg.Format( "    %s: %s", propName, (LPCTSTR)str );
+                  Show(msg);
                }
             }
             else
@@ -385,16 +431,23 @@ bool DiscoveryExecutor::ReadObjectProperties( BACnetObjectIdentifier &objID )
             // so turn (property, read-access-denied) into a value of "?"
             if ((m_errorClass == ERR_CLASS_PROPERTY) && (m_errorCode == ERR_CODE_READ_ACCESS_DENIED))
             {
-               if (m_pFile)
-               {
-                  fprintf( m_pFile, "    %s: ?\n", propName );
-               }
+               msg.Format( "    %s: ? -- Read Access Denied", propName );
+               Show(msg);
             }
             else if (required)
             {
-               ShowPropertyError( "Failed(2) to read required property", propName );
+               ShowPropertyError( "Failed(1) to read required property", propName );
             }
-            else if ((m_errorClass != ERR_CLASS_PROPERTY) || (m_errorCode != ERR_CODE_UNKNOWN_PROPERTY))
+            else if ((m_errorClass == ERR_CLASS_PROPERTY) && (m_errorCode == ERR_CODE_UNKNOWN_PROPERTY))
+            {
+               // Device doesn't have the property.  Optinally include it as a comment in the EPICS.
+               if (m_includeUnsupported)
+               {
+                  msg.Format( "    -- %s: (not supported)", propName );
+                  Show(msg);
+               }
+            }
+            else
             {
                // Complain about any error other than the expected
                // (property, unknown-property) for unsupported optional properties
@@ -408,6 +461,13 @@ bool DiscoveryExecutor::ReadObjectProperties( BACnetObjectIdentifier &objID )
          }
          pd++;
       }
+   }
+
+   if (pProps)
+   {
+      // Dump any properties claimed in the property list that are not in the property table
+      DumpSpecialProperties( objID, pProps );
+      delete[] pProps;
    }
 
    if (m_pFile)
@@ -776,4 +836,114 @@ void DiscoveryExecutor::DumpDeviceProperties()
       msg.Format( "  protocol-revision: %u", rev.uintValue );
       m_pOutputDlg->OutMessage(msg);
    }
+}
+
+//=============================================================================
+// Add theString to the output file or dialog
+void DiscoveryExecutor::Show( const char *pTheString ) const
+{
+   if (m_pFile)
+   {
+      fprintf( m_pFile, "%s\n", pTheString );
+   }
+   else
+   {
+      m_pOutputDlg->OutMessage( pTheString );
+   }
+}
+
+//=============================================================================
+// Dump the property list.
+// Returns a pointer to an array of integer property IDs, which caller must free
+int* DiscoveryExecutor::DumpPropertyList( const BACnetGenericArray  &thePropList ) const
+{
+   // propValue.Encode would show proprietary values as raw integers.
+   // Fixing BACnetEnumerated is a pain, since it would need both reserved
+   // and proprietary limits.
+   // (Switching to StringTable would do it, but be even more work).
+   // So we show the values by hand.
+
+   // Return the list here
+   int *pRetVal = new int[ thePropList.GetSize() + 1 ];
+
+   CString msg( "    property-list: {" );
+   CString str;
+   int ix;
+   for (ix = 0; ix < thePropList.GetSize(); ix++)
+   {
+      const BACnetEncodeable *pVal = thePropList.GetGenericElement(ix);
+      if (pVal->IsKindOf( RUNTIME_CLASS(BACnetEnumerated) ))
+      {
+         if (ix != 0)
+         {
+            msg += ", ";
+         }
+         BACnetEnumerated *pEnum = (BACnetEnumerated*)pVal;
+         msg += NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( pEnum->m_enumValue );
+
+         pRetVal[ix] = pEnum->m_enumValue;
+      }
+   }
+   pRetVal[ix] = -1;
+   msg += "}";
+   Show(msg);
+
+   return pRetVal;
+}
+
+//=============================================================================
+// Dump the property list
+void DiscoveryExecutor::DumpSpecialProperties( const BACnetObjectIdentifier &objID,
+                                               const int                    *pTheProperties ) const
+{
+   // Examine the list for proprietary and non-standard properties.
+   // SendExpectReadProperty relies on ParseTypes for decoding, so
+   // we can't read and the show the values.  We just show "?".
+   bool showedTitle = false;
+   CString msg;
+   const PICS::propdescriptor *pd = PICS::GetPropDescriptorTable( objID.objID >> 22 );
+   for (int ix = 0; pTheProperties[ix] >= 0; ix++)
+   {
+      const PICS::propdescriptor *pPropInfo =
+            GetPropDesc( pd, (PICS::BACnetPropertyIdentifier)(pTheProperties[ix]) );
+      if (!pPropInfo)
+      {
+         if (!showedTitle)
+         {
+            showedTitle = true;
+            Show("");
+            Show("    -- Proprietary and non-standard properties");
+         }
+
+         // Property is NOT in the standard table for this type.
+         msg.Format( "    %s: ?", NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( pTheProperties[ix] ) );
+         Show(msg);
+      }
+   }
+}
+
+//=============================================================================
+// Dump a bitstring as a series of lines with T/F and a comment showing the meaning of the bit.
+void DiscoveryExecutor::DumpBitString( const char                              *pPropName,
+                                       const BACnetBitString                   &theBitString,
+                                       const NetworkSniffer::BACnetStringTable &theStringTable ) const
+{
+   CString msg;
+   msg.Format( "    %s:", pPropName );
+   Show(msg);
+   msg.Format( "    (" );
+   Show(msg);
+
+   int count = theBitString.GetBitCount();
+   for (int ix = 0; ix < count; ix++)
+   {
+      msg.Format( "      %s%c -- %s", 
+                  (theBitString.GetBit(ix)) ? "T" : "F",
+                  (ix < count-1) ? ',' : ' ',
+                  theStringTable.EnumString( ix ) );
+      Show(msg);
+   }
+
+   msg.Format( "    )" );
+   Show(msg);
 }

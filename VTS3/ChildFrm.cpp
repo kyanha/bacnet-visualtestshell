@@ -583,7 +583,7 @@ void CChildFrame::OnSendSelectPacket( UINT uID )
 // opens a child window maximized if there are no other child windows open.
 //
 
-void CChildFrame::ActivateFrame(int nCmdShow) 
+void CChildFrame::ActivateFrame(int nCmdShow)
 {
    // if another window is open, use default
    if(GetMDIFrame()->MDIGetActive())
@@ -592,18 +592,18 @@ void CChildFrame::ActivateFrame(int nCmdShow)
       CMDIChildWnd::ActivateFrame(SW_SHOWMAXIMIZED); // else open maximized
 }
 
-void CChildFrame::OnViewDetail() 
+void CChildFrame::OnViewDetail()
 {
    ShowControlBar(m_pwndDetailViewBar, !m_pwndDetailViewBar->IsVisible(), FALSE);
 }
 
-void CChildFrame::OnViewHex() 
-{  
+void CChildFrame::OnViewHex()
+{
    ShowControlBar(m_pwndHexViewBar, !m_pwndHexViewBar->IsVisible(), FALSE);
 }
 
-void CChildFrame::OnViewEPICS() 
-{  
+void CChildFrame::OnViewEPICS()
+{
    ShowControlBar(m_pwndEPICSViewBar, !m_pwndEPICSViewBar->IsVisible(), FALSE);
 }
 
@@ -814,8 +814,14 @@ void CChildFrame::OnEPICSLoad()
 void CChildFrame::EPICSLoad( LPCSTR lpszFileName )
 {
    if ( m_pwndEPICSViewBar != NULL )
-      if ( !m_pwndEPICSViewBar->EPICSLoad(lpszFileName)  &&  !m_pwndEPICSViewBar->IsVisible() )
+   {
+      m_pwndEPICSViewBar->EPICSLoad(lpszFileName);
+      if (!m_pwndEPICSViewBar->IsVisible())
+      {
+         // Show the EPICS view
          ShowControlBar(m_pwndEPICSViewBar, TRUE, FALSE);
+      }
+   }
 }
 
 

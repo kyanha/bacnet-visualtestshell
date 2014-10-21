@@ -469,6 +469,7 @@ public:
    void  SetBit( int bit, int valu = 1 );
    void  ResetBit( int bit );
    int   GetBit( int bit ) const;
+   int   GetBitCount() const { return bitLen; }
 
    const int operator [](int bit);
    BACnetBitString &operator +=( const int bit );
@@ -1596,7 +1597,10 @@ public:
    BACnetEncodeable * operator[](int nIndex) const;
    BACnetEncodeable & operator[](int nIndex);
    int Add( BACnetEncodeable * pbacnetEncodeable );
-   int GetSize(void);
+   int GetSize(void) const;
+
+   // I can't get [] to work, so let's make a method
+   const BACnetEncodeable* GetGenericElement(int nIndex) const;
 
    DECLARE_DYNAMIC(BACnetGenericArray)
 };
