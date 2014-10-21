@@ -36,6 +36,7 @@ public:
    CString     m_strPort;
    CString     m_strDevObjInst;
    int         m_includeAllValues;
+   int         m_includeUnsupported;
    //}}AFX_DATA
 
 // Overrides

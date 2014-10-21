@@ -7949,6 +7949,10 @@ BACnetEncodeable & BACnetGenericArray::operator[](int nIndex)
    return *m_apBACnetObjects[nIndex];
 }
 
+const BACnetEncodeable* BACnetGenericArray::GetGenericElement(int nIndex) const
+{
+   return (nIndex < m_apBACnetObjects.GetSize()) ? m_apBACnetObjects[nIndex] : NULL;
+}
 
 BACnetGenericArray::~BACnetGenericArray()
 {
@@ -7957,7 +7961,7 @@ BACnetGenericArray::~BACnetGenericArray()
 }
 
 
-int BACnetGenericArray::GetSize()
+int BACnetGenericArray::GetSize() const
 {
    return m_apBACnetObjects.GetSize();
 }

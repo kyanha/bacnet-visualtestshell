@@ -976,6 +976,7 @@
 #define IDC_STATIC3                     1582
 #define IDC_STATIC4                     1583
 #define IDC_STATIC5                     1584
+#define IDC_CHECK2                      1585
 #define ID_VIEW_FIRSTFRAME              32771
 #define ID_VIEW_PREVFRAME               32772
 #define ID_VIEW_NEXTFRAME               32773
