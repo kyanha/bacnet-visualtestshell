@@ -400,9 +400,9 @@ typedef struct {
 //-------------------------------------------------------
 typedef struct {
     generic_object         go;
-    octet                  pv;
+    word                   pv;
     char                   device_type[64];
-    octet                  num_of_states;
+    word                   num_of_states;
     char                   *state_text[MAX_STATE_TEXTS];
     UnsignedList           *alarm_values;
     UnsignedList           *fault_values;
@@ -418,7 +418,7 @@ typedef struct {
     char             *state_text[MAX_STATE_TEXTS];
     word             priority_array[16];
     word             relinquish_default;
-    octet            feedback_value;
+    word             feedback_value;
 } mo_obj_type;
 
 //Program Object
@@ -614,19 +614,19 @@ typedef struct
 #define MAX_SHED_LEVELS 255
 typedef struct
 {
-   generic_object               go;
-   BACnetShedLevel               requested_shed_level;
-   DWORD                   shed_duration;
-   DWORD                   duty_window;
-   BACnetShedLevel              expected_shed_level;
-   BACnetShedLevel               actual_shed_level;
-   UnsignedList           *shed_levels;
-   char                  *shed_level_descriptions[MAX_SHED_LEVELS];
-   bool                      log_enable;
+   generic_object             go;
+   BACnetShedLevel            requested_shed_level;
+   DWORD                      shed_duration;
+   DWORD                      duty_window;
+   BACnetShedLevel            expected_shed_level;
+   BACnetShedLevel            actual_shed_level;
+   UnsignedList               *shed_levels;
+   char                       *shed_level_descriptions[MAX_SHED_LEVELS];
+   bool                       log_enable;
    BACnetDateTime             start_time;
    enum BACnetShedState       present_value;
-   char                      state_description[132];
-   float                   full_duty_baseline;
+   char                       state_description[132];
+   float                      full_duty_baseline;
 } lc_obj_type;
 
 typedef struct
@@ -664,18 +664,18 @@ typedef struct
 
 typedef struct
 {
-    generic_object                    go;
-     bool                            log_enable;
-     bool                            stop_when_full;
-     BACnetDateTime                  start_time;
-     BACnetDateTime                  stop_time;
-     dword                           buffer_size;
-     BACnetLogRecord                 log_buffer;
-     dword                           record_count;
-     dword                           total_record_count;
-     dword                           notification_threshold;
-     dword                           records_since_notification;
-     dword                           last_notify_record;
+   generic_object                  go;
+   bool                            log_enable;
+   bool                            stop_when_full;
+   BACnetDateTime                  start_time;
+   BACnetDateTime                  stop_time;
+   dword                           buffer_size;
+   BACnetLogRecord                 log_buffer;
+   dword                           record_count;
+   dword                           total_record_count;
+   dword                           notification_threshold;
+   dword                           records_since_notification;
+   dword                           last_notify_record;
 } el_obj_type;
 
 typedef struct
@@ -723,13 +723,13 @@ typedef struct {
 //Characterstring Value Object
 //-------------------------------------------------------
 typedef struct {
-    generic_object      go;
-    char                present_value[MAX_TEXT_STRING];
-    // TODO: this needs to be an array of STRING/NULL choice
-    word              priority_array[16];
-    char              relinquish_default[MAX_TEXT_STRING];
-    char             *alarm_values[MAX_FAULT_STRINGS];
-    char             *fault_values[MAX_FAULT_STRINGS];
+   generic_object       go;
+   char                 present_value[MAX_TEXT_STRING];
+   // TODO: this needs to be an array of STRING/NULL choice
+   word                 priority_array[16];
+   char                 relinquish_default[MAX_TEXT_STRING];
+   char                 *alarm_values[MAX_FAULT_STRINGS];
+   char                 *fault_values[MAX_FAULT_STRINGS];
 } charstring_obj_type;
 
 //-------------------------------------------------------
