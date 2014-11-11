@@ -103,7 +103,6 @@ BOOL SendReadRange::OnInitDialog()
 
 	
 	UpdateData();
-//    SynchronizeControls();
 	
 	return TRUE;  // return TRUE unless you set the focus to a control
 	              // EXCEPTION: OCX Property Pages should return FALSE
@@ -120,15 +119,7 @@ void SendReadRange::InitPage( void )
 	m_ArrayIndex.ctrlNull = true;
 
 }
-void SendReadRange::SynchronizeControls()
-{
-	GetDlgItem( IDC_STARTDATUM )->EnableWindow( !m_RadioChoice );
-	GetDlgItem( IDC_ENDDATUM )->EnableWindow( !m_RadioChoice );
-	GetDlgItem( IDC_TIMESTART )->EnableWindow( !m_RadioChoice );
-	GetDlgItem( IDC_ENDTIME )->EnableWindow( !m_RadioChoice );
-	GetDlgItem( IDC_COUNT )->EnableWindow( !m_RadioChoice );
-	GetDlgItem( IDC_REFINDEX )->EnableWindow( !m_RadioChoice );
-}
+
 //
 //	SendReadRange::EncodePage
 //

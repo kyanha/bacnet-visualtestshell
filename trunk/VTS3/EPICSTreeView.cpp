@@ -56,7 +56,9 @@ void EPICS_AddRPValue(long obj_id, int prop_id, int prop_index, char * pbuffer, 
 
 IMPLEMENT_DYNCREATE(CEPICSTreeView, CFormView)
 
-CEPICSTreeView::CEPICSTreeView() : m_summary(false, true), CFormView(CEPICSTreeView::IDD)
+CEPICSTreeView::CEPICSTreeView()
+: CFormView(CEPICSTreeView::IDD)
+, m_summary(false, true)
 {
    m_pwndSplit = NULL;
    m_pnodeview = NULL;
