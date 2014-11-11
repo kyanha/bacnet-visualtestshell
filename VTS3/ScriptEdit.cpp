@@ -142,7 +142,7 @@ BEGIN_MESSAGE_MAP(ScriptEdit, CEditView)
 	ON_COMMAND(ID_EDIT_AUTO_PROPERTY, OnEditAutoProperty)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_AUTO_PROPERTY, OnUpdateEditAutoProperty)
 	//}}AFX_MSG_MAP
-	ON_COMMAND_RANGE( ID_SCRIPT_TEMPLATE_0, ID_SCRIPT_TEMPLATE_0+35, OnTemplate )
+	ON_COMMAND_RANGE( ID_SCRIPT_TEMPLATE_0, ID_SCRIPT_TEMPLATE_LAST, OnTemplate )
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////

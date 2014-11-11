@@ -53,21 +53,6 @@ ScriptDebugNetFilter	gDebug2( "_2" );
 #endif
 
 
-// The version values below are currently used only by CAboutDlg.
-// They duplicate the information in the Version resource.
-//
-// Formerly redundantly (and DIFFERENTLY) defined in VTSDB.h,
-// but not used anywhere but here.
-// They show up in commented-out code in VTSDB.cpp.
-// But it doesn't make sense to tie DATABASE version to CODE version anyway.
-//
-// We have changed CAboutDlg to get the version from the resource.
-// If we ever need to compute with the version, modify CFileVersionInfo 
-// to return integer versions, ans SET these variables at startup.
-//const int kVTSDBMajorVersion = X;			// current version
-//const int kVTSDBMinorVersion = X;
-//const int kReleaseVersion    = X;
-
 extern CWinThread	*gBACnetWinTaskThread;
 
 // Build Hash tables from enum strings
@@ -90,8 +75,8 @@ BEGIN_MESSAGE_MAP(VTSApp, CWinApp)
 		//    DO NOT EDIT what you see in these blocks of generated code!
 	//}}AFX_MSG_MAP
 	// Standard file based document commands
-	ON_UPDATE_COMMAND_UI(ID_FILE_MRU_WKS1, OnUpdateRecentWorkspaceMenu)
-	ON_COMMAND_EX_RANGE(ID_FILE_MRU_WKS1, ID_FILE_MRU_WKS15, OnOpenRecentWorkspace)
+	ON_UPDATE_COMMAND_UI_RANGE(ID_FILE_MRU_WKS1, ID_FILE_MRU_WKSLAST, OnUpdateRecentWorkspaceMenu)
+	ON_COMMAND_EX_RANGE(ID_FILE_MRU_WKS1, ID_FILE_MRU_WKSLAST, OnOpenRecentWorkspace)
 	ON_COMMAND(ID_FILE_NEW, CWinApp::OnFileNew)
 	ON_COMMAND(ID_FILE_OPEN, CWinApp::OnFileOpen)
 	ON_COMMAND(ID_FILE_WKS_NEW, OnFileWksNew)
@@ -221,7 +206,6 @@ BOOL VTSApp::InitInstance()
 #endif
 
 	// Change the registry key under which our settings are stored.
-//	SetRegistryKey(_T("Visual Test Shell 3"));
 	SetRegistryKey(IDS_REGISTRYKEY);
 
 	//First free the string allocated by MFC at CWinApp startup.
@@ -241,14 +225,13 @@ BOOL VTSApp::InitInstance()
 	// Build Hash tables from enum strings
 	MakeHashTables();
 
-	LoadStdProfileSettings(5);  // Load standard INI file options (including MRU)
-	LoadWorkspaceMRU(5);
+	LoadStdProfileSettings(10);  // Load standard INI file options (including MRU)
+	LoadWorkspaceMRU(10);
 
 	// Register the application's document templates.  Document templates
 	//  serve as the connection between documents, frame windows and views.
 
 	m_pdoctempConfig = new CMultiDocTemplate(IDR_VDBTYPE, RUNTIME_CLASS(VTSDoc), RUNTIME_CLASS(CChildFrame), RUNTIME_CLASS(CListSummaryView));
-//	AddDocTemplate(pdoctempConfig);
 	AddDocTemplate(new CMultiDocTemplate(IDR_VTSTYPE, RUNTIME_CLASS(ScriptDocument), RUNTIME_CLASS(ScriptFrame), RUNTIME_CLASS(CEditView)));
 
 	// create main MDI Frame window
@@ -281,7 +264,6 @@ BOOL VTSApp::InitInstance()
 	pMainFrame->UpdateWindow();
 
 	// initialize the random number generator
-//	srand( (unsigned)time( NULL ) );
 	srand( 1 );
 
 	// make sure the adapter list is intialized
@@ -400,7 +382,7 @@ void VTSApp::OnFileWksNew()
 		{
 			// default file exists already...  and it happens to be the same one that is currently
 			// loaded.  Going ahead will rewrite the currently loaded workspace with defaults
-			// loosing what we've got.  Ask user if he wants to go ahead. 
+			// losing what we've got.  Ask user if he wants to go ahead.
 			// If yes, just drop through and overwrite this file
 
 			strmsg.Format(IDS_WKS_OVERWRITESAVE, VTSDoc::m_pszDefaultFilename);

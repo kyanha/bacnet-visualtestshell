@@ -29,10 +29,9 @@ public:
 	VTSEnumeratedCtrl			m_PropCombo;
 	VTSUnsignedCtrl				m_ArrayIndex, m_ReadRangePosRef;
 
-    VTSDateCtrl	                m_ReadRangeRefDate;
-    VTSTimeCtrl	                m_ReadRangeRefTime;
-    VTSIntegerCtrl              m_ReadRangeCount;  		
-	void SynchronizeControls( void );
+	VTSDateCtrl	                m_ReadRangeRefDate;
+	VTSTimeCtrl	                m_ReadRangeRefTime;
+	VTSIntegerCtrl              m_ReadRangeCount;
 	void InitPage( void );						// give it a chance to init
 	void EncodePage( CByteArray* contents );	// encode the page
 
@@ -41,7 +40,7 @@ public:
 	void SavePage( void );						// save contents
 	void RestorePage( int index = 0 );					// restore contents to last saved values
 //    unsigned int m_DatumChoice;
-	
+
 
 // Dialog Data
 	//{{AFX_DATA(SendReadRange)
