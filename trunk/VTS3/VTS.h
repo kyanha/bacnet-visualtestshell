@@ -112,8 +112,9 @@ enum  BACnetObjectType
 class VTSApp : public CWinApp {
 
 	private:
-		CDocTemplate * m_pdoctempConfig;
-		CRecentFileList* m_pRecentWorkspaceList;
+		CDocTemplate      *m_pdoctempConfig;
+		CRecentFileList   *m_pRecentWorkspaceList;
+		CString           m_version;
 
 	public:
 		VTSApp(void);
@@ -131,13 +132,15 @@ class VTSApp : public CWinApp {
 		virtual BOOL PreTranslateMessage(MSG* pMsg);
 		//}}AFX_VIRTUAL
 
-//		void CheckBACMACNTVersion( void );
 		void LoadWorkspaceMRU(UINT nMaxMRU);
 		void AddToRecentWorkspaceList(LPCTSTR lpszPathName);
 		CRecentFileList* GetRecentFileList();
 
 		CDocument * GetWorkspace(void);
 		void CheckWinPcapVersion( void );
+
+		const CString& GetVersion() const { return m_version; }
+		void ShowUpdateInfo();
 
 	// Implementation
 		//{{AFX_MSG(VTSApp)
@@ -146,6 +149,7 @@ class VTSApp : public CWinApp {
 		afx_msg void OnFileWksSwitch();
 		afx_msg void OnUpdateRecentWorkspaceMenu(CCmdUI* pCmdUI);
 		afx_msg BOOL OnOpenRecentWorkspace(UINT nID);
+		afx_msg void OnCheckForUpdates();
 
 		// NOTE - the ClassWizard will add and remove member functions here.
 		//    DO NOT EDIT what you see in these blocks of generated code !
@@ -163,6 +167,7 @@ typedef VTSApp *VTSAppPtr;
 #define WM_VTS_PORTSTATUS	(WM_APP+2)			// new port status
 #define WM_VTS_EXECMSG		(WM_APP+3)			// new executor message
 #define WM_VTS_MAXPACKETS	(WM_APP+4)			// reached max packets
+#define WM_VTS_GOT_VERSION	(WM_APP+5)			// got lastest version info from the web
 
 
 //{{AFX_INSERT_LOCATION}}
