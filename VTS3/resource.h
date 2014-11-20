@@ -15,23 +15,17 @@
 #define IDC_DEVEXPORT                   110
 #define ID_IMPORTNAMES                  111
 #define ID_EXPORTNAMES                  112
-
-#define NEXT_4_MUST_HAVE_NUMBERS_USED FOR SS_BITMAP_IN_RC_FILE
 #define IDB_SCRIPTMAKE_120              120
 #define IDB_SCRIPTCHECK_121             121
 #define IDB_NBLINK_122                  122
 #define IDB_BMALOGO_123                 123
-
 #define IDR_MAINFRAME                   128
 #define IDR_VTSTYPE                     129
 #define IDR_VDBTYPE                     130
-
 #define IDR_SUMMARYTYPE                 132
 #define IDR_DEVTREE                     133
-
 #define IDC_CURSOR1                     135
 #define IDC_CURSOR2                     136
-
 #define IDB_PACKETTREE                  140
 #define IDD_PORT                        141
 #define IDB_PORTSTATUS                  142
@@ -123,7 +117,6 @@
 #define IDD_SENDUNCONFCOVNOTIFICATION   228
 #define IDD_PORTPAGE_ENET               229
 #define IDB_PARMSTATUS                  230
-
 #define IDD_PORTPAGE_PTP                233
 #define IDD_SCRIPTPARMUPDATE            234
 #define IDB_CONTENTSTATUS               235
@@ -142,9 +135,7 @@
 #define IDD_LOADEPICSCONSCHK            248
 #define IDD_SCRIPTMAKE                  249
 #define IDD_SCRIPTCHECK                 250
-
 #define IDD_OBJPROPVALUE                252
-
 #define IDD_DATERANGE                   255
 #define IDD_ADDRESSBINDING              256
 #define IDD_CALENDARENTTRY              257
@@ -170,7 +161,6 @@
 #define IDD_DESTINATION                 281
 #define IDD_SENDMSTP                    282
 #define IDD_MSTPIMP_NBLINK              283
-
 #define IDD_EPICSVIEW                   285
 #define IDB_EPICSTREE                   286
 #define IDD_NOTIFY_BUFFERREADY          287
@@ -247,7 +237,6 @@
 #define IDD_EPICSVIEW_PROP              360
 #define IDR_EPICS_PROP                  361
 #define IDD_BACKUP_RESTORE              362
-
 #define IDR_GLOBALBAR                   364
 #define IDD_COLOR                       365
 #define IDB_COLOR                       366
@@ -267,7 +256,6 @@
 #define IDD_SENDWHATISNET               382
 #define IDD_SENDNETNUMBERIS             383
 #define IDD_DISCOVER_EPICS              384
-
 #define IDC_PORTLIST                    1000
 #define IDC_NAMELIST                    1001
 #define IDC_NEWPORT                     1002
@@ -892,7 +880,7 @@
 #define IDC_STATIC4                     1621
 #define IDC_STATIC5                     1622
 #define IDC_CHECK2                      1623
-
+#define IDC_MFCLINK1                    1624
 #define ID_VIEW_FIRSTFRAME              32771
 #define ID_VIEW_PREVFRAME               32772
 #define ID_VIEW_NEXTFRAME               32773
@@ -1056,7 +1044,7 @@
 #define IDS_ERR_MAXPACKETS              34007
 #define IDS_ERR_NOREALDEVICENAME        34008
 #define IDS_ERR_TASKERROR               34009
-
+#define ID_APP_CHECK_FOR_UPDATES        34010
 #define ID_SW_NO                        45841
 #define ID_SW_TIMESTAMP                 45842
 #define ID_SW_PORT                      45843
@@ -1086,8 +1074,8 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        385
-#define _APS_NEXT_COMMAND_VALUE         34010
-#define _APS_NEXT_CONTROL_VALUE         1624
+#define _APS_NEXT_COMMAND_VALUE         34011
+#define _APS_NEXT_CONTROL_VALUE         1625
 #define _APS_NEXT_SYMED_VALUE           113
 #endif
 #endif
