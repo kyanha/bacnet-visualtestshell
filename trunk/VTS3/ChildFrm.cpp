@@ -906,7 +906,6 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
       PICS::generic_object * pDatabase;
       static const char hex[] = "0123456789ABCDEF";
 
-      // madanner 8/04
       if ( pstrFileName->IsEmpty() )
          *pstrFileName = "ReadAllProperties.vts";
 
@@ -977,10 +976,8 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
          str.Format("  IUT_ADDR = %s\n", (LPCTSTR)pdlg->m_strIUTIP );
       }
       pscript->WriteString(str);
-      
+
       // Get DNET, DADR if they exist
-      CString  strDNET = "";
-      CString  strDADR = "";
       if (pdlg->m_bDNET && ((nIndex = pnames->FindIndex(pdlg->m_strDnetDadr)) >= 0))
       {
          BACnetAddress* pAdr = &((*pnames)[nIndex]->m_bacnetaddr);
@@ -992,25 +989,20 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
             return   FALSE;
          }
 
-         _itoa( pAdr->addrNet, szTemp, 10 );
-         strDNET = szTemp;
-
          char *s = szTemp;
          szTemp[0] = 0;
-         // encode the address
+         // encode the address as an octet string
          for ( i = 0; i < pAdr->addrLen; i++) {
-            if (i) *s++ = '-';
             *s++ = hex[ pAdr->addrAddr[i] >> 4 ];
             *s++ = hex[ pAdr->addrAddr[i] & 0x0F ];
          }
          *s = 0;
-         strDADR = szTemp;
 
-         str.Format("  IUT_DNET = %s\n"
-                    "  IUT_DADR = %s\n\n", (LPCTSTR)strDNET, (LPCTSTR)strDADR );
+         str.Format("  IUT_DNET = %d\n"
+                    "  IUT_DADR = X'%s'\n\n", pAdr->addrNet, szTemp );
          pscript->WriteString(str);
       }
-         
+
       // Generate list of all parameters for each object found in DB
       int nObjNum;
       for ( nObjNum = 1, pDatabase = gPICSdb->Database;  pDatabase != NULL;  pDatabase = (PICS::generic_object *) pDatabase->next, nObjNum++ )
