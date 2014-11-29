@@ -6645,6 +6645,11 @@ BEGIN
     ID_VIEW_GLOBAL_TOOLBAR  "Show or hide the global bar\nToggle global bar"
 END
 
+STRINGTABLE
+BEGIN
+    IDS_SCREX_COMP_TYPES_DIFFER  "Comnparison failure: values are of different types: %s and %s"
+END
+
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
