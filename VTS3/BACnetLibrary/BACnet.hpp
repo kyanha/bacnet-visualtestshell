@@ -82,7 +82,7 @@ struct BACnetAddress
 
 typedef BACnetAddress *BACnetAddressPtr;
 
-int operator ==( const BACnetAddress &addr1, const BACnetAddress &addr2 );
+bool operator ==( const BACnetAddress &addr1, const BACnetAddress &addr2 );
 #if _TSMDebug
 ostream &operator <<(ostream &strm,const BACnetAddress &addr);
 #endif
@@ -128,10 +128,13 @@ public:
 
    const char* ToString( Format theFormat = FMT_EPICS ) const;
    void Peek( BACnetAPDUDecoder& dec );
-   bool EqualityRequiredFailure( BACnetEncodeable & rbacnet, int iOperator, CString * pstrError );
-   bool PreMatch( int iOperator );
+   bool PreMatch( bool &isMatch, const CRuntimeClass *pClass, 
+                  BACnetEncodeable &rbacnet, int iOperator, CString *pstrError = NULL ) const;
+   bool PreMatchEquality( bool &isMatch, const CRuntimeClass *pClass, 
+                          BACnetEncodeable &rbacnet, int iOperator, CString *pstrError = NULL ) const;
+   bool DoEqualityMatch( bool areSame, BACnetEncodeable &rbacnet, int iOperator, CString *pstrError = NULL );
 
-   //madanner 9/04, static factory
+   // static factory
    static BACnetEncodeable * Factory( int nParseType, BACnetAPDUDecoder & dec, int nPropID = -1 );
 
    DECLARE_DYNAMIC(BACnetEncodeable)
@@ -142,7 +145,7 @@ typedef BACnetEncodeable *BACnetEncodeablePtr;
 
 class BACnetAddr : public BACnetEncodeable
 {
-public://modified by HUMENG
+public:
    BACnetAddress  m_bacnetAddress;
 
    void AssignAddress(unsigned int nNet, BACnetOctet * paMAC, unsigned int nMACLen );
@@ -159,9 +162,9 @@ public:
    virtual void Decode( BACnetAPDUDecoder& dec );
    virtual void Encode( CString &enc, Format theFormat ) const;
    // virtual void Decode( const char *dec );
-   // virtual int DataType(void) const;
+   virtual int DataType(void) const;
    virtual BACnetEncodeable * clone(void);
-   // virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
    BACnetAddr &operator =( const BACnetAddr & arg );
 
@@ -1502,7 +1505,7 @@ public:
    unsigned multiplier;
    unsigned moduloDivide;
 
-   BACnetPrescale();    
+   BACnetPrescale();
    BACnetPrescale(unsigned multiplier, unsigned moduloDivide);
    BACnetPrescale( BACnetAPDUDecoder & dec );   
 
@@ -1510,10 +1513,10 @@ public:
    virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
    virtual void Decode( BACnetAPDUDecoder& dec );
    virtual void Encode( CString &enc, Format theFormat ) const;
-   virtual void Decode( const char *dec );
+   //virtual void Decode( const char *dec );
    virtual int DataType(void) const;
    virtual BACnetEncodeable * clone(void);
-   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+   //virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
    DECLARE_DYNAMIC(BACnetPrescale)
 };
@@ -1527,7 +1530,7 @@ public:
    unsigned accumulatedValue;
    unsigned accumulatorStatus;
 
-   BACnetAccumulatorRecord();    
+   BACnetAccumulatorRecord();
    BACnetAccumulatorRecord(PICS::BACnetDateTime timestamp, unsigned presentValue, 
                            unsigned accumulatedValue, unsigned accumulatorStatus);
    BACnetAccumulatorRecord( BACnetAPDUDecoder & dec );   
@@ -1536,10 +1539,10 @@ public:
    virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
    virtual void Decode( BACnetAPDUDecoder& dec );
    virtual void Encode( CString &enc, Format theFormat ) const;
-   virtual void Decode( const char *dec );
+   //virtual void Decode( const char *dec );
    virtual int DataType(void) const;
    virtual BACnetEncodeable * clone(void);
-   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+   //virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
    DECLARE_DYNAMIC(BACnetAccumulatorRecord)
 };
@@ -1550,7 +1553,7 @@ public:
    unsigned context;
    float value;
 
-   BACnetShedLevel();      
+   BACnetShedLevel();
    BACnetShedLevel(unsigned context, float value);
    BACnetShedLevel( BACnetAPDUDecoder & dec );  
 
@@ -1558,10 +1561,10 @@ public:
    virtual void Encode( BACnetAPDUEncoder& enc, int context = kAppContext );
    virtual void Decode( BACnetAPDUDecoder& dec );
    virtual void Encode( CString &enc, Format theFormat ) const;
-   virtual void Decode( const char *dec );
+   //virtual void Decode( const char *dec );
    virtual int DataType(void) const;
    virtual BACnetEncodeable * clone(void);
-   virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
+   //virtual bool Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError );
 
    DECLARE_DYNAMIC(BACnetShedLevel)
 };

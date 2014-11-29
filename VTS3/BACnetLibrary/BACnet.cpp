@@ -428,13 +428,13 @@ CString BACnetAddress::PrettyAddress( VTSPort *pThePort ) const
    return str;
 }
 
-int operator ==( const BACnetAddress &addr1, const BACnetAddress &addr2 )
+bool operator ==( const BACnetAddress &addr1, const BACnetAddress &addr2 )
 {
    int         i;
 
    // address types must match
    if (addr1.addrType != addr2.addrType)
-      return 0;
+      return false;
 
    // remote broadcast and remote station have a network, localStation and remote
    // station have an address.
@@ -445,17 +445,17 @@ int operator ==( const BACnetAddress &addr1, const BACnetAddress &addr2 )
          break;
 
       case remoteBroadcastAddr:
-         if (addr1.addrNet != addr1.addrNet) return 0;
+         if (addr1.addrNet != addr2.addrNet) return false;
          break;
 
       case remoteStationAddr:
-         if (addr1.addrNet != addr1.addrNet) return 0;
+         if (addr1.addrNet != addr2.addrNet) return false;
          // FALL INTO next case
       case localStationAddr:
-         if (addr1.addrLen != addr2.addrLen) return 0;
+         if (addr1.addrLen != addr2.addrLen) return false;
          for (i = 0; i < addr1.addrLen; i++)
             if (addr1.addrAddr[i] != addr2.addrAddr[i])
-               return 0;
+               return false;
          break;
 
       default:
@@ -463,7 +463,7 @@ int operator ==( const BACnetAddress &addr1, const BACnetAddress &addr2 )
    }
 
    // must be equal
-   return 1;
+   return true;
 }
 
 #if _TSMDebug
@@ -594,17 +594,92 @@ BACnetEncodeable * BACnetEncodeable::clone()
    return NULL;
 }
 
-// ?= and >> are ALWAYS true
-bool BACnetEncodeable::PreMatch(int iOperator )
+// Initial checks for Match.
+// Returns true if no further matching should be done.  Caller should return "isMatch".
+// Returns false if the caller should do additional matching.  In this case, rbacnet is
+// guaranteed to be of the same class as this.
+bool BACnetEncodeable::PreMatch( bool &isMatch, const CRuntimeClass *pClass,
+                                 BACnetEncodeable &rbacnet, int iOperator, CString *pstrError ) const
 {
-   return (iOperator == '?=') || (iOperator == '>>');
+   bool retval = true;
+   isMatch = false;
+
+   if ((iOperator == '?=') || (iOperator == '>>'))
+   {
+      // ?= and >> are ALWAYS "Match"
+      isMatch = true;
+   }
+   else if (!rbacnet.IsKindOf(pClass))
+   {
+      // rbacnet is not of the same type as this.
+      if (iOperator == '!=')
+      {
+         // Test for inequality: rbacnet of different type is DEFINITELY unequal to this!
+         isMatch = true;
+      }
+      else
+      {
+         // Different type objects are "No match" for everything except inequality.
+         if (pstrError != NULL)
+         {
+            CString strError;
+            strError.Format(IDS_SCREX_COMP_TYPES_DIFFER, pClass->m_lpszClassName, rbacnet.GetRuntimeClass()->m_lpszClassName );
+            *pstrError = strError;
+         }
+         isMatch = false;
+      }
+   }
+   else
+   {
+      // rbacnet is of the same type as this.  Caller must do additional matching.
+      retval = false;
+   }
+
+   return retval;
 }
 
+// Initial checks for Match, when only equality and inequality tests are valid.
+// Returns true if no further matching should be done.  Caller should return "isMatch".
+// Returns false if the caller should do additional matching.  In this case, rbacnet is
+// guaranteed to be of the same class as this.
+bool BACnetEncodeable::PreMatchEquality( bool &isMatch, const CRuntimeClass *pClass,
+                                         BACnetEncodeable &rbacnet, int iOperator, CString * pstrError ) const
+{
+   // Do initial test.
+   bool retval = PreMatch( isMatch, pClass, rbacnet, iOperator, pstrError );
+   if (!retval)
+   {
+      if ((iOperator != '!=') && (iOperator != '='))
+      {
+         // Unacceptable comparison operator
+         if (pstrError != NULL)
+         {
+            CString strError, str1(ToString());
+            strError.Format(IDS_SCREX_COMPEQREQ, rbacnet.ToString(), OperatorToString(iOperator), str1);
+            *pstrError = strError;
+         }
+         isMatch = false;
+         retval = true;
+      }
+   }
 
-// Base class Match is called by default from most all of the classes.  It really just fails and formats the error
+   return retval;
+}
+
+// Do comparison for equality/inequality
+bool BACnetEncodeable::DoEqualityMatch( bool areSame, BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
+{
+   if ((areSame && (iOperator == '=')) || (!areSame && (iOperator == '!=')))
+      return true;
+
+   // Fail, formatting any error message
+   return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
+}
+
+// Base class Match is called by default from most all of the classes.  It just fails and formats the error
 bool BACnetEncodeable::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-   if ( pstrError != NULL )
+   if (pstrError != NULL)
    {
       CString strError;
       strError.Format(IDS_SCREX_COMPFAILTYPE, ToString(), OperatorToString(iOperator), rbacnet.ToString() );
@@ -616,28 +691,8 @@ bool BACnetEncodeable::Match( BACnetEncodeable &rbacnet, int iOperator, CString 
    return false;
 }
 
-
-// Some types can only test for equality/inequality...  
-// Make this available at this level of the class structure
-
-bool BACnetEncodeable::EqualityRequiredFailure( BACnetEncodeable & rbacnet, int iOperator, CString * pstrError )
-{
-   if ( (iOperator != '!=') && (iOperator != '=') )
-   {
-      CString strError, str1(ToString());
-      strError.Format(IDS_SCREX_COMPEQREQ, rbacnet.ToString(), OperatorToString(iOperator), str1);
-      *pstrError = strError;
-      return true;
-   }
-
-   return false;
-}
-
-
-// madanner 9/04
 // Factory method to instantiate the correct BACnetEncodeable type from a parse type and 
 // decoder...
-
 BACnetEncodeable * BACnetEncodeable::Factory( int nParseType, BACnetAPDUDecoder & dec, int nPropID /* = -1 */ )
 {
    BACnetEncodeable *pRetval;
@@ -660,7 +715,7 @@ BACnetEncodeable * BACnetEncodeable::Factory( int nParseType, BACnetAPDUDecoder 
          pRetval = new BACnetInteger(dec);
          break;
 
-      case flt:      // float ----------------------------------------
+      case flt:      // float ----------------------------------
          pRetval = new BACnetReal(dec);
          break;
 
@@ -770,7 +825,7 @@ BACnetEncodeable * BACnetEncodeable::Factory( int nParseType, BACnetAPDUDecoder 
          pRetval = new BACnetObjectPropertyReference(dec);
          break;
 
-      case lopref:   // list of object property references
+      case lopref:   // list of device object property references
          pRetval = new BACnetListOfDeviceObjectPropertyReference(dec);
          break;
 
@@ -929,20 +984,11 @@ BACnetEncodeable * BACnetNull::clone()
 
 bool BACnetNull::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-   if ( PreMatch(iOperator) )
-      return true;
+   bool isMatch;
+   if (PreMatchEquality(isMatch, RUNTIME_CLASS(BACnetNull), rbacnet, iOperator, pstrError))
+      return isMatch;
 
-   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetNull)));
-
-   if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
-      return false;
-
-   bool fMatch = ((BACnetInteger &) rbacnet).IsKindOf(RUNTIME_CLASS(BACnetNull)) == TRUE;
-
-   if ( fMatch && iOperator == '='  ||  !fMatch &&  iOperator == '!=' )
-      return true;
-
-   return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
+   return DoEqualityMatch( true, rbacnet, iOperator, pstrError );
 }
 
 
@@ -1036,12 +1082,26 @@ void BACnetAddr::AssignAddress(unsigned int nNet, BACnetOctet * paMAC, unsigned 
    }
 }
 
+int BACnetAddr::DataType(void) const
+{
+   // TODO: need a parsetype
+   return -1;
+}
 
 BACnetEncodeable * BACnetAddr::clone()
 {
    return new BACnetAddr(m_bacnetAddress.addrNet, m_bacnetAddress.addrAddr, m_bacnetAddress.addrLen);
 }
 
+bool BACnetAddr::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
+{
+   bool isMatch;
+   if (PreMatchEquality(isMatch, RUNTIME_CLASS(BACnetAddr), rbacnet, iOperator, pstrError))
+      return isMatch;
+
+   isMatch = (m_bacnetAddress == ((BACnetAddr&)rbacnet).m_bacnetAddress);
+   return DoEqualityMatch( isMatch, rbacnet, iOperator, pstrError );
+}
 
 BACnetAddr & BACnetAddr::operator =( const BACnetAddr & arg )
 {
@@ -1055,7 +1115,6 @@ IMPLEMENT_DYNAMIC(BACnetBoolean, BACnetEncodeable)
 //
 // BACnetBoolean
 //
-
 BACnetBoolean::BACnetBoolean( int bvalu )
 : boolValue(bvalu ? bTrue : bFalse)
 {
@@ -1074,7 +1133,6 @@ BACnetBoolean::BACnetBoolean( BACnetAPDUDecoder & dec )
 
 void BACnetBoolean::Encode( BACnetAPDUEncoder& enc, int context )
 {
-   //
    // Note: A context tagged boolean is not encoded the same as an
    // application tagged boolean.  See clause 20.2.3.
    //
@@ -1105,7 +1163,8 @@ void BACnetBoolean::Decode( BACnetAPDUDecoder &dec )
    if (tag == 0x10)
    {
       boolValue = bFalse;
-   } else if (tag == 0x11)
+   } 
+   else if (tag == 0x11)
    {
       boolValue = bTrue;
    }
@@ -1178,19 +1237,12 @@ BACnetBoolean & BACnetBoolean::operator =( const BACnetBoolean & arg )
 
 bool BACnetBoolean::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-   if ( PreMatch(iOperator) )
-      return true;
+   bool isMatch;
+   if (PreMatchEquality(isMatch, RUNTIME_CLASS(BACnetBoolean), rbacnet, iOperator, pstrError))
+      return isMatch;
 
-   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetBoolean)));
-
-   if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
-      return false;
-
-   if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetBoolean))  ||
-      !::Match(iOperator, boolValue, ((BACnetBoolean &) rbacnet).boolValue ) )
-      return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
-
-   return true;
+   isMatch = (boolValue == ((BACnetBoolean &) rbacnet).boolValue);
+   return DoEqualityMatch( isMatch, rbacnet, iOperator, pstrError );
 }
 
 
@@ -1199,7 +1251,6 @@ IMPLEMENT_DYNAMIC(BACnetEnumerated, BACnetEncodeable)
 //
 // BACnetEnumerated
 //
-
 BACnetEnumerated::BACnetEnumerated( int evalu, NetworkSniffer::BACnetStringTable &nameList )
 : m_enumValue( evalu )
 , m_papNameList(nameList.m_pStrings)
@@ -1294,8 +1345,9 @@ void BACnetEnumerated::Decode( const char *dec )
 
 void BACnetEnumerated::Decode( const char *dec, const char * const *table, int tsize )
 {
-   if (IsDigit(*dec)) {                            // explicit number
-      // integer encoding
+   if (IsDigit(*dec))
+   {
+      // explicit number
       for (m_enumValue = 0; *dec; dec++)
       {
          if (!IsDigit(*dec))
@@ -1303,12 +1355,16 @@ void BACnetEnumerated::Decode( const char *dec, const char * const *table, int t
          else
             m_enumValue = (m_enumValue * 10) + (*dec - '0');
       }
-   } else
-   if (!table)
+   }
+   else if (!table)
+   {
       throw_(13) /* no translation available */;
-   else {
+   }
+   else
+   {
       m_enumValue = 0;
-      while (m_enumValue < tsize) {
+      while (m_enumValue < tsize)
+      {
          if (strncmp(dec,*table,strlen(dec)) == 0)
             break;
          if (_stricmp(dec,*table) == 0)
@@ -1344,13 +1400,11 @@ BACnetEnumerated & BACnetEnumerated::operator =( const BACnetEnumerated & arg )
 
 bool BACnetEnumerated::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-   if ( PreMatch(iOperator) )
-      return true;
+   bool isMatch;
+   if (PreMatch(isMatch, RUNTIME_CLASS(BACnetEnumerated), rbacnet, iOperator, pstrError))
+      return isMatch;
 
-// ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetEnumerated)));
-
-   if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetEnumerated))  || 
-       !::Match(iOperator, m_enumValue, ((BACnetEnumerated &) rbacnet).m_enumValue) )
+   if (!::Match(iOperator, m_enumValue, ((BACnetEnumerated &) rbacnet).m_enumValue) )
       return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
    return true;
@@ -1470,11 +1524,7 @@ BACnetEnumerated * BACnetEnumerated::Factory(int nPropID)
 //
 // BACnetUnsigned
 //
-
 IMPLEMENT_DYNAMIC(BACnetUnsigned, BACnetEncodeable)
-
-// madanner 9/24/02... required change to unsigned long to handle, well, longs.
-//BACnetUnsigned::BACnetUnsigned( unsigned int uivalu )
 
 BACnetUnsigned::BACnetUnsigned( unsigned long uivalu )
    : uintValue( uivalu )
@@ -1654,13 +1704,11 @@ BACnetEncodeable * BACnetUnsigned::clone()
 
 bool BACnetUnsigned::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-   if ( PreMatch(iOperator) )
-      return true;
+   bool isMatch;
+   if (PreMatch(isMatch, RUNTIME_CLASS(BACnetUnsigned), rbacnet, iOperator, pstrError))
+      return isMatch;
 
-   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetUnsigned)));
-
-   if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetUnsigned))  ||
-       !::Match(iOperator, uintValue, ((BACnetUnsigned &) rbacnet).uintValue) )
+   if (!::Match(iOperator, uintValue, ((BACnetUnsigned &) rbacnet).uintValue))
       return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
    return true;
@@ -1672,7 +1720,6 @@ IMPLEMENT_DYNAMIC(BACnetInteger, BACnetEncodeable)
 //
 // BACnetInteger
 //
-
 BACnetInteger::BACnetInteger( int ivalu )
    : intValue( ivalu )
 {
@@ -1873,13 +1920,11 @@ BACnetEncodeable * BACnetInteger::clone()
 
 bool BACnetInteger::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-   if ( PreMatch(iOperator) )
-      return true;
+   bool isMatch;
+   if (PreMatch(isMatch, RUNTIME_CLASS(BACnetInteger), rbacnet, iOperator, pstrError))
+      return isMatch;
 
-   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetInteger)));
-
-   if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetInteger)) ||
-       !::Match(iOperator, intValue, ((BACnetInteger &) rbacnet).intValue) )
+   if (!::Match(iOperator, intValue, ((BACnetInteger &) rbacnet).intValue))
       return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
    return true;
@@ -1891,7 +1936,6 @@ IMPLEMENT_DYNAMIC(BACnetReal, BACnetEncodeable)
 //
 // BACnetReal
 //
-
 BACnetReal::BACnetReal( float rvalu )
    : realValue( rvalu )
 {
@@ -1994,16 +2038,11 @@ BACnetEncodeable * BACnetReal::clone()
 
 bool BACnetReal::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-   if ( PreMatch(iOperator) )
-      return true;
+   bool isMatch;
+   if (PreMatch(isMatch, RUNTIME_CLASS(BACnetReal), rbacnet, iOperator, pstrError))
+      return isMatch;
 
-   // Don't assert here because we might be comparing Real value with Null value from priority array
-   // This is normal and assert is getting in the way.
-
-// ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetReal)));
-
-   if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetReal)) ||
-       !::Match(iOperator, realValue, ((BACnetReal &) rbacnet).realValue ) )
+   if (!::Match(iOperator, realValue, ((BACnetReal &) rbacnet).realValue ))
       return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
    return true;
@@ -2015,7 +2054,6 @@ IMPLEMENT_DYNAMIC(BACnetDouble, BACnetEncodeable)
 //
 // BACnetDouble
 //
-
 BACnetDouble::BACnetDouble( double dvalu )
    : doubleValue( dvalu )
 {
@@ -2138,16 +2176,11 @@ BACnetEncodeable * BACnetDouble::clone()
 
 bool BACnetDouble::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-   if ( PreMatch(iOperator) )
-      return true;
+   bool isMatch;
+   if (PreMatch(isMatch, RUNTIME_CLASS(BACnetDouble), rbacnet, iOperator, pstrError))
+      return isMatch;
 
-   // Don't assert here because we might be comparing Double value with Null value from priority array
-   // This is normal and assert is getting in the way.
-
-//   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDouble)));
-
-   if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDouble)) ||
-       !::Match(iOperator, doubleValue, ((BACnetDouble &) rbacnet).doubleValue ) )
+   if (!::Match(iOperator, doubleValue, ((BACnetDouble &) rbacnet).doubleValue ))
       return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
    return true;
@@ -2552,16 +2585,12 @@ BACnetEncodeable * BACnetCharacterString::clone()
 
 bool BACnetCharacterString::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-   if ( PreMatch(iOperator) )
-      return true;
-
-   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetCharacterString)));
-
-   if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetCharacterString)) )
-      return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
+   bool isMatch;
+   if (PreMatch(isMatch, RUNTIME_CLASS(BACnetCharacterString), rbacnet, iOperator, pstrError))
+      return isMatch;
 
    // check encoding
-   if ( strEncoding != ((BACnetCharacterString &) rbacnet).strEncoding )
+   if (strEncoding != ((BACnetCharacterString &) rbacnet).strEncoding)
    {
       pstrError->Format(IDS_SCREX_COMPFAILSTRENCODING, ((BACnetCharacterString &) rbacnet).strEncoding, strEncoding );
       return false;
@@ -2569,7 +2598,6 @@ bool BACnetCharacterString::Match( BACnetEncodeable &rbacnet, int iOperator, CSt
 
    // This may present a problem where the encoding is non ASCII or whatever the heck CString uses...
    // So let's just keep the old stuff around for the sake of it, eh?
-
    if ( !Match((BACnetCharacterString &) rbacnet, iOperator) )
       return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
@@ -2579,8 +2607,9 @@ bool BACnetCharacterString::Match( BACnetEncodeable &rbacnet, int iOperator, CSt
 
 bool BACnetCharacterString::Match( BACnetCharacterString & rstring, int iOperator )
 {
-   if ( PreMatch(iOperator) )
-      return true;
+   bool isMatch;
+   if (PreMatch(isMatch, RUNTIME_CLASS(BACnetCharacterString), rstring, iOperator, NULL))
+      return isMatch;
 
    switch(iOperator)
    {
@@ -2691,16 +2720,15 @@ IMPLEMENT_DYNAMIC(BACnetOctetString, BACnetEncodeable)
 //
 // BACnetOctetString::BACnetOctetString
 //
-
 BACnetOctetString::BACnetOctetString( void )
-   : strLen(0), strBuffLen(0), strBuff(0)
+   : strLen(0), strBuffLen(0), strBuff(NULL)
 {
 }
 
 
 BACnetOctetString::BACnetOctetString( BACnetAPDUDecoder & dec )
+   : strLen(0), strBuffLen(0), strBuff(NULL)
 {
-   strBuff = NULL;
    Decode(dec);
 }
 
@@ -2708,40 +2736,46 @@ BACnetOctetString::BACnetOctetString( BACnetAPDUDecoder & dec )
 //
 // BACnetOctetString::BACnetOctetString
 //
-
 BACnetOctetString::BACnetOctetString( int len )
 {
    if (len > 0) {
       strLen = 0;
-      strBuff = new BACnetOctet[ len ];
       strBuffLen = len;
+      strBuff = new BACnetOctet[ len ];
    } else {
       strLen = strBuffLen = 0;
-      strBuff = 0;
+      strBuff = NULL;
    }
 }
 
 //
 // BACnetOctetString::BACnetOctetString
 //
-
 BACnetOctetString::BACnetOctetString( const BACnetOctetString &cpy )
 {
    strLen = strBuffLen = cpy.strLen;
-
-   if ( strLen )
+   if (strLen)
+   {
       strBuff = new BACnetOctet[ cpy.strLen ];
-   else
-      strBuff = NULL;
-
-   if (strBuff)
       memcpy( strBuff, cpy.strBuff, (size_t)cpy.strLen );
+   }
+   else
+   {
+      strBuff = NULL;
+   }
 }
 
 //
 // BACnetOctetString::BACnetOctetString
+// CAUTION: KEEPS the octet buffer, and DOES NOT delete it in our destructor
+// since strBufLen == 0.
 //
-
+// Caller must ensure that the buffer persists for the life of this
+// object, and must ensure that the buffer is deleted.
+//
+// Note the contrasting behavior of the const BACnetOctet version
+// of the constructor.
+//
 BACnetOctetString::BACnetOctetString( BACnetOctet *bytes, int len )
 {
    strLen = len;
@@ -2750,26 +2784,25 @@ BACnetOctetString::BACnetOctetString( BACnetOctet *bytes, int len )
 }
 
 
-// this one copies the data... 
-
-BACnetOctetString::BACnetOctetString( const BACnetOctet *bytes, int len)
+// This one copies the data... 
+BACnetOctetString::BACnetOctetString( const BACnetOctet *bytes, int len )
 {
    strLen = strBuffLen = len;
-
    if ( strLen )
+   {
       strBuff = new BACnetOctet[len];
-   else
-      strBuff = NULL;
-
-   if (strBuff)
       memcpy( strBuff, bytes, len );
+   }
+   else
+   {
+      strBuff = NULL;
+   }
 }
 
 
 //
 // BACnetOctetString::~BACnetOctetString
 //
-
 BACnetOctetString::~BACnetOctetString( void )
 {
    Flush();
@@ -2778,7 +2811,6 @@ BACnetOctetString::~BACnetOctetString( void )
 //
 // BACnetOctetString::PrepBuffer
 //
-
 void BACnetOctetString::PrepBuffer( int size )
 {
    BACnetOctet *newBuff;
@@ -2793,6 +2825,9 @@ void BACnetOctetString::PrepBuffer( int size )
       memcpy( newBuff, strBuff, strLen );
 
    // if current buffer owned, delete it
+   //   TODO: Seems as if strBuffLen SHOULD BE used to determine ownership,
+   //   since the destructor won't delete strBuff if it is zero.
+   //   Who removed the test and why?
 // if (strBuff && strBuffLen)
    if (strBuff)
       delete[] strBuff;
@@ -2805,23 +2840,20 @@ void BACnetOctetString::PrepBuffer( int size )
 //
 // BACnetOctetString::Flush
 //
-
 void BACnetOctetString::Flush( void )
 {
    // strBuffLen is also used to determine ownership of this buffer...
    // So even if strBuff is allocated, if strBuffLen = 0 we shouldn't delete it (trust me).
-
    if (strBuff && strBuffLen)
       delete[] strBuff;
 
-   strBuff = 0;
+   strBuff = NULL;
    strLen = strBuffLen = 0;
 }
 
 //
 // BACnetOctetString::Append
 //
-
 void BACnetOctetString::Append( BACnetOctet byte )
 {
    // make sure the buffer can handle it
@@ -2835,7 +2867,6 @@ void BACnetOctetString::Append( BACnetOctet byte )
 //
 // BACnetOctetString::Insert
 //
-
 void BACnetOctetString::Insert( BACnetOctet *bytes, int len, int position )
 {
    if (position < strLen)
@@ -2864,7 +2895,6 @@ void BACnetOctetString::Insert( BACnetOctet *bytes, int len, int position )
 //
 // BACnetOctetString::Insert
 //
-
 void BACnetOctetString::Insert( const BACnetOctetString &cpy, int position )
 {
    Insert( cpy.strBuff, cpy.strLen, position );
@@ -2873,7 +2903,6 @@ void BACnetOctetString::Insert( const BACnetOctetString &cpy, int position )
 //
 // BACnetOctetString::operator []
 //
-
 BACnetOctet &BACnetOctetString::operator [](const int indx)
 {
    return strBuff[indx];
@@ -2882,16 +2911,18 @@ BACnetOctet &BACnetOctetString::operator [](const int indx)
 //
 // BACnetOctetString::Reference
 //
-
 void BACnetOctetString::Reference( BACnetOctet *bytes, int len )
 {
+   // TODO: Seems as if strBuffLen SHOULD BE used to determine ownership,
+   // since the destructor won't delete strBuff if it is zero.
+   // Who removed the test and why?
 // if (strBuff && strBuffLen)
    if (strBuff)
       delete[] strBuff;
 
    strBuff = bytes;
    strLen = len;
-   strBuffLen = 0;
+   strBuffLen = 0;      // DO NOT delete strBuff in Flush or destructor
 }
 
 int BACnetOctetString::Length( void )
@@ -2933,13 +2964,13 @@ void BACnetOctetString::Decode( BACnetAPDUDecoder& dec )
          strBuff = new BACnetOctet[ tag.tagLVT ];
       else
          strBuff = NULL;
-   } 
+   }
    else if (!strBuff) {
       strLen = strBuffLen = tag.tagLVT;
       if ( strLen )
          strBuff = new BACnetOctet[ tag.tagLVT ];
    }
-   
+
    // copy the data
    strLen = tag.tagLVT;
 
@@ -3074,24 +3105,16 @@ BACnetEncodeable * BACnetOctetString::clone()
 
 bool BACnetOctetString::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-   if ( PreMatch(iOperator) )
-      return true;
+   bool isMatch;
+   if (PreMatchEquality(isMatch, RUNTIME_CLASS(BACnetOctetString), rbacnet, iOperator, pstrError))
+      return isMatch;
 
-   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetOctetString)));
-
-   if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
-      return false;
-
-   bool fMatch = memcmp(strBuff, ((BACnetOctetString &) rbacnet).strBuff, min(((BACnetOctetString &) rbacnet).strBuffLen, strBuffLen)) == 0;
-
-   //madanner 6/03, check length too if testing for equality.  Use strlen not bufflen.  Above bufflen test performed
-   //to avoid gpf, but not here.
-
-   if (   (fMatch && iOperator == '=' &&  ((BACnetOctetString &) rbacnet).strLen == strLen)
-       || (!fMatch && iOperator == '!=') )
-      return true;
-
-   return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
+   // This formerly compared the ALLOCATED bytes, even though not all of them
+   // were necessarily initialized.
+   isMatch = (strLen == ((BACnetOctetString&)rbacnet).strLen)
+                &&
+             ((strLen == 0) || (memcmp(strBuff, ((BACnetOctetString&)rbacnet).strBuff, strLen) == 0));
+   return DoEqualityMatch( isMatch, rbacnet, iOperator, pstrError );
 }
 
 
@@ -3185,23 +3208,14 @@ BACnetEncodeable * BACnetWeekNDay::clone()
 
 bool BACnetWeekNDay::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-   if ( PreMatch(iOperator) )
-      return true;
+   bool isMatch;
+   if (PreMatchEquality(isMatch, RUNTIME_CLASS(BACnetWeekNDay), rbacnet, iOperator, pstrError))
+      return isMatch;
 
-   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetWeekNDay)));
-
-   if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
-      return false;
-
-   bool fMatch = rbacnet.IsKindOf(RUNTIME_CLASS(BACnetWeekNDay)) && 
-                m_nDayOfWeek == ((BACnetWeekNDay &) rbacnet).m_nDayOfWeek &&
-                m_nMonth == ((BACnetWeekNDay &) rbacnet).m_nMonth &&
-                m_nWeekOfMonth == ((BACnetWeekNDay &) rbacnet).m_nWeekOfMonth;
-
-   if ( (iOperator == '=' && !fMatch) || (iOperator == '!=' && fMatch) )
-      return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
-
-   return true;
+   isMatch = m_nDayOfWeek   == ((BACnetWeekNDay&)rbacnet).m_nDayOfWeek &&
+             m_nMonth       == ((BACnetWeekNDay&)rbacnet).m_nMonth &&
+             m_nWeekOfMonth == ((BACnetWeekNDay&)rbacnet).m_nWeekOfMonth;
+   return DoEqualityMatch( isMatch, rbacnet, iOperator, pstrError );
 }
 
 
@@ -3210,7 +3224,6 @@ IMPLEMENT_DYNAMIC(BACnetBitString, BACnetEncodeable)
 //
 // BACnetBitString::BACnetBitString
 //
-
 BACnetBitString::BACnetBitString( void )
    : bitLen(0), bitBuffLen(0), bitBuff(0)
 {
@@ -3227,7 +3240,6 @@ BACnetBitString::BACnetBitString( BACnetAPDUDecoder & dec )
 //
 // BACnetBitString::BACnetBitString
 //
-
 BACnetBitString::BACnetBitString( int siz )
    : bitLen(siz), bitBuffLen((siz + 31) / 32), bitBuff(0)
 {
@@ -3253,7 +3265,6 @@ BACnetBitString::BACnetBitString( int siz, unsigned char * pbits )
 //
 // BACnetBitString::BACnetBitString
 //
-
 BACnetBitString::BACnetBitString( const BACnetBitString &cpy )
    : bitLen( cpy.bitLen ), bitBuffLen( cpy.bitBuffLen )
 {
@@ -3270,7 +3281,6 @@ BACnetBitString::BACnetBitString( const BACnetBitString &cpy )
 //
 // BACnetBitString::~BACnetBitString
 //
-
 BACnetBitString::~BACnetBitString( void )
 {
    KillBuffer();
@@ -3328,7 +3338,6 @@ void BACnetBitString::SetSize( int siz )
 //
 // BACnetBitString::SetBit
 //
-
 void BACnetBitString::SetBit( int bit, int valu )
 {
    int     intOffset = (bit / 32);
@@ -3346,7 +3355,6 @@ void BACnetBitString::SetBit( int bit, int valu )
 //
 // BACnetBitString::ResetBit
 //
-
 void BACnetBitString::ResetBit( int bit )
 {
    int   intOffset = (bit / 32);
@@ -3359,7 +3367,6 @@ void BACnetBitString::ResetBit( int bit )
 //
 // BACnetBitString::GetBit
 //
-
 int BACnetBitString::GetBit( int bit ) const
 {
    int   intOffset = (bit / 32);
@@ -3374,7 +3381,6 @@ int BACnetBitString::GetBit( int bit ) const
 //
 // BACnetBitString::operator []
 //
-
 const int BACnetBitString::operator [](int bit)
 {
    int   intOffset = (bit / 32);
@@ -3389,7 +3395,6 @@ const int BACnetBitString::operator [](int bit)
 //
 // BACnetBitString::operator +=
 //
-
 BACnetBitString &BACnetBitString::operator +=( const int bit )
 {
    int   intOffset = (bit / 32);
@@ -3405,7 +3410,6 @@ BACnetBitString &BACnetBitString::operator +=( const int bit )
 //
 // BACnetBitString::operator -=
 //
-
 BACnetBitString &BACnetBitString::operator -=( const int bit )
 {
    int   intOffset = (bit / 32);
@@ -3419,7 +3423,6 @@ BACnetBitString &BACnetBitString::operator -=( const int bit )
 //
 // BACnetBitString::operator =
 //
-
 BACnetBitString &BACnetBitString::operator =( const BACnetBitString &arg )
 {
    int      i;
@@ -3443,7 +3446,6 @@ BACnetBitString &BACnetBitString::operator =( const BACnetBitString &arg )
 //
 // BACnetBitString::operator |=
 //
-
 BACnetBitString &BACnetBitString::operator |=( const BACnetBitString &arg )
 {
    if (bitLen < arg.bitLen)
@@ -3460,7 +3462,6 @@ BACnetBitString &BACnetBitString::operator |=( const BACnetBitString &arg )
 //
 // BACnetBitString::operator &=
 //
-
 BACnetBitString &BACnetBitString::operator &=( const BACnetBitString &arg )
 {
    int         i;
@@ -3479,23 +3480,12 @@ BACnetBitString &BACnetBitString::operator &=( const BACnetBitString &arg )
 //
 // BACnetBitString::operator ==
 //
-
 bool BACnetBitString::operator ==( BACnetBitString &arg )
 {
-// int            i, siz = (bitBuffLen < arg.bitBuffLen ? bitBuffLen : arg.bitBuffLen);
-// unsigned long  *src = arg.bitBuff,  *dst = bitBuff;
-   int i;  // MAG 31JAN06  i was used out of scope below
-
    if (bitLen != arg.bitLen)
       return false;
 
-// for (i = 0; i < siz; i++)
-//    if (*dst++ != *src++)
-//       return false;
-
-   // ### perhaps last bitBuff element shouldn't always have all bits compared
-   // Right!  So let's compare one bit at a time.
-
+   int i;
    for (i = 0; i < bitLen  && GetBit(i) == arg.GetBit(i);  i++ );       // [] doesn't work for some reason
 
    return i >= bitLen;     // made it through, must be OK
@@ -3690,20 +3680,12 @@ BACnetEncodeable * BACnetBitString::clone()
 
 bool BACnetBitString::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-   if ( PreMatch(iOperator) )
-      return true;
+   bool isMatch;
+   if (PreMatchEquality(isMatch, RUNTIME_CLASS(BACnetBitString), rbacnet, iOperator, pstrError))
+      return isMatch;
 
-   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetBitString)));
-
-   if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
-      return false;
-
-   bool fMatch = *this == ((BACnetBitString &) rbacnet);
-
-   if ( (iOperator == '=' && !fMatch) || (iOperator == '!=' && fMatch) )
-      return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
-
-   return true;
+   isMatch = (*this == ((BACnetBitString&)rbacnet));
+   return DoEqualityMatch( isMatch, rbacnet, iOperator, pstrError );
 }
 
 
@@ -3716,7 +3698,6 @@ IMPLEMENT_DYNAMIC(BACnetDate, BACnetEncodeable)
 //
 // BACnetDate::BACnetDate
 //
-
 BACnetDate::BACnetDate( void )
 {
    time_t      now;
@@ -3735,7 +3716,6 @@ BACnetDate::BACnetDate( void )
 //
 // BACnetDate::BACnetDate
 //
-
 BACnetDate::BACnetDate( int y, int m, int d )
    : year(y), month(m), day(d)
 {
@@ -4271,13 +4251,11 @@ BACnetEncodeable * BACnetDate::clone()
 
 bool BACnetDate::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-   if ( PreMatch(iOperator) )
-      return true;
+   bool isMatch;
+   if (PreMatch(isMatch, RUNTIME_CLASS(BACnetDate), rbacnet, iOperator, pstrError))
+      return isMatch;
 
-   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDate)));
-
-   if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDate)) ||
-       !Match((BACnetDate &) rbacnet, iOperator) )
+   if (!Match((BACnetDate &) rbacnet, iOperator))
       return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
    return true;
@@ -4286,8 +4264,9 @@ bool BACnetDate::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstr
 
 bool BACnetDate::Match( BACnetDate & rdate, int iOperator )
 {
-   if ( PreMatch(iOperator) )
-      return true;
+   bool isMatch;
+   if (PreMatch(isMatch, RUNTIME_CLASS(BACnetDate), rdate, iOperator, NULL))
+      return isMatch;
 
    switch(iOperator)
    {
@@ -4543,7 +4522,6 @@ IMPLEMENT_DYNAMIC(BACnetTime, BACnetEncodeable)
 //
 // BACnetTime::BACnetTime
 //
-
 BACnetTime::BACnetTime( void )
 {
    time_t      now;
@@ -4561,7 +4539,6 @@ BACnetTime::BACnetTime( void )
 //
 // BACnetTime::BACnetTime
 //
-
 BACnetTime::BACnetTime( int hr, int mn, int sc, int hun )
    : hour(hr), minute(mn), second(sc), hundredths(hun)
 {
@@ -4878,13 +4855,11 @@ BACnetEncodeable * BACnetTime::clone()
 
 bool BACnetTime::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-   if ( PreMatch(iOperator) )
-      return true;
+   bool isMatch;
+   if (PreMatch(isMatch, RUNTIME_CLASS(BACnetTime), rbacnet, iOperator, pstrError))
+      return isMatch;
 
-   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetTime)));
-
-   if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetTime)) ||
-        !Match((BACnetTime &) rbacnet, iOperator) )
+   if (!Match((BACnetTime &) rbacnet, iOperator))
       return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
    return true;
@@ -4893,8 +4868,9 @@ bool BACnetTime::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstr
 
 bool BACnetTime::Match( BACnetTime & rtime, int iOperator )
 {
-   if ( PreMatch(iOperator) )
-      return true;
+   bool isMatch;
+   if (PreMatch(isMatch, RUNTIME_CLASS(BACnetTime), rtime, iOperator, NULL))
+      return isMatch;
 
    switch(iOperator)
    {
@@ -4909,7 +4885,6 @@ bool BACnetTime::Match( BACnetTime & rtime, int iOperator )
    }
    return false;
 }
-
 
 
 bool BACnetTime::operator ==( const BACnetTime & arg )
@@ -5074,7 +5049,6 @@ void BACnetTime::TestTimeComps()
 //
 // BACnetDateTime ===============================================
 //
-
 IMPLEMENT_DYNAMIC(BACnetDateTime, BACnetEncodeable)
 
 BACnetDateTime::BACnetDateTime( void )
@@ -5202,13 +5176,11 @@ BACnetEncodeable * BACnetDateTime::clone()
 
 bool BACnetDateTime::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-   if ( PreMatch(iOperator) )
-      return true;
+   bool isMatch;
+   if (PreMatch(isMatch, RUNTIME_CLASS(BACnetDateTime), rbacnet, iOperator, pstrError))
+      return isMatch;
 
-   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDateTime)));
-
-   if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDateTime)) ||
-       !Match((BACnetDateTime &) rbacnet, iOperator) )
+   if (!Match((BACnetDateTime &) rbacnet, iOperator))
       return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
    return true;
@@ -5216,8 +5188,9 @@ bool BACnetDateTime::Match( BACnetEncodeable &rbacnet, int iOperator, CString * 
 
 bool BACnetDateTime::Match( BACnetDateTime & rdatetime, int iOperator )
 {
-   if ( PreMatch(iOperator) )
-      return true;
+   bool isMatch;
+   if (PreMatch(isMatch, RUNTIME_CLASS(BACnetDateTime), rdatetime, iOperator, NULL))
+      return isMatch;
 
    switch(iOperator)
    {
@@ -5273,7 +5246,6 @@ bool BACnetDateTime::operator >( const BACnetDateTime & arg )
 //
 // BACnetDateTime ===============================================
 //
-
 IMPLEMENT_DYNAMIC(BACnetDateRange, BACnetEncodeable)
 
 BACnetDateRange::BACnetDateRange( void )
@@ -5369,13 +5341,13 @@ BACnetEncodeable * BACnetDateRange::clone()
 
 bool BACnetDateRange::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-   if ( PreMatch(iOperator) )
-      return true;
+   // TODO: Comparisons for < > etc. are based on the NUMBER OF DAYS in ther
+   // respective DateRanges.  I am skeptical that this is useful, but...
+   bool isMatch;
+   if (PreMatch(isMatch, RUNTIME_CLASS(BACnetDateRange), rbacnet, iOperator, pstrError))
+      return isMatch;
 
-   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDateRange)));
-
-   if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDateRange)) ||
-       !Match((BACnetDateRange &) rbacnet, iOperator) )
+   if (!Match((BACnetDateRange &) rbacnet, iOperator))
       return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
 
    return true;
@@ -5400,8 +5372,9 @@ LONGLONG BACnetDateRange::GetSpan() const
 
 bool BACnetDateRange::Match( BACnetDateRange & rdaterange, int iOperator )
 {
-   if ( PreMatch(iOperator) )
-      return true;
+   bool isMatch;
+   if (PreMatch(isMatch, RUNTIME_CLASS(BACnetDateRange), rdaterange, iOperator, NULL))
+      return isMatch;
 
    switch(iOperator)
    {
@@ -5673,13 +5646,13 @@ BACnetEncodeable * BACnetObjectIdentifier::clone()
 
 bool BACnetObjectIdentifier::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-   if ( PreMatch(iOperator) )
-      return true;
+   // It may be marginally useful to say that (analog-input, 1) is "<" (analog-input, 2),
+   // but saying (analog-input, 1) is "<" (analog-output, 1) seems dubious.  But...
+   bool isMatch;
+   if (PreMatch(isMatch, RUNTIME_CLASS(BACnetObjectIdentifier), rbacnet, iOperator, pstrError))
+      return isMatch;
 
-   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetObjectIdentifier)));
-
-   if (!rbacnet.IsKindOf(RUNTIME_CLASS(BACnetObjectIdentifier)) ||
-       !::Match(iOperator, (unsigned long) objID, (unsigned long) ((BACnetObjectIdentifier &) rbacnet).objID ) )
+   if (!::Match(iOperator, (unsigned long) objID, (unsigned long) ((BACnetObjectIdentifier &) rbacnet).objID ))
    {
       return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
    }
@@ -5774,17 +5747,13 @@ BACnetEncodeable * BACnetObjectPropertyReference::clone()
 
 bool BACnetObjectPropertyReference::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-   if ( PreMatch(iOperator) )
-      return true;
+   bool isMatch;
+   if (PreMatchEquality(isMatch, RUNTIME_CLASS(BACnetObjectPropertyReference), rbacnet, iOperator, pstrError))
+      return isMatch;
 
-   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetObjectPropertyReference)));
-
-   if (!rbacnet.IsKindOf(RUNTIME_CLASS(BACnetObjectPropertyReference))  ||
-       !::Match(iOperator, (unsigned long) m_objID.objID, (unsigned long) ((BACnetObjectPropertyReference &) rbacnet).m_objID.objID) ||
-       !::Match(iOperator, (int) m_bacnetenumPropID.m_enumValue, (int) ((BACnetObjectPropertyReference &) rbacnet).m_bacnetenumPropID.m_enumValue) )
-      return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
-
-   return true;
+   isMatch = (m_objID.objID == ((BACnetObjectPropertyReference &)rbacnet).m_objID.objID) &&
+             (m_bacnetenumPropID.m_enumValue == ((BACnetObjectPropertyReference &)rbacnet).m_bacnetenumPropID.m_enumValue);
+   return DoEqualityMatch( isMatch, rbacnet, iOperator, pstrError );
 }
 
 
@@ -5884,16 +5853,14 @@ BACnetEncodeable * BACnetDeviceObjectPropertyReference::clone()
 
 bool BACnetDeviceObjectPropertyReference::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-   if ( PreMatch(iOperator) )
-      return true;
+   bool isMatch;
+   if (PreMatchEquality(isMatch, RUNTIME_CLASS(BACnetDeviceObjectPropertyReference), rbacnet, iOperator, pstrError))
+      return isMatch;
 
-   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDeviceObjectPropertyReference)));
-
-// if ( !rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDeviceObjectPropertyReference))  ||  !::Match(iOperator, (unsigned long) m_objID.objID, (unsigned long) ((BACnetDeviceObjectPropertyReference &) rbacnet).m_objID.objID) ||
-//     !::Match(iOperator, (int) m_buPropID.uintValue, (int) ((BACnetDeviceObjectPropertyReference &) rbacnet).m_buPropID.uintValue) )
-//    return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
-
-   return true;
+   // Compare for equality of the parts, do not log mismatch (since we may be checking INEQUALITY)
+   isMatch = m_objpropref.Match(((BACnetDeviceObjectPropertyReference&)rbacnet).m_objpropref, '=', NULL) &&
+             (m_unObjectID == ((BACnetDeviceObjectPropertyReference&)rbacnet).m_unObjectID);
+   return DoEqualityMatch( isMatch, rbacnet, iOperator, pstrError );
 }
 
 
@@ -5982,12 +5949,13 @@ BACnetEncodeable * BACnetDeviceObjectReference::clone()
 
 bool BACnetDeviceObjectReference::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-   if ( PreMatch(iOperator) )
-      return true;
+   bool isMatch;
+   if (PreMatchEquality(isMatch, RUNTIME_CLASS(BACnetDeviceObjectReference), rbacnet, iOperator, pstrError))
+      return isMatch;
 
-   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDeviceObjectReference)));
-
-   return true;
+   isMatch = (m_objID.objID == ((BACnetDeviceObjectReference&)rbacnet).m_objID.objID) &&
+             (m_undevID == ((BACnetDeviceObjectReference&)rbacnet).m_undevID);
+   return DoEqualityMatch( isMatch, rbacnet, iOperator, pstrError );
 }
 
 
@@ -6199,30 +6167,20 @@ BACnetEncodeable * BACnetAddressBinding::clone()
 
 bool BACnetAddressBinding::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-   if ( PreMatch(iOperator) )
-      return true;
+   bool isMatch;
+   if (PreMatchEquality(isMatch, RUNTIME_CLASS(BACnetAddressBinding), rbacnet, iOperator, pstrError))
+      return isMatch;
 
-   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetAddressBinding)));
-
-   if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
-      return false;
-
-   // Compare for equality, do not log mismatch (since we may be checking INEQUALITY)
-   bool fMatch = rbacnet.IsKindOf(RUNTIME_CLASS(BACnetAddressBinding)) &&
-              m_bacnetAddr.Match(((BACnetAddressBinding &) rbacnet).m_bacnetAddr, '=', NULL )  &&
-              m_bacnetObjectID.Match(((BACnetAddressBinding &) rbacnet).m_bacnetObjectID, '=', NULL );
-
-   if ( (fMatch  && iOperator == '=')  ||  (!fMatch && iOperator == '!=') )
-      return true;
-
-   return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
+   // Compare for equality of the parts, do not log mismatch (since we may be checking INEQUALITY)
+   isMatch = m_bacnetObjectID.Match(((BACnetAddressBinding &) rbacnet).m_bacnetObjectID, '=', NULL ) &&
+             m_bacnetAddr.Match(((BACnetAddressBinding &) rbacnet).m_bacnetAddr, '=', NULL );
+   return DoEqualityMatch( isMatch, rbacnet, iOperator, pstrError );
 }
 
 
 //
 // BACnetOpeningTag
 //
-
 void BACnetOpeningTag::Encode( CString &enc, Format /*theFormat*/ ) const
 {
    enc = '{';
@@ -6336,8 +6294,7 @@ int BACnetDaysOfWeek::DataType() const
 ///////////////////////////////////////////////////////////////////////////////////
 //
 // BACnetEventTransitionBits
-//Added by Zhu Zhenhua 2003-9-4
-
+//
 IMPLEMENT_DYNAMIC(BACnetEventTransitionBits, BACnetBitString)
 
 BACnetEventTransitionBits::BACnetEventTransitionBits(void)
@@ -6361,7 +6318,6 @@ int BACnetEventTransitionBits::DataType() const
 /////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
 //    BACnetRecipient
-//Added by Zhu Zhenhua 2003-9-4
 
 IMPLEMENT_DYNAMIC(BACnetRecipient, BACnetObjectContainer)
 
@@ -6424,8 +6380,6 @@ void BACnetRecipient::Encode(BACnetAPDUEncoder& enc, int context)
    if (pbacnetTypedValue == NULL)
       return;
 
-   //madanner 9/04
-
    if ( context != kAppContext )
       BACnetOpeningTag().Encode(enc, context);
 
@@ -6483,16 +6437,14 @@ BACnetEncodeable * BACnetRecipient::clone()
 
 bool BACnetRecipient::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-   if ( PreMatch(iOperator) )
-      return true;
+   bool isMatch;
+   if (PreMatchEquality(isMatch, RUNTIME_CLASS(BACnetRecipient), rbacnet, iOperator, pstrError))
+      return isMatch;
 
-   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetRecipient)));
    ASSERT(pbacnetTypedValue != NULL);
 
-   return rbacnet.IsKindOf(RUNTIME_CLASS(BACnetRecipient))  &&
-          pbacnetTypedValue->Match(*((BACnetRecipient &)rbacnet).GetObject(), iOperator, pstrError);
+   return pbacnetTypedValue->Match(*((BACnetRecipient &)rbacnet).GetObject(), iOperator, pstrError);
 }
-//end of class BacnetRecipient
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -6519,12 +6471,6 @@ BACnetRecipientProcess::BACnetRecipientProcess( BACnetAPDUDecoder & dec )
 
 BACnetRecipientProcess & BACnetRecipientProcess::operator =( const BACnetRecipientProcess & arg )
 {
-// BACnetRecipientProcess* newrecip = new BACnetRecipientProcess();
-
-// newrecip->m_bacnetrecipient = arg.m_bacnetrecipient;
-// newrecip->m_bacnetunsignedID = arg.m_bacnetunsignedID;
-// return *newrecip;
-
    m_bacnetrecipient = arg.m_bacnetrecipient;
    m_bacnetunsignedID = arg.m_bacnetunsignedID;
    return *this;
@@ -6587,14 +6533,14 @@ BACnetEncodeable * BACnetRecipientProcess::clone()
 
 bool BACnetRecipientProcess::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-   if ( PreMatch(iOperator) )
-      return true;
+   bool isMatch;
+   if (PreMatchEquality(isMatch, RUNTIME_CLASS(BACnetRecipientProcess), rbacnet, iOperator, pstrError))
+      return isMatch;
 
-   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetRecipientProcess)));
-
-   return rbacnet.IsKindOf(RUNTIME_CLASS(BACnetRecipientProcess))  &&
-          m_bacnetrecipient.Match(((BACnetRecipientProcess &)rbacnet).m_bacnetrecipient, iOperator, pstrError) &&
-          m_bacnetunsignedID.Match(((BACnetRecipientProcess &)rbacnet).m_bacnetunsignedID, iOperator, pstrError);
+   // Compare for equality of the parts, do not log mismatch (since we may be checking INEQUALITY)
+   isMatch = m_bacnetrecipient.Match(((BACnetRecipientProcess &)rbacnet).m_bacnetrecipient, '=', NULL) &&
+             m_bacnetunsignedID.Match(((BACnetRecipientProcess &)rbacnet).m_bacnetunsignedID, '=', NULL);
+   return DoEqualityMatch( isMatch, rbacnet, iOperator, pstrError );
 }
 
 
@@ -6721,26 +6667,24 @@ BACnetEncodeable * BACnetCOVSubscription::clone()
 
 bool BACnetCOVSubscription::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-   if ( PreMatch(iOperator) )
-      return true;
+   bool isMatch;
+   if (PreMatchEquality(isMatch, RUNTIME_CLASS(BACnetCOVSubscription), rbacnet, iOperator, pstrError))
+      return isMatch;
 
-   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetCOVSubscription)));
-
-   return rbacnet.IsKindOf(RUNTIME_CLASS(BACnetCOVSubscription))  &&
-         m_bacnetrecipprocess.Match(((BACnetCOVSubscription &)rbacnet).m_bacnetrecipprocess, iOperator, pstrError) &&
-         m_bacnetobjpropref.Match(((BACnetCOVSubscription &)rbacnet).m_bacnetobjpropref, iOperator, pstrError) &&
-         m_bacnetboolNotification.Match(((BACnetCOVSubscription &)rbacnet).m_bacnetboolNotification, iOperator, pstrError) &&
-         m_bacnetunsignedTimeRemaining.Match(((BACnetCOVSubscription &)rbacnet).m_bacnetunsignedTimeRemaining, iOperator, pstrError) &&
-         m_bacnetrealCOVIncrement.Match(((BACnetCOVSubscription &)rbacnet).m_bacnetrealCOVIncrement, iOperator, pstrError) ;
+   // Compare sub-parts for equality, do not log mismatch (since we may be checking INEQUALITY)
+   isMatch = m_bacnetrecipprocess.Match(((BACnetCOVSubscription &)rbacnet).m_bacnetrecipprocess, '=', NULL) &&
+             m_bacnetobjpropref.Match(((BACnetCOVSubscription &)rbacnet).m_bacnetobjpropref, '=', NULL) &&
+             m_bacnetboolNotification.Match(((BACnetCOVSubscription &)rbacnet).m_bacnetboolNotification, '=', NULL) &&
+             m_bacnetunsignedTimeRemaining.Match(((BACnetCOVSubscription &)rbacnet).m_bacnetunsignedTimeRemaining, '=', NULL) &&
+             m_bacnetrealCOVIncrement.Match(((BACnetCOVSubscription &)rbacnet).m_bacnetrealCOVIncrement, '=', NULL);
+   return DoEqualityMatch( isMatch, rbacnet, iOperator, pstrError );
 }
-
 
 
 ///////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////
 //
 // BACnetDestination
-//Added by Zhu Zhenhua, 2003-9-4
 IMPLEMENT_DYNAMIC(BACnetDestination, BACnetEncodeable)
 
 BACnetDestination::BACnetDestination(
@@ -6775,7 +6719,7 @@ BACnetDestination::BACnetDestination(const BACnetDestination  &src)
 
 
 BACnetDestination::BACnetDestination(void)
-{  
+{
 }
 
 
@@ -6845,31 +6789,20 @@ void BACnetDestination::Encode( CString &enc, Format theFormat ) const
 
 bool BACnetDestination::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-   if ( PreMatch(iOperator) )
-      return true;
-
-   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetDestination)));
-
-   if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
-      return false;
-
-   BACnetDestination *pRight = DYNAMIC_DOWNCAST( BACnetDestination, &rbacnet );
-   if (pRight == NULL)
-      return false;
+   bool isMatch;
+   if (PreMatchEquality(isMatch, RUNTIME_CLASS(BACnetDestination), rbacnet, iOperator, pstrError))
+      return isMatch;
 
    // Compare for equality, do not log mismatch (since we may be checking INEQUALITY)
-   bool fMatch = m_validDays.Match( pRight->m_validDays, '=', NULL ) &&
-                 m_recipient.Match( pRight->m_recipient, '=', NULL ) &&
-                 m_transitions.Match( pRight->m_transitions, '=', NULL ) &&
-                 m_fromTime.Match( pRight->m_fromTime, '=', NULL ) &&
-                 m_toTime.Match( pRight->m_toTime, '=', NULL ) &&
-                 m_processID.Match( pRight->m_processID, '=', NULL ) &&
-                 m_issueConfirmedNotifications.Match( pRight->m_issueConfirmedNotifications, '=', NULL );
-
-   if ( (iOperator == '=' && !fMatch) || (iOperator == '!=' && fMatch) )
-      return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
-
-   return true;
+   BACnetDestination *pRight = DYNAMIC_DOWNCAST( BACnetDestination, &rbacnet );
+   isMatch = m_validDays.Match( pRight->m_validDays, '=', NULL ) &&
+             m_recipient.Match( pRight->m_recipient, '=', NULL ) &&
+             m_transitions.Match( pRight->m_transitions, '=', NULL ) &&
+             m_fromTime.Match( pRight->m_fromTime, '=', NULL ) &&
+             m_toTime.Match( pRight->m_toTime, '=', NULL ) &&
+             m_processID.Match( pRight->m_processID, '=', NULL ) &&
+             m_issueConfirmedNotifications.Match( pRight->m_issueConfirmedNotifications, '=', NULL );
+   return DoEqualityMatch( isMatch, rbacnet, iOperator, pstrError );
 }
 
 
@@ -7065,21 +6998,19 @@ void BACnetANY::Decode( const char *dec )
 
 bool BACnetANY::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-   if ( PreMatch(iOperator) )
-      return true;      // ?= or ?
-
-   if ( EqualityRequiredFailure(rbacnet, iOperator, pstrError) )
-      return false;     // not = or !=
+   bool isMatch;
+   if (PreMatchEquality(isMatch, RUNTIME_CLASS(BACnetANY), rbacnet, iOperator, pstrError))
+      return isMatch;
 
    // Convert the input into a BACnetANY so we can compare to ANYTHING
    BACnetANY right;
    right.SetValue( rbacnet );
 
-   bool match = (dataLen == right.dataLen) && (memcmp( dataBuff, right.dataBuff, dataLen ) == 0);
+   isMatch = (dataLen == right.dataLen) && (memcmp( dataBuff, right.dataBuff, dataLen ) == 0);
    if (iOperator == '!=')
-      match = !match;
+      isMatch = !isMatch;
 
-   if (match)
+   if (isMatch)
       return true;
 
    return BACnetEncodeable::Match(rbacnet, iOperator, pstrError);
@@ -7265,13 +7196,11 @@ BACnetEncodeable * BACnetPriorityValue::clone()
 
 bool BACnetPriorityValue::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-   if ( PreMatch(iOperator) )
-      return true;
+   bool isMatch;
+   if (PreMatch(isMatch, RUNTIME_CLASS(BACnetPriorityValue), rbacnet, iOperator, pstrError))
+      return isMatch;
 
-   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetPriorityValue)));
-   ASSERT(pbacnetTypedValue != NULL);
-
-   // JLH 26 January 2010: 
+   // JLH 26 January 2010:
    // Compare for equality, greater, or less returns true only if
    // - matching CHOICE (via GetRuntimeClass)
    // - compare values
@@ -7281,15 +7210,13 @@ bool BACnetPriorityValue::Match( BACnetEncodeable &rbacnet, int iOperator, CStri
    // - compare values
    // Use OperatorToString to show operator
    //
-   bool retval = rbacnet.IsKindOf(RUNTIME_CLASS(BACnetPriorityValue)) &&
-              (pbacnetTypedValue != NULL) &&
-              ( ((BACnetPriorityValue&)rbacnet).GetObject()->GetRuntimeClass() ==
-                pbacnetTypedValue->GetRuntimeClass() );
-   if (!retval)
+   isMatch = (pbacnetTypedValue != NULL) &&
+             (((BACnetPriorityValue&)rbacnet).GetObject()->GetRuntimeClass() == pbacnetTypedValue->GetRuntimeClass());
+   if (!isMatch)
    {
       if (iOperator == '!=')
       {
-         retval = true;
+         isMatch = true;
       }
       else
       {
@@ -7302,10 +7229,10 @@ bool BACnetPriorityValue::Match( BACnetEncodeable &rbacnet, int iOperator, CStri
    }
    else
    {
-      retval = pbacnetTypedValue->Match(*((BACnetPriorityValue &)rbacnet).GetObject(), iOperator, pstrError);
+      isMatch = pbacnetTypedValue->Match(*((BACnetPriorityValue &)rbacnet).GetObject(), iOperator, pstrError);
    }
 
-   return retval;
+   return isMatch;
 }
 
 
@@ -7418,14 +7345,12 @@ BACnetEncodeable * BACnetCalendarEntry::clone()
 
 bool BACnetCalendarEntry::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-   if ( PreMatch(iOperator) )
-      return true;
+   bool isMatch;
+   if (PreMatchEquality(isMatch, RUNTIME_CLASS(BACnetCalendarEntry), rbacnet, iOperator, pstrError))
+      return isMatch;
 
-   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetCalendarEntry)));
    ASSERT(pbacnetTypedValue != NULL);
-
-   return rbacnet.IsKindOf(RUNTIME_CLASS(BACnetCalendarEntry))  &&
-          pbacnetTypedValue->Match(*((BACnetCalendarEntry &)rbacnet).GetObject(), iOperator, pstrError);
+   return pbacnetTypedValue->Match(*((BACnetCalendarEntry &)rbacnet).GetObject(), iOperator, pstrError);
 }
 
 
@@ -7518,16 +7443,25 @@ BACnetEncodeable * BACnetTimeStamp::clone()
 
 bool BACnetTimeStamp::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-   if ( PreMatch(iOperator) )
-      return true;
+   bool isMatch;
+   if (PreMatch(isMatch, RUNTIME_CLASS(BACnetTimeStamp), rbacnet, iOperator, pstrError))
+      return isMatch;
 
-   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetTimeStamp)));
-   ASSERT(pbacnetTypedValue != NULL);
+   isMatch = (pbacnetTypedValue != NULL) &&
+             (((BACnetTimeStamp &)rbacnet).GetObject() != NULL) &&
+             (pbacnetTypedValue->DataType() == ((BACnetTimeStamp &)rbacnet).GetObject()->DataType());
+   if (isMatch)
+   {
+      // Items are of the same CHOICE, so we can compare < > etc.
+      isMatch = pbacnetTypedValue->Match(*((BACnetTimeStamp &)rbacnet).GetObject(), iOperator, pstrError);
+   }
+   else
+   {
+      // Items are NOT of the same CHOICE, so only = and != make sense
+      isMatch = DoEqualityMatch( false, rbacnet, iOperator, pstrError );
+   }
 
-   // This is a CHOICE, so only call Match if we are using the same choice
-   return rbacnet.IsKindOf(RUNTIME_CLASS(BACnetTimeStamp)) &&
-          (pbacnetTypedValue->DataType() == ((BACnetTimeStamp &)rbacnet).GetObject()->DataType()) &&
-          pbacnetTypedValue->Match(*((BACnetTimeStamp &)rbacnet).GetObject(), iOperator, pstrError);
+   return isMatch;
 }
 
 //====================================================================
@@ -7594,14 +7528,12 @@ BACnetEncodeable * BACnetScale::clone()
 
 bool BACnetScale::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-   if ( PreMatch(iOperator) )
-      return true;
+   bool isMatch;
+   if (PreMatch(isMatch, RUNTIME_CLASS(BACnetScale), rbacnet, iOperator, pstrError))
+      return isMatch;
 
-   ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetScale)));
    ASSERT(pbacnetTypedValue != NULL);
-
-   return rbacnet.IsKindOf(RUNTIME_CLASS(BACnetScale))  &&
-          pbacnetTypedValue->Match(*((BACnetScale &)rbacnet).GetObject(), iOperator, pstrError);
+   return pbacnetTypedValue->Match(*((BACnetScale &)rbacnet).GetObject(), iOperator, pstrError);
 }
 
 //====================================================================
@@ -7646,10 +7578,6 @@ void BACnetPrescale::Encode( CString &enc, Format /*theFormat*/ ) const
    enc.Format( "{%d, %d}", multiplier, moduloDivide );
 }
 
-void BACnetPrescale::Decode( const char *dec )
-{
-   // todo: write decoder if used...
-}
 
 int BACnetPrescale::DataType() const
 {
@@ -7660,12 +7588,6 @@ int BACnetPrescale::DataType() const
 BACnetEncodeable * BACnetPrescale::clone()
 {  
    return new BACnetPrescale(multiplier, moduloDivide); 
-}
-
-
-bool BACnetPrescale::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
-{
-   return true;
 }
 
 //====================================================================
@@ -7710,10 +7632,6 @@ void BACnetAccumulatorRecord::Encode( CString &enc, Format /*theFormat*/ ) const
       );
 }
 
-void BACnetAccumulatorRecord::Decode( const char *dec )
-{
-   // TODO: LJT write if needed
-}
 
 int BACnetAccumulatorRecord::DataType(void) const
 {
@@ -7724,11 +7642,6 @@ BACnetEncodeable * BACnetAccumulatorRecord::clone(void)
 {
    return new BACnetAccumulatorRecord(timestamp, presentValue, accumulatedValue,
       accumulatorStatus); 
-}
-
-bool BACnetAccumulatorRecord::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
-{
-   return true;
 }
 
 
@@ -7752,8 +7665,8 @@ BACnetShedLevel::BACnetShedLevel( BACnetAPDUDecoder & dec )
 
 void BACnetShedLevel::Decode( BACnetAPDUDecoder& dec )
 {
-   BACnetAPDUTag     tagTestType;   
-   dec.ExamineTag(tagTestType);  
+   BACnetAPDUTag     tagTestType;
+   dec.ExamineTag(tagTestType);
    context = tagTestType.tagNumber;
    if ((context == 0) || (context == 1))
    {
@@ -7794,10 +7707,6 @@ void BACnetShedLevel::Encode( CString &enc, Format /*theFormat*/ ) const
    }
 }
 
-void BACnetShedLevel::Decode( const char *dec )
-{
-   // TODO: LJT write if needed
-}
 
 int BACnetShedLevel::DataType(void) const
 {
@@ -7807,12 +7716,6 @@ int BACnetShedLevel::DataType(void) const
 BACnetEncodeable * BACnetShedLevel::clone(void)
 {
    return new BACnetShedLevel(context, value); 
-}
-
-bool BACnetShedLevel::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
-{
-   // TODO: this hardy seems correct
-   return true;
 }
 
 //====================================================================
@@ -7979,38 +7882,37 @@ void BACnetGenericArray::ClearArray()
 
 bool BACnetGenericArray::Match( BACnetEncodeable &rbacnet, int iOperator, CString * pstrError )
 {
-   if ( PreMatch(iOperator) )
-      return true;
-
-// ASSERT(rbacnet.IsKindOf(RUNTIME_CLASS(BACnetGenericArray)));
+   bool isMatch;
+   if (PreMatch(isMatch, RUNTIME_CLASS(BACnetGenericArray), rbacnet, iOperator, pstrError))
+      return isMatch;
 
    CString strError;
 
    // want to compare entire array...  Better make sure lengths are the same
-   if ( GetSize() != ((BACnetGenericArray &) rbacnet).GetSize() )
+   if (GetSize() != ((BACnetGenericArray &) rbacnet).GetSize())
    {
-      if ( pstrError != NULL )
+      if (pstrError != NULL)
          pstrError->Format(IDS_SCREX_COMPARRAYSIZE, GetSize(), ((BACnetGenericArray &) rbacnet).GetSize() );
 
       return false;
    }
 
+   isMatch = true;
    int nIndex;
-   for ( nIndex = 0; nIndex < GetSize() && 
-         m_apBACnetObjects[nIndex]->Match(((BACnetGenericArray &)rbacnet)[nIndex], iOperator, &strError);
-         nIndex++ );
+   for (nIndex = 0; isMatch && (nIndex < GetSize()); nIndex++)
+   {
+      isMatch = m_apBACnetObjects[nIndex]->Match(((BACnetGenericArray &)rbacnet)[nIndex], iOperator, &strError);
+   }
 
-   if ( pstrError != NULL  &&  !strError.IsEmpty() )
+   if (!isMatch && (pstrError != NULL) && !strError.IsEmpty())
    {
       char szBuff[20];
-
       sprintf(szBuff, "[%d] ", nIndex);
       *pstrError += szBuff + strError;
    }
 
-   return strError.IsEmpty() != 0;     // account for stupid Windows BOOL define
+   return isMatch;
 }
-
 
 
 //====================================================================
@@ -8142,7 +8044,6 @@ BACnetTextArray::BACnetTextArray( char * paText[], int nMax /* = -1 */ )
 
 
 // Constructor for only one array element
-
 BACnetTextArray::BACnetTextArray( char * pText )
             :BACnetGenericArray(s132)
 {
@@ -8597,7 +8498,6 @@ BACnetEnumerated * BACnetListOfVTClass::operator[](int nIndex) const
 {
    return (BACnetEnumerated *) m_apBACnetObjects[nIndex];
 }
-
 
 
 BACnetEnumerated & BACnetListOfVTClass::operator[](int nIndex)
