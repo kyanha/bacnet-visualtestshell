@@ -8880,8 +8880,8 @@ bool IsNaN( double theValue )
    // - sign bit is don't care
    // - 11 exponent bits all set
    // - 52 mantissa bits, not all 0
-   ASSERT( sizeof(double) == sizeof(unsigned long long) );
-   unsigned long long uVal = *(unsigned long long*)&theValue;
+   ASSERT( sizeof(double) == sizeof(unsigned _int64) );
+   unsigned _int64 uVal = *(unsigned _int64*)&theValue;
    return ((uVal & 0x7FF0000000000000) == 0x7FF0000000000000) & ((uVal & 0x000FFFFFFFFFFFFF) != 0);
 }
 
@@ -8990,7 +8990,7 @@ const char* DoubleToString( CString &theString, double theValue )
    // - 11 exponent bits all set
    // - 52 mantissa bits, not all 0
    // INF is the same, but with all mantissa bits 0, and sign bit matters
-   unsigned long long uVal = *(unsigned long long*)&theValue;
+   unsigned _int64 uVal = *(unsigned _int64*)&theValue;
    if ((uVal & 0x7FF0000000000000) == 0x7FF0000000000000)
    {
       if ((uVal & 0x000FFFFFFFFFFFFF) != 0)
@@ -9074,7 +9074,7 @@ int StringToFloat( const char *pString, float &theValue )
 int StringToDouble( const char *pString, double &theValue )
 {
    int retval = 0;
-   unsigned long long special;
+   unsigned _int64 special;
 
    if (_strnicmp( pString, "inf", 3 ) == 0)
    {
