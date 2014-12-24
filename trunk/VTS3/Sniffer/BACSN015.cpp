@@ -2134,17 +2134,17 @@ void show_confirmed( unsigned char x )
    pif_show_flagbit(0x04,"More Follows","No More Follows");
    pif_show_flagbit(0x03,"Segmented Resp Accepted","Segmented Resp not Accepted");
    
-   sprintf(outstr,"%"FW"s = X'%%02X'","Maximum APDU Response Accepted");
-   bac_show_flag(outstr,0x0F);
+   sprintf(outstr,"%"FW"s = X'%%02X'","MaxSegments/MaxResponse");
+   bac_show_flag(outstr,0xFF);
 
-   pif_show_flagmask(0x70, 0x00,"Unspecified number of segments");
+   pif_show_flagmask(0x70, 0x00,"Unspecified number of segments accepted");
    pif_show_flagmask(0x70, 0x10,"2 segments accepted");
    pif_show_flagmask(0x70, 0x20,"4 segments accepted");
    pif_show_flagmask(0x70, 0x30,"8 segments accepted");
    pif_show_flagmask(0x70, 0x40,"16 segments accepted");
    pif_show_flagmask(0x70, 0x50,"32 segments accepted");
    pif_show_flagmask(0x70, 0x60,"64 segments accepted");
-   pif_show_flagmask(0x70, 0x70,"More than segments accepted");
+   pif_show_flagmask(0x70, 0x70,"More than 64 segments accepted");
    
    pif_show_flagmask(0x0F, 0x00,"Up to 50 Octets");
    pif_show_flagmask(0x0F, 0x01,"Up to 128 Octets");
@@ -2152,7 +2152,7 @@ void show_confirmed( unsigned char x )
    pif_show_flagmask(0x0F, 0x03,"Up to 480 Octets");
    pif_show_flagmask(0x0F, 0x04,"Up to 1024 Octets");
    pif_show_flagmask(0x0F, 0x05,"Up to 1476 Octets");
-   
+
    bac_show_byte("Invoke ID","%d");
    if (x & 0x08)  {               /* SEG = 1 */
      bac_show_byte("Sequence Number","%d");
@@ -4276,6 +4276,7 @@ void show_bac_real( unsigned int len )
 #endif   
    fx = *(float *)fstr;
 
+   // We use FloatToString() to get nice treatment of NaN and inf
    sprintf(outstr,"%"FW"s = %%s","Value of float");
    sprintf(get_int_line(pi_data_current,pif_offset,4),outstr,FloatToString(fStr,fx));
    pif_offset += 4;
