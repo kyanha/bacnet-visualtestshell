@@ -4195,7 +4195,7 @@ BEGIN
     COMBOBOX        IDC_TYPECOMBO,88,69,100,75,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
 END
 
-IDD_DISCOVER_EPICS DIALOGEX 0, 0, 335, 144
+IDD_DISCOVER_EPICS DIALOGEX 0, 0, 335, 164
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Generate EPICS From Device"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
@@ -4210,12 +4210,14 @@ BEGIN
     CONTROL         "Include all &values (else use ? for commonly changing values)",IDC_CHECK1,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,46,267,10
     CONTROL         "Include comments for &unsupported properties",IDC_CHECK2,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,82,267,10
+    LTEXT           "&EPICS filename:",IDC_STATIC5,7,100,54,8
+    EDITTEXT        IDC_FILENAME,35,112,222,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "Brow&se...",IDC_BROWSE,262,113,50,11
+    DEFPUSHBUTTON   "OK",IDOK,100,139,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,162,139,50,14
+    CONTROL         "&Write back value read to determine EPICS 'W'",IDC_CHECK3,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,64,267,10
-    LTEXT           "&EPICS filename:",IDC_STATIC5,7,82,54,8
-    EDITTEXT        IDC_FILENAME,35,94,222,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "Brow&se...",IDC_BROWSE,262,95,50,11
-    DEFPUSHBUTTON   "OK",IDOK,100,119,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,162,119,50,14
 END
 
 
@@ -5808,7 +5810,7 @@ BEGIN
     IDD_DISCOVER_EPICS, DIALOG
     BEGIN
         RIGHTMARGIN, 331
-        BOTTOMMARGIN, 133
+        BOTTOMMARGIN, 153
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -6482,6 +6484,8 @@ BEGIN
                             "Comparison failure: Encoded ALDATA != EPICS %s"
     IDS_SCREX_COMPSTREAM_E  "Comparison failure: Encoded ALDATA == EPICS %s"
     IDS_SCREX_COMPEQREQ     "Script error:  = or != condition required %s %s %s"
+    IDS_SCREX_COMP_TYPES_DIFFER 
+                            "Comnparison failure: values are of different types: %s and %s"
     IDS_SCREX_COMPSTRING    "Comparison failure: %s (%s) %s EPICS (%s)"
     IDS_SCREX_COMPFAILTYPE  "(%s) %s (%s)"
     IDS_SCREX_COMPARRAYSIZE "Array comparison with mismatched sizes (%d) EPICS (%d)"
@@ -6643,11 +6647,6 @@ BEGIN
     ID_VIEW_GLOBALBAR       "Show or hide the globallbar\nToggle GlobalBar"
     ID_VIEW_MAINTOOLBAR     "Show or hide the Toolbar\nToolBar"
     ID_VIEW_GLOBAL_TOOLBAR  "Show or hide the global bar\nToggle global bar"
-END
-
-STRINGTABLE
-BEGIN
-    IDS_SCREX_COMP_TYPES_DIFFER  "Comnparison failure: values are of different types: %s and %s"
 END
 
 #endif    // English (United States) resources

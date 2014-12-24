@@ -51,17 +51,18 @@ END_MESSAGE_MAP()
 
 void SendReceiveExecutorProgressDlg::OutMessage(const CString& msg, BOOL bnewLine /*= TRUE*/)
 {
-   m_editOutput.SetSel(-1, -1);
-   m_editOutput.ReplaceSel(msg);
-   m_editOutput.SetSel(-1, -1);
+   CString str(msg);
    if (bnewLine)
    {
-      m_editOutput.ReplaceSel("\r\n");
+      str += "\r\n";
    }
    else
    {
-      m_editOutput.ReplaceSel("\t");
+      str += "\t";
    }
+   m_editOutput.SetSel(-1, -1);
+   m_editOutput.ReplaceSel(str);
+   m_editOutput.SetSel(-1, -1);
 }
 
 void SendReceiveExecutorProgressDlg::OnOK()

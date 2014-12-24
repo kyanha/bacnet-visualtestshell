@@ -29,12 +29,6 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 
-// TODO: yes, we SHOULD have a full set of error enumeration values in some .h file.
-// Go right ahead.  I'll wait here
-#define ERR_CLASS_PROPERTY          2
-#define ERR_CODE_READ_ACCESS_DENIED 27
-#define ERR_CODE_UNKNOWN_PROPERTY   32
-
 // global defines
 DiscoveryExecutor gDiscoveryExecutor;
 
@@ -49,6 +43,7 @@ DiscoveryExecutor::DiscoveryExecutor()
 , m_protocolRevision(0)
 , m_includeAllValues(false)
 , m_includeUnsupported(false)
+, m_writeBack(false)
 , m_discoveredDevices()
 {
 }
@@ -113,6 +108,7 @@ void DiscoveryExecutor::ExecuteTest( FunctionToExecute theFunction )
 
       m_includeAllValues = (dlg.m_includeAllValues != 0);
       m_includeUnsupported = (dlg.m_includeUnsupported != 0);
+      m_writeBack = (dlg.m_writeBack != 0);
    }
    else
    {
@@ -378,6 +374,7 @@ bool DiscoveryExecutor::ReadObjectProperties( BACnetObjectIdentifier &objID )
          const char *propName = NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( pd->PropID );
 
          bool required = (pd->PropFlags & R) && (m_protocolRevision >= pd->firstRevision);
+         bool writeable = false;
 
          propID.m_enumValue = pd->PropID;
          DiscoAnyValue propValue( pd->ParseType, pd->PropID );
@@ -388,19 +385,23 @@ bool DiscoveryExecutor::ReadObjectProperties( BACnetObjectIdentifier &objID )
             {
                if (!m_includeAllValues && (pd->PropFlags & QVAL))
                {
-                  // Show a "?" for this oft-changing value
-                  msg.Format( "    %s: ?", propName );
+                  // Try to determine writability by writing the value back
+                  writeable = m_writeBack && SendWritePropertyOptional( objID, propID, propValue );
+
+                  // Show a "?" for this oft-changing value, 'W' if writeable
+                  msg.Format( "    %s: ?%s", propName, (writeable) ? " W" : "" );
                   Show(msg);
                }
                else if ((propID.m_enumValue == PICS::PROPERTY_LIST) &&
                         (propValue.GetObject()->IsKindOf( RUNTIME_CLASS(BACnetGenericArray) )))
                {
-                  // PropertyList gets special handling.
+                  // PropertyList gets special handling.  Assume never writeable.
                   pProps = DumpPropertyList( *(BACnetGenericArray*)propValue.GetObject() );
                }
                else if ((propID.m_enumValue == PICS::PROTOCOL_OBJECT_TYPES_SUPPORTED) &&
                         (propValue.GetObject()->IsKindOf( RUNTIME_CLASS(BACnetBitString) )))
                {
+                  // Nice format for object-types-supported.  Assume never writeable.
                   DumpBitString( propName,
                                  *(const BACnetBitString*)propValue.GetObjectA(),
                                  NetworkSniffer::BAC_STRTAB_BACnetObjectType );
@@ -408,15 +409,19 @@ bool DiscoveryExecutor::ReadObjectProperties( BACnetObjectIdentifier &objID )
                else if ((propID.m_enumValue == PICS::PROTOCOL_SERVICES_SUPPORTED) &&
                         (propValue.GetObject()->IsKindOf( RUNTIME_CLASS(BACnetBitString) )))
                {
+                  // Nice format for services-supported.  Assume never writeable.
                   DumpBitString( propName,
                                  *(const BACnetBitString*)propValue.GetObjectA(),
                                  NetworkSniffer::BAC_STRTAB_BACnetServicesSupported );
                }
                else
                {
-                  // Dump the property value
+                  // Try to determine writability by writing the value back
+                  writeable = m_writeBack && SendWritePropertyOptional( objID, propID, propValue );
+
+                  // Dump the property value, 'W' if writeable
                   propValue.Encode( str, BACnetEncodeable::FMT_EPICS );
-                  msg.Format( "    %s: %s", propName, (LPCTSTR)str );
+                  msg.Format( "    %s: %s%s", propName, (LPCTSTR)str, (writeable) ? " W" : "" );
                   Show(msg);
                }
             }
@@ -592,7 +597,7 @@ void DiscoveryExecutor::DoDiscovery()
 
    ClearDiscoveryList();
 
-   // Sending just a full-range Who-Is may miss some responses if there are a 
+   // Sending just a full-range Who-Is may miss some responses if there are a
    // large number of devices, due to buffer overflows and hardware limitations.
    // Thus, we send a an initial full-range Who-Is, follwed by additional
    // Who-Is for the the empty ranges between known Devices.
@@ -619,11 +624,8 @@ void DiscoveryExecutor::DoDiscovery()
                int nDevices = m_discoveredDevices.GetSize();
                if (nDevices > nSeen)
                {
-                  // One or more new devices.  Reset time
+                  // One or more new devices.  Reset timeout
                   lastDeviceTime = now;
-
-                  str.Format( "Discovered %d devices", nDevices - nSeen );
-                  m_pOutputDlg->OutMessage(str);
                   nSeen = nDevices;
                }
             }
@@ -644,6 +646,7 @@ void DiscoveryExecutor::DoDiscovery()
    while (!m_bUserCancelled && (low < high));
 
    // Dump the device list.
+   m_pOutputDlg->OutMessage( "" );
    for (int ix = 0; ix < m_discoveredDevices.GetSize(); ix++)
    {
       const DiscoveryInfo *pElem  = m_discoveredDevices.GetAt( ix );
@@ -750,6 +753,16 @@ void DiscoveryExecutor::ReceiveAPDU( const BACnetAPDU &theAPDU )
       pInfo->m_mxaAPDU = maxAPDU.uintValue;
       pInfo->m_segmentationSupport = segSupport.m_enumValue;
       pInfo->m_vendorID = vendor.uintValue;
+
+      // It may not be the best idea to do this UI from a worker thread,
+      // but the main executor won't do output until 3 seconds of silence,
+      // so only a perversely timed I-Am should cause problems.
+      CString str;
+      str.Format( "- Received I-Am from device %u at %s.  Vendor: %s.",
+                  pInfo->m_instance,
+                  (LPCTSTR)pInfo->m_address.PrettyAddress( m_pPort ),
+                  NetworkSniffer::BAC_STRTAB_BACnetVendorID.EnumString( pInfo->m_vendorID ) );
+      m_pOutputDlg->OutMessage(str);
 
       // Add the data to the discovery list, sorting by device instance
       for (int ix = 0; ix < m_discoveredDevices.GetSize(); ix++)

@@ -20,6 +20,14 @@ class VTSDoc;
 typedef VTSDoc * VTSDocPtr;
 struct BACnetNPDU;
 
+// TODO: yes, we SHOULD have a full set of error enumeration values in some .h file.
+// Go right ahead.  I'll wait here
+#define ERR_CLASS_PROPERTY           2
+#define ERR_CODE_READ_ACCESS_DENIED  27
+#define ERR_CODE_UNKNOWN_PROPERTY    32
+#define ERR_CODE_WRITE_ACCESS_DENIED 40
+
+
 // This class is a fairly crude refactoring of BakRestoreExecutor and InconsistentParsExecutor,
 // to share the common portions.  C++ offers better options than clipboard inheritance...
 class SendReceiveExecutor : public BACnetTask
@@ -105,6 +113,10 @@ protected:
                                  BACnetEnumerated        &propID,
                                  BACnetAnyValue          &propValue,
                                  int                     propIndex = -1 );
+   bool SendWritePropertyOptional( BACnetObjectIdentifier  &objID,
+                                   BACnetEnumerated        &propID,
+                                   BACnetAnyValue          &propValue,
+                                   int                     propIndex = -1 );
    bool SendExpectWhoIs( BACnetObjectIdentifier          &iAmDeviceID,
                          BACnetUnsigned                  &maxAPDULenAccepted );
    bool SendExpectReinitialize( ReinitializedStateOfDevice nReinitState, const char *pPassword );
