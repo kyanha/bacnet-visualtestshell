@@ -2721,7 +2721,7 @@ bool ParseProperty(const char *pn, generic_object *pobj, word objtype)
             case looref:               //list of object ids
                if (ParseObjectList(((BACnetObjectIdentifier **)pstruc), &((device_obj_type *)pobj)->num_objects)) return true;
                break;
-            case lopref:               //list of objectpropertyreferences
+            case lopref:               //list of DEVICE objectpropertyreferences
                if (ParseRefList((BACnetDeviceObjectPropertyReference **)pstruc)) return true;
 
                //Add for resetting value of present-value,
@@ -3562,7 +3562,7 @@ bool ParseExceptionSchedule(BACnetExceptionSchedule *xp)
       //   date        [0] Date,
       //   dateRange   [1] BACnetDateRange,
       //   weekNDay    [2] BACnetWeekNDay
-
+      //
       // 135.1 clause 4 would encode it like this (I think)
       //   exception-schedule: {
       //       {[0][0](MON,23-DEC-1995),                     ({0:0:0.0,unknown:0},{8:0:0.0,unknown:1},{23:59:59.0,unknown:0}), 4},
@@ -3590,7 +3590,10 @@ bool ParseExceptionSchedule(BACnetExceptionSchedule *xp)
       //
       if ((choiceTag == 1)
             ||
-          (choiceTag == 0xFF) && (_strnicmp(lp,"(Calendar",8)==0))     //it's a calendar reference
+          ((choiceTag == 0xFF) &&
+           ((_strnicmp(lp,"(Calendar",8)==0) || (_strnicmp(lp,"( Calendar",9)==0))))     //it's a calendar reference
+           // (our pre-parse turns multiple spaces into single, so this hack lets us handle
+           // an arbitrary number of spaces between parenthesis and Calendar.)
       {
          q->choice = 3;
          if (ReadObjectID( &q->u.calendar_ref.object_id )) break;
