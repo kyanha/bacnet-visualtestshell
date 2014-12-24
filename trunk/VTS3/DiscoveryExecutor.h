@@ -74,6 +74,7 @@ protected:
    UINT                 m_protocolRevision;
    bool                 m_includeAllValues;
    bool                 m_includeUnsupported;
+   bool                 m_writeBack;
 
    // Information about a discovered device
    struct DiscoveryInfo

@@ -37,6 +37,7 @@ public:
    CString     m_strDevObjInst;
    int         m_includeAllValues;
    int         m_includeUnsupported;
+   int         m_writeBack;
    //}}AFX_DATA
 
 // Overrides

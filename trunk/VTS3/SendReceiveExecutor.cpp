@@ -683,7 +683,7 @@ bool SendReceiveExecutor::SendExpectReadProperty( BACnetObjectIdentifier &objID,
    return true;
 }
 
-// As SendExpectReadProperty, but never throw: log any error and return false
+// As SendExpectReadProperty, but never throw: log any error except "unknown property" and return false
 bool SendReceiveExecutor::SendReadPropertyOptional( BACnetObjectIdentifier   &objID,
                                                     BACnetEnumerated         &propID,
                                                     BACnetAnyValue           &propValue,
@@ -696,14 +696,18 @@ bool SendReceiveExecutor::SendReadPropertyOptional( BACnetObjectIdentifier   &ob
    }
    catch (...)
    {
-      CString errType;
-      ErrorString(errType);
+      // If the error is "unknown property", say nothing.  Else log the error
+      if ((m_errorClass != ERR_CLASS_PROPERTY) || (m_errorCode != ERR_CODE_UNKNOWN_PROPERTY))
+      {
+         CString errType;
+         ErrorString(errType);
 
-      CString msg;
-      msg.Format( "Failed to read %s.  %s",
-                  NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( propID.m_enumValue ),
-                  (LPCTSTR)errType );
-      m_pOutputDlg->OutMessage( msg );
+         CString msg;
+         msg.Format( "Failed to read %s.  %s",
+                     NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( propID.m_enumValue ),
+                     (LPCTSTR)errType );
+         m_pOutputDlg->OutMessage( msg );
+      }
       retval = false;
    }
 
@@ -737,6 +741,37 @@ bool SendReceiveExecutor::SendExpectWriteProperty( BACnetObjectIdentifier &objID
    contents.InsertAt(0, (BYTE)0x00);      // PDU Type=0 (BACnet-Confirmed-Request-PDU, SEG=0, MOR=0, SA=0)
 
    return SendExpectPacket(contents);
+}
+
+// As SendExpectWriteProperty, but never throw: log any error except write-access-denied and return false
+bool SendReceiveExecutor::SendWritePropertyOptional( BACnetObjectIdentifier &objID,
+                                                     BACnetEnumerated       &propID,
+                                                     BACnetAnyValue         &propValue,
+                                                     int                    propIndex )
+{
+   bool retval = false;
+   try
+   {
+      retval = SendExpectWriteProperty( objID, propID, propValue, propIndex);
+   }
+   catch (...)
+   {
+      // If the error is "write access denied", say nothing.  Else log the error
+      if ((m_errorClass != ERR_CLASS_PROPERTY) || (m_errorCode != ERR_CODE_WRITE_ACCESS_DENIED))
+      {
+         CString errType;
+         ErrorString(errType);
+
+         CString msg;
+         msg.Format( "Failed to write %s.  %s",
+                     NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.EnumString( propID.m_enumValue ),
+                     (LPCTSTR)errType );
+         m_pOutputDlg->OutMessage( msg );
+      }
+      retval = false;
+   }
+
+   return retval;
 }
 
 bool SendReceiveExecutor::SendExpectReinitialize( ReinitializedStateOfDevice nRreinitState, const char *pPassword )

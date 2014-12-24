@@ -880,7 +880,8 @@
 #define IDC_STATIC4                     1621
 #define IDC_STATIC5                     1622
 #define IDC_CHECK2                      1623
-#define IDC_MFCLINK1                    1624
+#define IDC_CHECK3                      1624
+#define IDC_MFCLINK1                    1625
 #define ID_VIEW_FIRSTFRAME              32771
 #define ID_VIEW_PREVFRAME               32772
 #define ID_VIEW_NEXTFRAME               32773
@@ -1076,7 +1077,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        385
 #define _APS_NEXT_COMMAND_VALUE         34011
-#define _APS_NEXT_CONTROL_VALUE         1625
+#define _APS_NEXT_CONTROL_VALUE         1626
 #define _APS_NEXT_SYMED_VALUE           113
 #endif
 #endif
