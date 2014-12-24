@@ -56,7 +56,7 @@ void OutputLine( FILE *pOutput, const char *pVendorName, int vendorID )
    }
    *pOut = 0;
 
-   int column = fprintf( pOutput, "    \"%s\",", buf );
+   int column = fprintf( pOutput, "   \"%s\",", buf );
    while (column < 60)
    {
       column += fprintf( pOutput, " " );
@@ -70,12 +70,12 @@ int _tmain(int argc, _TCHAR* argv[])
    if (argc < 3)
    {
       printf( "VendorIdTable: Generate a table of VendorID strings from a file\n"
-             "usage:\n"
-            "  Use a browser to get and save the table from\n"
-                "     http://www.bacnet.org/VendorID/BACnet%20Vendor%20IDs.htm\n"
-            "  VendorIdTable file.htm file.txt\n"
-            "Output in file.txt will be a list of vendorID string suitable for use\n"
-            "as the table BACnetVendorID in vts StringTables.cpp\n" );
+              "usage:\n"
+              "  Use a browser to get and save the table from\n"
+              "     http://www.bacnet.org/VendorID/BACnet%20Vendor%20IDs.htm\n"
+              "  VendorIdTable file.htm file.txt\n"
+              "Output in file.txt will be a list of vendorID string suitable for use\n"
+              "as the table BACnetVendorID in vts StringTables.cpp\n" );
       return 1;
    }
 
@@ -85,7 +85,7 @@ int _tmain(int argc, _TCHAR* argv[])
       fprintf( stderr, "Cannot open input file %s\n", argv[1] );
       return 2;
    }
-   
+
    FILE *pOutput = fopen( argv[2], "w" );
    if (pOutput == NULL)
    {
@@ -209,7 +209,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
    fclose( pInput );
    fclose( pOutput );
-   
+
    return 0;
 }
 

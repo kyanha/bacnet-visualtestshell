@@ -1,19 +1,28 @@
 @echo off
-rem As of 9 July 2014, original version of this script has some problems:
-rem 1) pkzip25 is long since obsolete
+rem 24 December 2014
+rem The original version of this script (near the bottom) is obsolete:
+rem 1) pkzip25 is long since obsolete.
 rem 2) The commands used (-dir) include some junk (.jpg files under doc, for example)
-rem    and miss some good stuff (templates.txt under scripts, for example)
-rem 3) Doesn't include the Visual Studio redistributable
+rem    and miss some good stuff (templates.txt under scripts, for example).
+rem 3) Doesn't include the Visual Studio redistributable.
 rem 4) The source code bundling is even more likely to miss things.
 rem
 rem So we just open the file and you can read the instructions to make the ZIP by hand.
-rem If that offends you, go ahead and fix it.
+rem If that offends you, go ahead and fix it.  Make a "real" installer while you are at it.
 notepad release.bat
 exit /b
 
 To make a release:
-1) Create a ZIP file with a name like "vts-3.6.2.zip"
-2) Copy the exe and dll files into the root of the zip file:
+1) Get the latest list of vendor IDs from http://www.bacnet.org/VendorID/BACnet%20Vendor%20IDs.htm
+2) Run the VTS utility VendorIdTable on this file to generate a new set of strings.
+   Use them to upate BACnetVendorID[] in StringTables.cpp.
+3) Update the version resource in vts.rc to the appropriate version number.
+4) Build and test.
+5) Update Docs\QuickStart.html with
+   - new/changed feature list
+   - change list since the previous version from the svn history
+6) Create a ZIP file with a version-specific name like "vts-3.6.2.zip"
+7) Copy the exe and dll files into the root of the zip file:
    - release\VTS.exe
    - release\ptp.dll 
    - NBLink\release\nb_link_settings.dll 
@@ -21,21 +30,22 @@ To make a release:
      Most people will already have WinPCAP installed by WireShark.
      We should include the current installer from the WinPCAP site.
      Obviously you should verify that that this version WORKS with VTS
-     before including ti in the installer.
+     before including it in the installer.
    - the Visual Studio redistributable installer vcredist_x86.exe
-     This may usually be found somewhere like
+     This may usually be found on your PC somewhere like
      C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bootstrapper\Packages\vcredist_x86\vcredist_x86.exe)
-3) Copy the documentation folder "Docs" as a folder into the zip file
-4) Copy the script folder "scripts" as a folder into the zip file
+8) Copy the documentation folder "Docs" as a folder into the zip file
+9) Copy the script folder "scripts" as a folder into the zip file
+10) Upload the zip file to SourceForge.
+11) Update the file http://vts.sourceforge.net/vtsversion.txt to specify the current version.
+   (VTS will read this file at startup, to notify users of updates)
 
-I don't see the point of a source zip: is svn really so hard?
-If you want to:
-1) Use svn to get a clean copy of the source.  DO NOT build it
+We used to also generate s source.zip, but I don't see the point: is svn really so hard?
+If you want to to it:
+1) Use svn to get a clean copy of the source.  DO NOT build it lest you generate megabytes of offal
 2) ZIP up the whole damn thing.
 
-
-
-rem the original contents (with flaws mentioned above) follow
+rem The original contents (with flaws mentioned above) follows:
 
 REM This batch file constructs the distribution files for VTS 3.x
 REM It requires the command line version of pkzip 2.5 for Win32.
