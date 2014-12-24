@@ -2010,10 +2010,12 @@ void BACnetReal::Decode( BACnetAPDUDecoder& dec )
 #endif
 }
 
-void BACnetReal::Encode( CString &enc, Format /*theFormat*/ ) const
+void BACnetReal::Encode( CString &enc, Format theFormat ) const
 {
    // We use FloatToString() to get nice treatment of NaN and inf
-   FloatToString( enc, realValue );
+   // For EPICS and script use, ask for full resolution.
+   // For "plain" use, use a more friendly resolution
+   FloatToString( enc, realValue, (theFormat != FMT_PLAIN) );
 }
 
 void BACnetReal::Decode( const char *dec )
@@ -2148,10 +2150,12 @@ void BACnetDouble::Decode( BACnetAPDUDecoder& dec )
 #endif
 }
 
-void BACnetDouble::Encode( CString &enc, Format /*theFormat*/ ) const
+void BACnetDouble::Encode( CString &enc, Format theFormat ) const
 {
    // We use DoubleToString() to get nice treatment of NaN and inf
-   DoubleToString( enc, doubleValue );
+   // For EPICS and script use, ask for full resolution.
+   // For "plain" use, use a more friendly resolution
+   DoubleToString( enc, doubleValue, (theFormat != FMT_PLAIN) );
 }
 
 void BACnetDouble::Decode( const char *dec )

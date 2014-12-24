@@ -8861,28 +8861,186 @@ bool Match( int op, unsigned long a, unsigned long b )
    return false;
 }
 
+// Testing floating point numbers for "almost equality" is surprisingly hard.
+// Read all about it at
+// http://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
+//
+// VTS formerly used an epsilon of 10e-5.  But that turns out to be silly:
+//   72.000000 as an IEEE float is the bit pattern 0x42900000
+// Adding one to the bit pattern (incrementing the mantissa, we get
+//   72.000008 as an IEEE float is the bit pattern 0x42900001
+// Note that the difference is 8e-6, which is smaller than the epsilon.
+// Things get even siller for larger numbers:
+//   1e30 is 1000000015047466200000000000000.000000 is 0x7149F2CA
+//           1000000090605329900000000000000.000000 is 0x7149F2CB
+// For very small numbers (negative exponent), thing go wonky the other way.
+//
+// So we follow the method outlined in the link above, and compare mantissa bits.
+
+// Union to help us juggle floats
+union Float_t
+{
+   Float_t(float num = 0.0f)
+   : m_float(num)
+   {
+      ASSERT( sizeof(float) == sizeof(UINT) );
+      ASSERT( sizeof(Float_t) == sizeof(UINT) );
+   }
+
+   bool IsNaN() const
+   {
+      // IEEE 754 defines 32-bit NaN values as:
+      // - sign bit is don't care
+      // - 8 exponent bits all set
+      // - 23 mantissa bits, not all 0
+      return ((m_uint & 0x7F800000) == 0x7F800000) & ((m_uint & 0x007FFFFF) != 0);
+   }
+
+   bool IsInf() const
+   {
+      // IEEE 754 defines 32-bit infinity values as:
+      // - sign bit
+      // - 8 exponent bits all set
+      // - 23 mantissa bits, all 0
+      return ((m_uint & 0x7FFFFFFF) == 0x7F800000);
+   }
+
+   bool IsNegative() const { return (m_uint & 0x80000000) != 0; }
+   UINT Mantissa() const { return m_uint & 0x007FFFFF; }
+   UINT Exponent() const { return (m_uint >> 23) & 0xFF; }
+
+   UINT  m_uint;
+   float m_float;
+};
+
+// Union to help us juggle doubles
+union Double_t
+{
+   Double_t(double num = 0.0)
+   : m_double(num)
+   {
+      ASSERT( sizeof(double) == sizeof(unsigned _int64) );
+      ASSERT( sizeof(Double_t) == sizeof(unsigned _int64) );
+   }
+
+   bool IsNaN() const
+   {
+      // IEEE 754 defines 64-bit NaN values as:
+      // - sign bit is don't care
+      // - 11 exponent bits all set
+      // - 52 mantissa bits, not all 0
+      return ((m_uint & 0x7FF0000000000000) == 0x7FF0000000000000) & ((m_uint & 0x000FFFFFFFFFFFFF) != 0);
+   }
+
+   bool IsInf() const
+   {
+      // IEEE 754 defines 64-bit infinity values as:
+      // - sign bit
+      // - 11 exponent bits all set
+      // - 52 mantissa bits, all 0
+      return ((m_uint & 0x7FFFFFFFFFFFFFFF) == 0x7FF0000000000000);
+   }
+
+   bool IsNegative() const { return (m_uint & ((unsigned _int64)1<<63)) != 0; }
+   unsigned _int64 Mantissa() const { return m_uint & 0x000FFFFFFFFFFFFF; }
+   unsigned _int64 Exponent() const { return (m_uint >> 52) & 0x7FF; }
+
+   unsigned _int64  m_uint;
+   double m_double;
+};
+
+// Maximumm difference in bits between "close" values:
+// 24-bit mantissa is a little over 7 signifcant digits
+#define MANTISSA_BIT_DIFFERENCE 4
+
 // Return true if the value is Not a Number
 bool IsNaN( float theValue )
 {
-   // IEEE 754 defines 32-bit NaN values as:
-   // - sign bit is don't care
-   // - 8 exponent bits all set
-   // - 23 mantissa bits, not all 0
-   ASSERT( sizeof(float) == sizeof(UINT) );
-   UINT uVal = *(UINT*)&theValue;
-   return ((uVal & 0x7F800000) == 0x7F800000) & ((uVal & 0x007FFFFF) != 0);
+   Float_t ft(theValue);
+   return ft.IsNaN();
 }
 
 // Return true if the value is Not a Number
 bool IsNaN( double theValue )
 {
-   // IEEE 754 defines 64-bit NaN values as:
-   // - sign bit is don't care
-   // - 11 exponent bits all set
-   // - 52 mantissa bits, not all 0
-   ASSERT( sizeof(double) == sizeof(unsigned _int64) );
-   unsigned _int64 uVal = *(unsigned _int64*)&theValue;
-   return ((uVal & 0x7FF0000000000000) == 0x7FF0000000000000) & ((uVal & 0x000FFFFFFFFFFFFF) != 0);
+   Double_t dub(theValue);
+   return dub.IsNaN();
+}
+
+// Return true if the values are equal or "very close"
+bool DamnClose( float a, float b )
+{
+   Float_t fta(a), ftb(b);
+
+   // If either or even BOTH values are NaN, all C comparisons except inequality
+   // return false. That is nice mathematically, but when we compare for
+   // equality of a value read from a device to the value specified in an EPICS,
+   // we mean "NaN is a NaN". So we do some fussing for equality and inequality.
+   bool retval = fta.IsNaN();
+   if (retval)
+   {
+      // At least one NaN: opt out of normal comparisons
+      retval = ftb.IsNaN();                          // true only if BOTH are NaN
+   }
+   else if (fta.IsInf() || ftb.IsInf())
+   {
+      // At least one is "infinity"
+      retval = (a == b);
+   }
+   else if (a == b)
+   {
+      retval = true;
+   }
+   else if (fta.IsNegative() != ftb.IsNegative())
+   {
+      // Signs differ.  ADD THEM to get bit difference
+      retval = ((fta.m_uint + ftb.m_uint) & 0x7FFFFFFF) < MANTISSA_BIT_DIFFERENCE;
+   }
+   else
+   {
+      // Signs are the same. Compare bit difference
+      retval = abs( (int)fta.m_uint - (int)ftb.m_uint ) < MANTISSA_BIT_DIFFERENCE;
+   }
+
+   return retval;
+}
+
+// Return true if the values are equal or "very close"
+bool DamnClose( double a, double b )
+{
+   Double_t dta(a), dtb(b);
+
+   // If either or even BOTH values are NaN, all C comparisons except inequality
+   // return false. That is nice mathematically, but when we compare for
+   // equality of a value read from a device to the value specified in an EPICS,
+   // we mean "NaN is a NaN". So we do some fussing for equality and inequality.
+   bool retval = dta.IsNaN();
+   if (retval)
+   {
+      // At least one NaN: opt out of normal comparisons
+      retval = dtb.IsNaN();                          // true only if BOTH are NaN
+   }
+   else if (dta.IsInf() || dtb.IsInf())
+   {
+      // At least one is "infinity"
+      retval = (a == b);
+   }
+   else if (a == b)
+   {
+      retval = true;
+   }
+   else if (dta.IsNegative() != dtb.IsNegative())
+   {
+      // Signs differ.  ADD THEM to get bit difference
+      retval = ((dta.m_uint + dtb.m_uint) & 0x7FFFFFFFFFFFFFFF) < MANTISSA_BIT_DIFFERENCE;
+   }
+   else
+   {
+      // Signs are the same. Compare bit difference
+      retval = abs( (_int64)dta.m_uint - (_int64)dtb.m_uint ) < (_int64)MANTISSA_BIT_DIFFERENCE;
+   }
+
+   return retval;
 }
 
 bool Match( int op, float a, float b )
@@ -8890,28 +9048,13 @@ bool Match( int op, float a, float b )
    switch (op) {
       case '?=':  return true;   // don't care case
 
-      // If either or even BOTH values are NaN, all C comparisons except inequality
-      // return false. That is nice mathematically, but when we compare for
-      // equality of a value read from a device to the value specified in an EPICS,
-      // we mean "NaN is a NaN". So we do some fussing for equality and inequality.
-      case '=':
-         if (IsNaN(a))
-         {
-            return IsNaN(b);                          // true only if BOTH are NaN
-         }
-         return (fabs(a - b) < FLOAT_EPSILON);        // within +-epsilon of the same
-      case '!=':
-         // Equality is affected only if BOTH are NaN
-         if (IsNaN(a))
-         {
-            return !IsNaN(b);                         // true is EITHER is NaN, but NOT if both
-         }
-         return (fabs(a - b) > FLOAT_EPSILON);
+      case '=':  return DamnClose( a, b );
+      case '!=': return !DamnClose( a, b );
 
-      case '<': return ((a - b) < -FLOAT_EPSILON);    // more than epsilon below
-      case '>': return ((a - b) > FLOAT_EPSILON);     // more than epsilon above
-      case '<=': return ((a - b) < FLOAT_EPSILON);    // not more than epsilon above
-      case '>=': return ((a - b) > -FLOAT_EPSILON);   // not more than epsilon below
+      case '<':  return (a < b);
+      case '>':  return (a > b);
+      case '<=': return (a <= b) || DamnClose( a, b );
+      case '>=': return (a >= b) || DamnClose( a, b );
    }
 
    return false;
@@ -8922,95 +9065,61 @@ bool Match( int op, double a, double b )
    switch (op) {
       case '?=':  return true;   // don't care case
 
-      // If either or even BOTH values are NaN, all C comparisons except inequality
-      // return false. That is nice mathematically, but when we compare for 
-      // equality of a value read from a device to the value specified in an EPICS,
-      // we mean "NaN is a NaN". So we do some fussing for equality and inequality.
-      case '=':
-         if (IsNaN(a))
-         {
-            return IsNaN(b);                          // true only if BOTH are NaN
-         }
-         return (fabs(a - b) < FLOAT_EPSILON);        // within +-epsilon of the same
-      case '!=':
-         // Equality is affected only if BOTH are NaN
-         if (IsNaN(a))
-         {
-            return !IsNaN(b);                         // true is EITHER is NaN, but NOT if both
-         }
+      case '=':  return DamnClose( a, b );
+      case '!=': return !DamnClose( a, b );
 
-      case '<': return ((a - b) < -DOUBLE_EPSILON);   // more than epsilon below
-      case '>': return ((a - b) > DOUBLE_EPSILON);    // more than epsilon above
-      case '<=': return ((a - b) < DOUBLE_EPSILON);   // not more than epsilon above
-      case '>=': return ((a - b) > -DOUBLE_EPSILON);  // not more than epsilon below
+      case '<':  return (a < b);
+      case '>':  return (a > b);
+      case '<=': return (a <= b) || DamnClose( a, b );
+      case '>=': return (a >= b) || DamnClose( a, b );
    }
 
    return false;
 }
 
 // Convert theValue into a string.  Special values are shown as NaN, +inf, and -inf.
-const char* FloatToString( CString &theString, float theValue )
+const char* FloatToString( CString &theString, float theValue, bool fullResolution )
 {
-   // IEEE 754 defines 32-bit NaN values as:
-   // - sign bit is don't care
-   // - 8 exponent bits all set
-   // - 23 mantissa bits, not all 0
-   // INF is the same, but with all mantissa bits 0, and sign bit matters
-   UINT uVal = *(UINT*)&theValue;
-   if ((uVal & 0x7F800000) == 0x7F800000)
+   Float_t fl(theValue);
+   if (fl.IsNaN())
    {
-      if ((uVal & 0x007FFFFF) != 0)
-      {
-         theString = "NaN";
-      }
-      else if (uVal & 0x80000000)
-      {
-         theString = "-inf";
-      }
-      else
-      {
-         theString = "+inf";
-      }
+      theString = "NaN";
+   }
+   else if (fl.IsInf())
+   {
+      theString = (fl.IsNegative()) ? "-inf" : "+inf";
    }
    else
    {
       // Use %g to avoid silly decimal point position with very large and small numbers.
       // # ensures that a decimal point is always shown.
-      theString.Format( "%#g", theValue );
+      // A 24-bit mantissa is 7.2 sig. digits.  Showing 8 is enough so that the
+      // effect of even a one-bit change to the mantissa is visible.
+      theString.Format( (fullResolution) ? "%#.8g" : "%#g", theValue );
    }
 
    return (const char*)theString;
 }
 
 // Convert theValue into a string.  Special values are shown as NaN, +inf, and -inf.
-const char* DoubleToString( CString &theString, double theValue )
+const char* DoubleToString( CString &theString, double theValue, bool fullResolution )
 {
-   // IEEE 754 defines 64-bit NaN values as:
-   // - sign bit is don't care
-   // - 11 exponent bits all set
-   // - 52 mantissa bits, not all 0
-   // INF is the same, but with all mantissa bits 0, and sign bit matters
-   unsigned _int64 uVal = *(unsigned _int64*)&theValue;
-   if ((uVal & 0x7FF0000000000000) == 0x7FF0000000000000)
+   Double_t dub(theValue);
+   if (dub.IsNaN())
    {
-      if ((uVal & 0x000FFFFFFFFFFFFF) != 0)
-      {
-         theString = "NaN";
-      }
-      else if (uVal & 0x8000000000000000)
-      {
-         theString = "-inf";
-      }
-      else
-      {
-         theString = "+inf";
-      }
+      theString = "NaN";
+   }
+   else if (dub.IsInf())
+   {
+      theString = (dub.IsNegative()) ? "-inf" : "+inf";
    }
    else
    {
       // Use %g to avoid silly decimal point position with very large and small numbers.
       // # ensures that a decimal point is always shown.
-      theString.Format( "%#lg", theValue );
+      // A 52-bit mantissa is 15.6 sig. digits.  Showing 17 is enough so that the
+      // effect of even a one-bit change to the mantissa is visible.
+      theString.Format( (fullResolution) ? "%#.17lg" : "%#lg", theValue );
    }
 
    return (const char*)theString;
@@ -9118,6 +9227,44 @@ int StringToDouble( const char *pString, double &theValue )
    return retval;
 }
 
+#if 0
+void TestFloater( CString &str, Double_t &fta, Double_t &ftb )
+{
+   CString m2;
+   m2.Format( "Compare %.10lg is 0x%16llX %d\n", ftb.m_double, ftb.m_uint, DamnClose( fta.m_double, ftb.m_double ) );
+   str += m2;
+   ftb.m_uint += 1;
+}
+
+void TestFloater( double theValue )
+{
+   CString m1, m2;
+   Double_t fta( theValue );
+   m2.Format( "%.10lg is 0x%16llX\n", fta.m_double, fta.m_uint );
+   m1 += m2;
+
+   Double_t ftb( theValue );
+   ftb.m_uint -= 4;
+   TestFloater( m1, fta, ftb );
+   TestFloater( m1, fta, ftb );
+   TestFloater( m1, fta, ftb );
+   TestFloater( m1, fta, ftb );
+   TestFloater( m1, fta, ftb );
+   TestFloater( m1, fta, ftb );
+   TestFloater( m1, fta, ftb );
+   TestFloater( m1, fta, ftb );
+   TestFloater( m1, fta, ftb );
+
+   AfxMessageBox( m1 );
+}
+
+void TestFloaters()
+{
+   TestFloater( 1.1 );
+   TestFloater( 1e-30 );
+   TestFloater( 1e30 );
+}
+#endif
 
 /*
 void ScriptExecutor::CompareStreamData( BACnetAPDUDecoder & dec, int iOperator, const BACnetOctet * pData, int nLen, LPCSTR lpstrValueName )
