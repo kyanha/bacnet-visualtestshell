@@ -340,16 +340,14 @@ BOOL VTSApp::InitInstance()
    AfxEnableControlContainer();
 
    // Standard initialization
-   // If you are not using these features and wish to reduce the size
-   //  of your final executable, you should remove from the following
-   //  the specific initialization routines you do not need.
 
-   // JLH TODO: why are we linking statically?  Perhaps required for NB-Link DLL to use MFC 4.2D?
-   // Causes a "deprecated" warning.
+   // These calls became obsolete in MFC 5.0
+#if _MFC_VER < 0x0500
 #ifdef _AFXDLL
    Enable3dControls();        // Call this when using MFC in a shared DLL
 #else
    Enable3dControlsStatic();  // Call this when linking to MFC statically
+#endif
 #endif
 
    // Change the registry key under which our settings are stored.
