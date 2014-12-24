@@ -58,8 +58,9 @@ bool IsNaN( float theValue );
 bool IsNaN( double theValue );
 
 // Convert theValue into a string.  Special values are shown as NaN, +inf, and -inf.
-const char* FloatToString( CString &theString, float theValue );
-const char* DoubleToString( CString &theString, double theValue );
+// If fullResolution is true, show full float/double resolution, else a shorter default
+const char* FloatToString( CString &theString, float theValue, bool fullResolution = false );
+const char* DoubleToString( CString &theString, double theValue, bool fullResolution = false );
 
 // Convert string into a floating point number.
 // Accepts special values NaN, inf, +inf, and -inf.
