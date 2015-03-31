@@ -166,7 +166,7 @@ void BACnetAPDUEncoder::Append( BACnetOctet ch )
 //	BACnetAPDUEncoder::Append
 //
 
-void BACnetAPDUEncoder::Append( BACnetOctet *buff, int len )
+void BACnetAPDUEncoder::Append( const BACnetOctet *buff, int len )
 {
 	// make sure there's enough room
 	CheckSpace( len );

@@ -2014,9 +2014,9 @@ public:
    void SetBuffer( const BACnetOctet *buffer, int len );
    void NewBuffer( int len );             // allocate a new buffer
 
-   void CheckSpace( int len );               // resize iff necessary
-   void Append( BACnetOctet ch );            // simple copy, should be inline!
-   void Append( BACnetOctet *buff, int len );   // raw copy into buffer
+   void CheckSpace( int len );            // resize iff necessary
+   void Append( BACnetOctet ch );         // simple copy, should be inline!
+   void Append( const BACnetOctet *buff, int len );   // raw copy into buffer
    void Flush( void );                    // remove all contents
 
 private:
