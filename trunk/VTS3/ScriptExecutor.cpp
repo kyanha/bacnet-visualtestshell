@@ -5103,7 +5103,7 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
 
       // match the DER
       // can't rely on value in npdu.pduExpectingReply so suck it out of the control octet
-      MatchBoolExpression( kwDER, BACnetBoolean((ctrl & 0x04) ? 1 : 0), "Data expecting reply mismatch: " );
+      MatchBoolExpression( kwDER, BACnetBoolean(ctrl & 0x04), "Data expecting reply mismatch: " );
 
       // match the priority
       // can't rely on value in npdu.pduNetworkPriority so suck it out of control octet
@@ -6781,11 +6781,16 @@ void ScriptExecutor::ExpectDevAbort( const BACnetAPDU &apdu )
 
 void ScriptExecutor::ExpectConfirmedRequest( BACnetAPDUDecoder &dec )
 {
-   int                  header, valu;
-   ScriptPacketExprPtr     pMaxResp;
+   int                  header, maxSegs, maxResp, valu;
+   ScriptPacketExprPtr  pMaxSegs;
+   BACnetInteger        alMaxSegs;
+   ScriptPacketExprPtr  pMaxResp;
    BACnetInteger        alMaxResp;
    ScriptParmPtr        pScriptParm = NULL;        // used for variable assignment
 
+   // These tables should match the values used by MaxSegsDecode and MaxAPDUDecode.
+   // Duplicated here so we can use BACnetEnumerated
+   const char * apMaxSegs[]  = {"0", "2", "4", "8", "16", "32", "64", "999"};
    const char * apMaxSizes[] = {"50", "128", "206", "480", "1024", "1476"};
 
    // check the header
@@ -6794,19 +6799,38 @@ void ScriptExecutor::ExpectConfirmedRequest( BACnetAPDUDecoder &dec )
       throw "Confirmed request expected";
 
    // check segmented message
-   MatchBoolExpression( kwSEGMSG, BACnetBoolean((header >> 3 & 0x01)), "Segmented message mismatch: " );
-   // do it again for the full word, just for fun.  Shouldn't break
-   MatchBoolExpression( kwSEGMENTEDMESSAGE, BACnetBoolean((header >> 3 & 0x01)), "Segmented message mismatch: " );
+   MatchBoolExpression( kwSEGMSG, BACnetBoolean(header & 0x08), "Segmented message mismatch: " );
+   MatchBoolExpression( kwSEGMENTEDMESSAGE, BACnetBoolean(header & 0x08), "Segmented message mismatch: " );
 
    // check more follows
-   MatchBoolExpression( kwMOREFOLLOWS, BACnetBoolean((header >> 2 & 0x01)), "More-follows mismatch: " );
+   MatchBoolExpression( kwMOREFOLLOWS, BACnetBoolean(header & 0x04), "More-follows mismatch: " );
 
    // check segmented response
-   MatchBoolExpression( kwSEGRESP, BACnetBoolean((header >> 1 & 0x01)), "Segmented response accepted mismatch: " );
-   MatchBoolExpression( kwSEGRESPACCEPTED, BACnetBoolean((header >> 1 & 0x01)), "Segmented response accepted mismatch: " );
+   MatchBoolExpression( kwSEGRESP, BACnetBoolean(header & 0x02), "Segmented response accepted mismatch: " );
+   MatchBoolExpression( kwSEGRESPACCEPTED, BACnetBoolean(header & 0x02), "Segmented response accepted mismatch: " );
 
-   // extract the max response size
+   // extract max-segs and max-response
    valu = (dec.pktLength--,*dec.pktBuffer++);
+   maxSegs = (valu >> 4) & 0x07;
+   maxResp = valu & 0x0F;
+
+   // Max-segs
+   pMaxSegs = GetKeywordValue( &pScriptParm, kwMAXSEGS, alMaxSegs );
+   if (pMaxSegs)
+   {
+      // For max-resp, the raw values (50 to 1476) don't overlap the encoded values (0 to 15)
+      // so the code can accept either.
+      // But for max-segs, the raw values (2, 4, 8...) DO overlap the encoded values (0 to 7)
+      // We assume a raw value
+      alMaxSegs.intValue = MaxSegsEncode( alMaxSegs.intValue );
+
+      // assign or check the value.  Comparison for "more than 64" is problematic.
+      // Our table has 999, which is pretty much a random "big" value, but it will appear in
+      // any error message to help the test writer.
+      BACnetEnumerated  bacnetSegsData(maxSegs, apMaxSegs, 8);
+      BACnetEnumerated  bacnetSegsScript(alMaxResp.intValue, apMaxSegs, 8);
+      TestOrAssign(pMaxSegs, bacnetSegsData, bacnetSegsScript, pScriptParm, "Max segments accepted mismatch: " );
+   }
 
    // lots of options for maximum response size
    pMaxResp = GetKeywordValue( &pScriptParm, kwMAXRESP, alMaxResp );
@@ -6814,10 +6838,9 @@ void ScriptExecutor::ExpectConfirmedRequest( BACnetAPDUDecoder &dec )
       pMaxResp = GetKeywordValue( &pScriptParm, kwMAXRESPONSE, alMaxResp );
    if (!pMaxResp)
       pMaxResp = GetKeywordValue( &pScriptParm, kwMAXSIZE, alMaxResp );
-
    if (pMaxResp)
    {
-      // translate the max response size into the code
+      // translate the max response size into the encoded value.
       // Values less than 16 are encoded directly as the bit-field
       if (alMaxResp.intValue >= 16)
       {
@@ -6825,9 +6848,9 @@ void ScriptExecutor::ExpectConfirmedRequest( BACnetAPDUDecoder &dec )
       }
 
       // if we're making an assignment, encode alMax with enumeration of reserved int... then stuff
-      BACnetEnumerated  bacnetSizeData(valu, valu > 5 ? NULL : apMaxSizes, valu > 5 ? 0 : 6);
+      BACnetEnumerated  bacnetSizeData(maxResp, maxResp > 5 ? NULL : apMaxSizes, maxResp > 5 ? 0 : 6);
       BACnetEnumerated  bacnetSizeScript(alMaxResp.intValue, alMaxResp.intValue > 5 ? NULL : apMaxSizes, alMaxResp.intValue > 5 ? 0 : 6);
-      
+
       // now check it or assign it
       TestOrAssign(pMaxResp, bacnetSizeData, bacnetSizeScript, pScriptParm, "Max response size mismatch: " );
    }
@@ -6942,22 +6965,21 @@ void ScriptExecutor::ExpectComplexACK( BACnetAPDUDecoder &dec )
       throw "ComplexACK expected";
 
    // check segmented message
-   MatchBoolExpression( kwSEGMSG, BACnetBoolean((header >> 3 & 0x01)), "Segmented message mismatch: " );
-   // do it again for the full word, just for fun.  Shouldn't break
-   MatchBoolExpression( kwSEGMENTEDMESSAGE, BACnetBoolean((header >> 3 & 0x01)), "Segmented message mismatch: " );
+   MatchBoolExpression( kwSEGMSG, BACnetBoolean(header & 0x08), "Segmented message mismatch: " );
+   MatchBoolExpression( kwSEGMENTEDMESSAGE, BACnetBoolean(header & 0x08), "Segmented message mismatch: " );
 
    // check more follows
-   MatchBoolExpression( kwMOREFOLLOWS, BACnetBoolean((header >> 2 & 0x01)), "More-follows mismatch: " );
+   MatchBoolExpression( kwMOREFOLLOWS, BACnetBoolean(header & 0x04), "More-follows mismatch: " );
 
    // extract the invoke ID
    valu = (dec.pktLength--,*dec.pktBuffer++);
    MatchEnumExpression( kwINVOKEID, BACnetEnumerated(valu), NULL, "InvokeID mismatch: " );
 
    // check sequence number if it is specified and is found in data
-   TestOrAssignOptionValue( kwSEQUENCENR, "Sequence number mismatch: ", (header & 0x80) != 0 ? &dec : NULL );
+   TestOrAssignOptionValue( kwSEQUENCENR, "Sequence number mismatch: ", (header & 0x08) != 0 ? &dec : NULL );
 
    // now check window size if provided
-   TestOrAssignOptionValue( kwWINDOWSIZE, "Window size mismatch: ", (header & 0x80) != 0 ? &dec : NULL );
+   TestOrAssignOptionValue( kwWINDOWSIZE, "Window size mismatch: ", (header & 0x08) != 0 ? &dec : NULL );
 
    // extract the service choice
    valu = (dec.pktLength--,*dec.pktBuffer++);
@@ -6982,7 +7004,7 @@ void ScriptExecutor::ExpectSegmentACK( BACnetAPDUDecoder &dec )
       throw "SegmentACK expected";
 
    // check negative ACK
-   MatchBoolExpression( kwNEGATIVEACK, BACnetBoolean((valu >> 1) & 0x01), "Negative Ack mismatch: " );
+   MatchBoolExpression( kwNEGATIVEACK, BACnetBoolean(valu & 0x02), "Negative Ack mismatch: " );
 
    // check the server bit
    MatchBoolExpression( kwSERVER, BACnetBoolean(valu & 0x01), "Server mismatch: " );
