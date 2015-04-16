@@ -916,9 +916,23 @@ The entire time string must be enclosed in square brackets: [8:36:12.*]</p>
 Decoding stops when it reaches the end of the APDU, or an unmatched closing tag, 
 whichever occurs first.  ANY will typically be used to deal with lists of
 unknown length and complex datatypes that do not need to be compared by the
-script.  For primitive data, you can use the "?" value instead of ANY.
+script.  For primitive data, you can use the "?" value instead of ANY.</p>
 
-<p>There are no parameters.</p>
+<p>Prior to VTS version 3.6.5, ANY took no parameters, and required at least one tagged item.
+But this meant that ANY could not be used to ignore, save, or compare optional items
+or empty lists.  Starting in VTS version 3.6.5, ANY will accept zero or more tagged items,
+stopping when it reaches the end of the APDU, or an unmatched closing tag, 
+whichever occurs first. Comparison and assigned parameters are now allowed. Thus:</p>
+
+<dl>
+<dt><code>ANY</code></dt><dd><p>Decodes and ignores zero or more tagged items.</p></dd>
+<dt><code>ANY >> FOO</code></dt><dd><p>Decodes zero or more tagged items, and assigns the
+result as an octet string to script variable FOO.</p></dd>
+<dt><code>ANY != X''</code></dt><dd><p>Decodes zero or more tagged items, and verifies that
+at least one item was decoded (that is, that the result is not an empty octet string.
+This achieves the effect of "ANY" alone in VTS versions prior to 3.6.5.</p></dd>
+</dl>
+
 
 <h2><a name="alp">Application Layer Packets</a></h2>
 

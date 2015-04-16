@@ -897,10 +897,10 @@ void ScriptExecutor::ProcessTask( void )
    lock.Lock();
 
    // if no test, get the first one
-   if (!execTest) 
+   if (!execTest)
    {
       // must be bound to a document
-      if (!execDoc) 
+      if (!execDoc)
       {
          // alert the user
          TRACE( "***** No document bound" );
@@ -908,7 +908,7 @@ void ScriptExecutor::ProcessTask( void )
       }
 
       // make sure the document has content
-      if (!execDoc->m_pContentTree || !execDoc->m_pContentTree->m_pScriptContent) 
+      if (!execDoc->m_pContentTree || !execDoc->m_pContentTree->m_pScriptContent)
       {
          // alert the user
          Msg( 2, 0, "No test to run, check syntax", SCRIPT_STATUS_FAIL );
@@ -932,7 +932,7 @@ void ScriptExecutor::ProcessTask( void )
       }
       else
       {
-         for (int i = 0; i < sbp->Length(); i++) 
+         for (int i = 0; i < sbp->Length(); i++)
          {
             ScriptSectionPtr ssp = (ScriptSectionPtr)sbp->Child( i );
             if (ssp->Length() != 0) 
@@ -942,7 +942,7 @@ void ScriptExecutor::ProcessTask( void )
             }
          }
       }
-         
+
       if (!execTest) 
       {
          // alert the user
@@ -955,7 +955,7 @@ void ScriptExecutor::ProcessTask( void )
    }
 
    // if no packet, get first one
-   if (!execCommand) 
+   if (!execCommand)
    {
       // reset the test
       ResetTest( execTest );
@@ -979,7 +979,7 @@ void ScriptExecutor::ProcessTask( void )
       execCommand = execTest->testFirstCommand;
 
       // if no packets in test, it succeeds easily
-      if (!execCommand) 
+      if (!execCommand)
       {
          // alert the user
          Msg( 1, execTest->baseLineStart, "trivial test successful" );
@@ -1015,37 +1015,37 @@ void ScriptExecutor::ProcessTask( void )
 
 keepGoing:
    // execute the current packet
-   if (execStepForced == 1) 
+   if (execStepForced == 1)
    {
       execStepForced = 0;
       NextPacket( true );
    }
-   else if (execStepForced == 2) 
+   else if (execStepForced == 2)
    {
       execStepForced = 0;
       NextPacket( false );
-   } 
+   }
    else if ((execCommand->baseType == ScriptBase::scriptPacket) && 
           (((ScriptPacketPtr)execCommand)->packetType == ScriptPacket::sendPacket))
    {
       execPacket = (ScriptPacketPtr) execCommand;
-      if (execPending || (execPacket->packetDelay == 0)) 
+      if (execPending || (execPacket->packetDelay == 0))
       {
          execPending = false;
 
          // do the packet
          NextPacket( SendPacket() );
 
-         // might be more to do.  The goto sucks, but rather than reschedule with 
-         // a zero delay, keep the executor locked down until the transition to 
-         // the next packet can be completed.  This prevents packets that come in 
+         // might be more to do.  The goto sucks, but rather than reschedule with
+         // a zero delay, keep the executor locked down until the transition to
+         // the next packet can be completed.  This prevents packets that come in
          // faster than the reschedule from being processed by ReceiveNPDU.
          if (execCommand)
             goto keepGoing;
-      } 
+      }
       else 
       {
-         if (execPacket->packetSubtype == ScriptPacket::rootPacket) 
+         if (execPacket->packetSubtype == ScriptPacket::rootPacket)
          {
             TRACE( "ProcessTask %p Send %08X root time %d\n", this, execPacket, now );
             execRootTime = now;
@@ -1072,19 +1072,19 @@ keepGoing:
          }
       }
    }
-   else if ((execCommand->baseType == ScriptBase::scriptPacket) && 
+   else if ((execCommand->baseType == ScriptBase::scriptPacket) &&
           (((ScriptPacketPtr)execCommand)->packetType == ScriptPacket::expectPacket))
    {
       execPacket = (ScriptPacketPtr) execCommand;
-      TRACE( "ProcessTask expectPacket execPending=%d bpacketNotExpect=%d root time %d\n", 
+      TRACE( "ProcessTask expectPacket execPending=%d bpacketNotExpect=%d root time %d\n",
             execPending, execPacket->bpacketNotExpect, now );
       if (execPending) 
       {
-         if ((execPacket->packetType == ScriptPacket::expectPacket) && execPacket->bpacketNotExpect)  
+         if ((execPacket->packetType == ScriptPacket::expectPacket) && execPacket->bpacketNotExpect)
          {
             //Modified by Zhu Zhenhua, 2003-11-25
-            //add to meet "EXPECT NOT" or "EXPECT BEFORE (value) NOT"instead of "CHECK" sometimes           
-            NextPacket(true);                   
+            //add to meet "EXPECT NOT" or "EXPECT BEFORE (value) NOT"instead of "CHECK" sometimes
+            NextPacket(true);
          }
          else
          {
@@ -1128,23 +1128,23 @@ keepGoing:
                   {
                      SetPacketStatus( pp1, SCRIPT_STATUS_FAIL );
                   }
-                  else 
+                  else
                   {
                      gotOne = true;
                      minDelay1 = (pp1->packetDelay < minDelay1 ? pp1->packetDelay : minDelay1);
                   }
                }
             }
-                  
+
             // still one that hasn't failed?
-            if (!gotOne) 
+            if (!gotOne)
             {
                Msg( 1, execTest->baseLineStart, "failed", SCRIPT_STATUS_FAIL );
                SetTestStatus( execTest, SCRIPT_STATUS_FAIL );
 
                // go back to idle
                Cleanup();
-            } 
+            }
             else 
             {
                // subtract time already expired
@@ -1162,7 +1162,7 @@ keepGoing:
             }
          } 
       }
-      else 
+      else
       {
          // set the root time, always a root packet here
          TRACE( "Expect %08X root time %d\n", execPacket, now );
@@ -1170,7 +1170,7 @@ keepGoing:
 
          // set all the packets pending and find min delay
          int minDelay2 = kMaxPacketDelay + 1;
-         for (ScriptPacketPtr pp2 = execPacket; pp2; pp2 = (ScriptPacketPtr) pp2->m_pcmdFail) 
+         for (ScriptPacketPtr pp2 = execPacket; pp2; pp2 = (ScriptPacketPtr) pp2->m_pcmdFail)
          {
             if (pp2->baseType == ScriptBase::scriptPacket)
             {
@@ -1191,7 +1191,7 @@ keepGoing:
          InstallTask( oneShotTask, minDelay2 );
       }
    }
-   else if (execCommand->baseType == ScriptBase::scriptMake) 
+   else if (execCommand->baseType == ScriptBase::scriptMake)
    {
       execPending = false;
       SetPacketStatus( execCommand, SCRIPT_STATUS_WARN );
@@ -1208,43 +1208,41 @@ keepGoing:
          Msg( 3, execCommand->baseLineStart, strError, SCRIPT_STATUS_WARN );
 
       NextPacket(fCmdResult, ((ScriptMAKECommand *) execCommand)->m_fHanging );
-   } 
+   }
    else if (execCommand->baseType == ScriptBase::scriptCheck)
    {
       execPending = false;
       SetPacketStatus( execCommand, SCRIPT_STATUS_WARN );
-
       CString strError;
       bool fCmdResult = execCommand->Execute(&strError);
-
       if (!fCmdResult)
-         Msg( 3, execCommand->baseLineStart, strError, SCRIPT_STATUS_WARN);
+         Msg( 3, execCommand->baseLineStart, strError, SCRIPT_STATUS_WARN );
 
       NextPacket(fCmdResult);
    }
-   else if (execCommand->baseType == ScriptBase::scriptAssign ) 
+   else if (execCommand->baseType == ScriptBase::scriptAssign)
    {
-
+      // TODO: same code as scriptWait and scriptAssign...
       //Added by Zhu Zhenhua, 2003-12-24, to ASSIGN statement
       execPending = false;
       SetPacketStatus( execCommand, SCRIPT_STATUS_WARN );
       CString strError;
       bool fCmdResult = execCommand->Execute(&strError);
       if (!fCmdResult)
-         Msg( 3, execCommand->baseLineStart, strError, SCRIPT_STATUS_WARN);
+         Msg( 3, execCommand->baseLineStart, strError, SCRIPT_STATUS_WARN );
 
       NextPacket(fCmdResult);
    }
    else if (execCommand->baseType == ScriptBase::scriptWait)
    {
-
+      // TODO: same code as scriptCheck and scriptAssign...
       //Added by Zhu Zhenhua, 2003-12-31, to WAIT statement
       execPending = false;
       SetPacketStatus( execCommand, SCRIPT_STATUS_WARN );
       CString strError;
       bool fCmdResult = execCommand->Execute(&strError);
       if (!fCmdResult)
-         Msg( 3, execCommand->baseLineStart, strError, SCRIPT_STATUS_WARN);
+         Msg( 3, execCommand->baseLineStart, strError, SCRIPT_STATUS_WARN );
 
       NextPacket(fCmdResult);
    }
@@ -1514,17 +1512,17 @@ bool ScriptExecutor::SendPacket( void )
    int                  bipMsgID = -1, nlMsgID = -1, alMsgID = -1;
    BACnetOctet          ctrl = 0;
    CByteArray           packet;
-   ScriptFilterPtr         sfp;
-   ScriptNetFilterPtr      nfp;
-   ScriptPacketExprPtr     pNet, bipMsg, nlMsg, nlDA, alMsg
-   ,                 pVersion, pDNET, pDADR, pHopCount, pSNET, pSADR
-   ,                 pDER, pPriority;
+   ScriptFilterPtr      sfp;
+   ScriptNetFilterPtr   nfp;
+   ScriptPacketExprPtr  pNet, bipMsg, nlMsg, nlDA, alMsg
+   ,                    pVersion, pDNET, pDADR, pHopCount, pSNET, pSADR
+   ,                    pDER, pPriority;
    BACnetAddress        nlDestAddr;
    BACnetBoolean        nlDER;
    BACnetInteger        nlVersion, nlDNET, nlSNET
-   ,                 nlPriority, nlHopCount;
+   ,                    nlPriority, nlHopCount;
    BACnetOctetString    nlDest, nlDADR, nlSADR, nlData, alData;
-   BACnetCharacterString   nlNetwork;
+   BACnetCharacterString nlNetwork;
 
    try {
       // see if the network is provided
@@ -1552,8 +1550,8 @@ bool ScriptExecutor::SendPacket( void )
          sfp = gMasterFilterList[0];
          if (pNet && !nlNetwork.Equals(sfp->filterName))
             throw ExecError( "Port not found", pNet->exprLine );
-      } 
-      else 
+      }
+      else
       {
          int i;
          if (!pNet)
@@ -1590,7 +1588,7 @@ bool ScriptExecutor::SendPacket( void )
          const ScriptToken &t = daList[0];
 
          // check to see if this is a keyword
-         if (t.tokenType == scriptKeyword) 
+         if (t.tokenType == scriptKeyword)
          {
             if ((t.tokenSymbol == kwBROADCAST) || (t.tokenSymbol == kwLOCALBROADCAST))
             {
@@ -2652,7 +2650,7 @@ void ScriptExecutor::SendDevPacket( void )
    // would normally be sent as a global broadcast will be sent directly to
    // the IUT).
    nlDA = execPacket->packetExprList.Find( kwDA );
-   if (!nlDA) 
+   if (!nlDA)
    {
       if ( !execDB->LoadNamedAddress(&nlDestAddr, "IUT") )
          throw ExecError( "Default destination address IUT not found", execPacket->baseLineStart );
@@ -2670,7 +2668,7 @@ void ScriptExecutor::SendDevPacket( void )
       const ScriptToken &t = daList[0];
 
       // check to see if this is a keyword
-      if (t.tokenType == scriptKeyword) 
+      if (t.tokenType == scriptKeyword)
       {
          if ((t.tokenSymbol == kwBROADCAST) || (t.tokenSymbol == kwLOCALBROADCAST))
          {
@@ -2680,7 +2678,7 @@ void ScriptExecutor::SendDevPacket( void )
          {
             nlDestAddr.GlobalBroadcast();
          }
-         else if (t.tokenSymbol == kwREMOTEBROADCAST) 
+         else if (t.tokenSymbol == kwREMOTEBROADCAST)
          {
             if (daList.Length() == 1)
                throw ExecError( "DNET expected", nlDA->exprLine );
@@ -2695,37 +2693,37 @@ void ScriptExecutor::SendDevPacket( void )
                throw "DNET out of range (0..65534)";
 
             nlDestAddr.RemoteBroadcast( valu );
-         } 
+         }
          else
          {
             throw ExecError( "Unrecognized keyword", nlDA->exprLine );
          }
-      } 
-      else if (daList.Length() == 1) 
+      }
+      else if (daList.Length() == 1)
       {
          // it might be a name
-         if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptASCIIEnc)) 
+         if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptASCIIEnc))
          {
             if ( !execDB->LoadNamedAddress(&nlDestAddr, t.RemoveQuotes()) )
                throw ExecError( "Destination address name not found", nlDA->exprLine );
          } 
-         else if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptIPEnc)) 
+         else if ((t.tokenType == scriptValue) && (t.tokenEnc == scriptIPEnc))
          {
             // it might be an IP address
             BACnetIPAddr nlIPAddr( t.tokenValue );
             nlDestAddr = nlIPAddr;
-         } 
-         else if (t.IsEncodeable( nlDest )) 
+         }
+         else if (t.IsEncodeable( nlDest ))
          {
             // it might be an explicit octet string
             nlDestAddr.LocalStation( nlDest.strBuff, nlDest.strLen );
-         } 
+         }
          else
          {
             throw ExecError( "Destination address expected", nlDA->exprLine );
          }
-      } 
-      else if (daList.Length() == 2) 
+      }
+      else if (daList.Length() == 2)
       {
          if (t.tokenType != scriptValue)
             throw "DNET expected";
@@ -2737,16 +2735,16 @@ void ScriptExecutor::SendDevPacket( void )
          const ScriptToken &dadr = daList[1];
 
          // it might be an IP address
-         if ((dadr.tokenType == scriptValue) && (dadr.tokenEnc == scriptIPEnc)) 
+         if ((dadr.tokenType == scriptValue) && (dadr.tokenEnc == scriptIPEnc))
          {
             BACnetIPAddr nlIPAddr( dadr.tokenValue );
             nlDestAddr = nlIPAddr;
-         } 
+         }
          else if (dadr.IsEncodeable( nlDest )) 
          {
             // it might be an explicit octet string
             nlDestAddr.LocalStation( nlDest.strBuff, nlDest.strLen );
-         } 
+         }
          else
          {
             throw ExecError( "Destination address expected", nlDA->exprLine );
@@ -2754,7 +2752,7 @@ void ScriptExecutor::SendDevPacket( void )
 
          nlDestAddr.addrType = remoteStationAddr;
          nlDestAddr.addrNet = valu;
-      } 
+      }
       else
       {
          throw ExecError( "Destination address expected", nlDA->exprLine );
@@ -2825,7 +2823,7 @@ void ScriptExecutor::SendDevPacket( void )
       throw ExecError( errMsg, alMsg->exprLine );
    }
 
-   // get some interesting keywords that can override the default
+   // get some interesting keywords that can override the defaults
    pDER = GetKeywordValue( NULL, kwDER, nlDER );
    if (pDER)
       apdu.apduExpectingReply = nlDER.boolValue;
@@ -2833,7 +2831,7 @@ void ScriptExecutor::SendDevPacket( void )
    pPriority   = GetKeywordValue( NULL, kwPRIORITY, nlPriority );
    if (!pPriority)
       pPriority = GetKeywordValue( NULL, kwPRIO, nlPriority );
-   
+
    if (pPriority) {
       if ((nlPriority.intValue < 0) || (nlPriority.intValue > 3))
          throw ExecError( "Priority out of range 0..3", pPriority->exprLine );
@@ -2979,7 +2977,7 @@ void ScriptExecutor::SendDevComplexACK( BACnetAPDU &apdu )
 
 void ScriptExecutor::SendDevSegmentACK( BACnetAPDU &apdu )
 {
-   ScriptPacketExprPtr     pNegativeACK, pServer, pInvokeID, pSeqNumber, pWindowSize;
+   ScriptPacketExprPtr  pNegativeACK, pServer, pInvokeID, pSeqNumber, pWindowSize;
    BACnetBoolean        alNegativeACK, alServer;
    BACnetInteger        alInvokeID, alSeqNumber, alWindowSize;
 
@@ -3067,7 +3065,7 @@ void ScriptExecutor::SendDevError( BACnetAPDU &apdu )
 
 void ScriptExecutor::SendDevReject( BACnetAPDU &apdu )
 {
-   ScriptPacketExprPtr     pInvokeID, pReason;
+   ScriptPacketExprPtr  pInvokeID, pReason;
    BACnetInteger        alInvokeID, alReason;
 
    // set the packet type
@@ -3101,7 +3099,7 @@ void ScriptExecutor::SendDevReject( BACnetAPDU &apdu )
 
 void ScriptExecutor::SendDevAbort( BACnetAPDU &apdu )
 {
-   ScriptPacketExprPtr     pServer, pInvokeID, pReason;
+   ScriptPacketExprPtr  pServer, pInvokeID, pReason;
    BACnetBoolean        alServer;
    BACnetInteger        alInvokeID, alReason;
 
@@ -3143,7 +3141,7 @@ void ScriptExecutor::SendDevAbort( BACnetAPDU &apdu )
 
 void ScriptExecutor::SendConfirmedRequest( CByteArray &packet )
 {
-   ScriptPacketExprPtr     pSegMsg, pMOR, pSegResp, pMaxResp, pMaxSegs, pInvokeID, pSeq, pWindow, pService;
+   ScriptPacketExprPtr  pSegMsg, pMOR, pSegResp, pMaxResp, pMaxSegs, pInvokeID, pSeq, pWindow, pService;
    BACnetBoolean        alSegMsg, alMOR, alSegResp;
    BACnetInteger        alMaxResp, alMaxSegs, alInvokeID, alSeq, alWindow, alService;
 
@@ -3152,8 +3150,6 @@ void ScriptExecutor::SendConfirmedRequest( CByteArray &packet )
    pSegMsg = GetKeywordValue( NULL, kwSEGMSG, alSegMsg );
    if (!pSegMsg)
       pSegMsg = GetKeywordValue( NULL, kwSEGMENTEDMESSAGE, alSegMsg );
-// if (!pSegMsg)
-//    throw "Segmented-message keyword required";
 
    if (alSegMsg.boolValue) {
       pMOR = GetKeywordValue( NULL, kwMOREFOLLOWS, alMOR );
@@ -3166,8 +3162,6 @@ void ScriptExecutor::SendConfirmedRequest( CByteArray &packet )
    pSegResp = GetKeywordValue( NULL, kwSEGRESP, alSegResp );
    if (!pSegResp)
       pSegResp = GetKeywordValue( NULL, kwSEGRESPACCEPTED, alSegResp );
-// if (!pSegResp)
-//    throw "Segmented-response-accepted keyword required";
 
    // encode the first byte of the APDU header
    packet.Add( (0 << 4)
@@ -3184,8 +3178,6 @@ void ScriptExecutor::SendConfirmedRequest( CByteArray &packet )
       pMaxResp = GetKeywordValue( NULL, kwMAXRESPONSE, alMaxResp );
    if (!pMaxResp)
       pMaxResp = GetKeywordValue( NULL, kwMAXSIZE, alMaxResp );
-// if (!pMaxResp)
-//    throw "Max response size keyword required";
 
    // translate the max response size into the code
    // Values less than 16 are encoded directly as the bit-field
@@ -3204,8 +3196,6 @@ void ScriptExecutor::SendConfirmedRequest( CByteArray &packet )
 
    // Get the invoke ID.  Default to 0 for convenience in script writing.
    pInvokeID = GetKeywordValue( NULL, kwINVOKEID, alInvokeID );
-// if (!pInvokeID)
-//    throw "Invoke ID keyword required";
    if ((alInvokeID.intValue < 0) || (alInvokeID.intValue > 255))
       throw "Invoke ID out of range (0..255)";
 
@@ -3242,7 +3232,7 @@ void ScriptExecutor::SendConfirmedRequest( CByteArray &packet )
 
 void ScriptExecutor::SendUnconfirmedRequest( CByteArray &packet )
 {
-   ScriptPacketExprPtr     pService;
+   ScriptPacketExprPtr  pService;
    BACnetInteger        alService;
 
    // encode the header
@@ -3266,7 +3256,7 @@ void ScriptExecutor::SendUnconfirmedRequest( CByteArray &packet )
 
 void ScriptExecutor::SendSimpleACK( CByteArray &packet )
 {
-   ScriptPacketExprPtr     pInvokeID, pService;
+   ScriptPacketExprPtr  pInvokeID, pService;
    BACnetInteger        alInvokeID, alService;
 
    // encode the header
@@ -3297,7 +3287,7 @@ void ScriptExecutor::SendSimpleACK( CByteArray &packet )
 
 void ScriptExecutor::SendComplexACK( CByteArray &packet )
 {
-   ScriptPacketExprPtr     pSegMsg, pMOR, pInvokeID, pSeq, pWindow, pService;
+   ScriptPacketExprPtr  pSegMsg, pMOR, pInvokeID, pSeq, pWindow, pService;
    BACnetBoolean        alSegMsg, alMOR;
    BACnetInteger        alInvokeID, alSeq, alWindow, alService;
 
@@ -4269,7 +4259,6 @@ void ScriptExecutor::SendALEnumerated( ScriptPacketExprPtr spep, CByteArray &pac
       enumData.Encode( enc, context );
    }
 
-
    // copy the encoding into the byte array
    for (int i = 0; i < enc.pktLength; i++)
       packet.Add( enc.pktBuffer[i] );
@@ -4613,9 +4602,9 @@ void ScriptExecutor::SendALAny( ScriptPacketExprPtr spep, CByteArray &packet )
 {
    // ANY tagged element.
    int               indx;
-   BACnetANY           anyData;
+   BACnetANY         anyData;
    BACnetAPDUEncoder enc;
-   ScriptTokenList      tlist;
+   ScriptTokenList   tlist;
 
    // translate the expression, resolve parameter names into values
    ResolveExpr( spep->exprValue, spep->exprLine, tlist );
@@ -5208,7 +5197,7 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
             throw ExecError( errMsg, nlMsg->exprLine );
          }
       }
-      
+
       // if this is an application layer message, check it
       if ( alMsg ) {
          ScriptTokenList   alList;
@@ -5253,9 +5242,9 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
                if (pktMsgID != alMsgID)
                {
                   CString strError;
-                        strError.Format("Expected PDU type %s; got %s.", 
-                     NetworkSniffer::BAC_STRTAB_PDU_typesENUM.EnumString( alMsgID, "PDU_Type"),
-                     NetworkSniffer::BAC_STRTAB_PDU_typesENUM.EnumString( pktMsgID, "PDU_Type") );
+                  strError.Format("Expected PDU type %s; got %s.", 
+                  NetworkSniffer::BAC_STRTAB_PDU_typesENUM.EnumString( alMsgID, "PDU_Type"),
+                  NetworkSniffer::BAC_STRTAB_PDU_typesENUM.EnumString( pktMsgID, "PDU_Type") );
                   throw ExecError( strError, alMsg->exprLine );
                }
             } else {
@@ -5288,7 +5277,7 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
                   ExpectSegmentACK( dec );
                   break;
                case 5:                 // ERROR
-                  ThrowPDUBitsError( *dec.pktBuffer & 0x0F, "Error", alMsg );          // section 20.1.7.4
+                  ThrowPDUBitsError( *dec.pktBuffer & 0x0F, "Error", alMsg );             // section 20.1.7.4
                   ExpectError( dec );
                   break;
                case 6:                 // REJECT
@@ -5296,7 +5285,7 @@ bool ScriptExecutor::ExpectPacket( ScriptNetFilterPtr fp, const BACnetNPDU &npdu
                   ExpectReject( dec );
                   break;
                case 7:                 // ABORT
-                  ThrowPDUBitsError( *dec.pktBuffer & 0x0E, "Abort", alMsg );          // section 20.1.9.4
+                  ThrowPDUBitsError( *dec.pktBuffer & 0x0E, "Abort", alMsg );             // section 20.1.9.4
                   ExpectAbort( dec );
                   break;
             }
@@ -6594,7 +6583,7 @@ void ScriptExecutor::TestOrAssign( ScriptPacketExprPtr pScriptExpr, BACnetEncode
       return;
 
    CString strError;
-   
+
    // If the none value is set then we can't be assigning things, we shouldn't even be here to perform a test so
    // let's just get out with a failure
 
@@ -8243,9 +8232,20 @@ void ScriptExecutor::ExpectALAny( ScriptPacketExprPtr spep, BACnetAPDUDecoder &d
    ScriptTokenList   tlist;
    BACnetAPDUTag     tag;
    ScriptParmPtr     pScriptParm = NULL;
-   
-   // extract the tag
-   tag.Peek( dec );
+
+   // extract the tag.  BACnetAPDUTag will throw a BACnetError if there is no data available
+   try
+   {
+      tag.Peek( dec );
+   }
+   catch (BACnetError &)
+   {
+      // Scripting.html says about ANY "Decoding stops when it reaches the end
+      // of the APDU, or an unmatched closing tag, whichever occurs first."
+      // We interpret that to mean that the absence of tag or data is acceptable.
+      // Just continue with dec.pktLength == 0
+      TRACE( "Tag parse for ANY failed" );
+   }
 
    // translate the expression, resolve parameter names into values
    ResolveExpr( spep->exprValue, spep->exprLine, tlist, spep->IsAssignment() ? &pScriptParm : NULL );
@@ -8255,7 +8255,7 @@ void ScriptExecutor::ExpectALAny( ScriptPacketExprPtr spep, BACnetAPDUDecoder &d
 
    // decode it
    anyData.Decode( dec );
-   
+
    if (indx >= 0)
    {
       // reference or real data?
@@ -8746,7 +8746,7 @@ bool ScriptExecutor::ReceiveAPDU( const BACnetAPDU &apdu )
    {
       TRACE( "ScriptExecutor::ReceiveAPDU: execPacket is NULL. \n" );
    }
-   
+
    else if (execPacket->packetType != ScriptPacket::expectPacket) 
    {
       TRACE( "(not pointing to an expect packet)\n" );
