@@ -1302,8 +1302,10 @@ FORMAT1: if (*scanSrc == 'D') {
          *dst++ = ToUpper(*scanSrc++);
 
       // set the length and check for close quote
-      if (dst == scanValueBuffer + 2)
-         FormatError( tok, "Hex digit expected" );
+
+      // Changed to allow empty octet strings X''
+      //if (dst == scanValueBuffer + 2)
+      //   FormatError( tok, "Hex digit expected" );
       if (*scanSrc != '\'')
          FormatError( tok, "Invalid hex constant form" );
 
