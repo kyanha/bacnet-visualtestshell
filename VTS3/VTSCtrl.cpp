@@ -3198,11 +3198,6 @@ void VTSListCtrl::OnChangeItem( int ctrlID )
 // VTSStatusFlags::VTSStatusFlags
 //
 
-#define XIDC_INALARM    1130
-#define XIDC_FAULT         1131
-#define XIDC_OVERRIDDEN    1132
-#define XIDC_OUTOFSERVICE  1133
-
 VTSStatusFlags::VTSStatusFlags( const CWnd* wp )
    : BACnetBitString( 4 )
    , ctrlEnabled(true)
@@ -3225,10 +3220,10 @@ void VTSStatusFlags::Enable( void )
    ,     *outOfServiceButton
    ;
 
-   inAlarmButton = (CButton *)ctrlWindow->GetDlgItem( XIDC_INALARM );
-   faultButton = (CButton *)ctrlWindow->GetDlgItem( XIDC_FAULT );
-   overriddenButton = (CButton *)ctrlWindow->GetDlgItem( XIDC_OVERRIDDEN );
-   outOfServiceButton = (CButton *)ctrlWindow->GetDlgItem( XIDC_OUTOFSERVICE );
+   inAlarmButton = (CButton *)ctrlWindow->GetDlgItem( IDC_INALARM );
+   faultButton = (CButton *)ctrlWindow->GetDlgItem( IDC_FAULT );
+   overriddenButton = (CButton *)ctrlWindow->GetDlgItem( IDC_OVERRIDDEN );
+   outOfServiceButton = (CButton *)ctrlWindow->GetDlgItem( IDC_OUTOFSERVICE );
 
    ctrlEnabled = true;
    inAlarmButton->EnableWindow( true );
@@ -3256,10 +3251,10 @@ void VTSStatusFlags::Disable( void )
    ,     *outOfServiceButton
    ;
 
-   inAlarmButton = (CButton *)ctrlWindow->GetDlgItem( XIDC_INALARM );
-   faultButton = (CButton *)ctrlWindow->GetDlgItem( XIDC_FAULT );
-   overriddenButton = (CButton *)ctrlWindow->GetDlgItem( XIDC_OVERRIDDEN );
-   outOfServiceButton = (CButton *)ctrlWindow->GetDlgItem( XIDC_OUTOFSERVICE );
+   inAlarmButton = (CButton *)ctrlWindow->GetDlgItem( IDC_INALARM );
+   faultButton = (CButton *)ctrlWindow->GetDlgItem( IDC_FAULT );
+   overriddenButton = (CButton *)ctrlWindow->GetDlgItem( IDC_OVERRIDDEN );
+   outOfServiceButton = (CButton *)ctrlWindow->GetDlgItem( IDC_OUTOFSERVICE );
 
    ctrlEnabled = false;
    inAlarmButton->SetCheck( 0 );
@@ -3278,7 +3273,7 @@ void VTSStatusFlags::Disable( void )
 
 void VTSStatusFlags::InAlarmClick( void )
 {
-   CButton  *inAlarmButton = (CButton *)ctrlWindow->GetDlgItem( XIDC_INALARM );
+   CButton  *inAlarmButton = (CButton *)ctrlWindow->GetDlgItem( IDC_INALARM );
 
    SetBit( 0, (inAlarmButton->GetState() & 0x0001) );
 }
@@ -3289,7 +3284,7 @@ void VTSStatusFlags::InAlarmClick( void )
 
 void VTSStatusFlags::FaultClick( void )
 {
-   CButton  *faultButton = (CButton *)ctrlWindow->GetDlgItem( XIDC_FAULT );
+   CButton  *faultButton = (CButton *)ctrlWindow->GetDlgItem( IDC_FAULT );
 
    SetBit( 1, (faultButton->GetState() & 0x0001) );
 }
@@ -3300,7 +3295,7 @@ void VTSStatusFlags::FaultClick( void )
 
 void VTSStatusFlags::OverriddenClick( void )
 {
-   CButton  *overriddenButton = (CButton *)ctrlWindow->GetDlgItem( XIDC_OVERRIDDEN );
+   CButton  *overriddenButton = (CButton *)ctrlWindow->GetDlgItem( IDC_OVERRIDDEN );
 
    SetBit( 2, (overriddenButton->GetState() & 0x0001) );
 }
@@ -3311,7 +3306,7 @@ void VTSStatusFlags::OverriddenClick( void )
 
 void VTSStatusFlags::OutOfServiceClick( void )
 {
-   CButton  *outOfServiceButton = (CButton *)ctrlWindow->GetDlgItem( XIDC_OUTOFSERVICE );
+   CButton  *outOfServiceButton = (CButton *)ctrlWindow->GetDlgItem( IDC_OUTOFSERVICE );
 
    SetBit( 3, (outOfServiceButton->GetState() & 0x0001) );
 }
@@ -3340,10 +3335,10 @@ void VTSStatusFlags::ObjToCtrl( void )
    ,     *outOfServiceButton
    ;
 
-   inAlarmButton = (CButton *)ctrlWindow->GetDlgItem( XIDC_INALARM );
-   faultButton = (CButton *)ctrlWindow->GetDlgItem( XIDC_FAULT );
-   overriddenButton = (CButton *)ctrlWindow->GetDlgItem( XIDC_OVERRIDDEN );
-   outOfServiceButton = (CButton *)ctrlWindow->GetDlgItem( XIDC_OUTOFSERVICE );
+   inAlarmButton = (CButton *)ctrlWindow->GetDlgItem( IDC_INALARM );
+   faultButton = (CButton *)ctrlWindow->GetDlgItem( IDC_FAULT );
+   overriddenButton = (CButton *)ctrlWindow->GetDlgItem( IDC_OVERRIDDEN );
+   outOfServiceButton = (CButton *)ctrlWindow->GetDlgItem( IDC_OUTOFSERVICE );
 
    inAlarmButton->SetCheck( GetBit(0) );
    faultButton->SetCheck( GetBit(1) );

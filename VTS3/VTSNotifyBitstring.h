@@ -13,8 +13,6 @@
 /////////////////////////////////////////////////////////////////////////////
 // VTSNotifyBitstring dialog
 
-class VTSNotificationParameters;
-
 class VTSNotifyBitstring : public CPropertyPage, public VTSNotifyPage
 {
 	DECLARE_DYNCREATE(VTSNotifyBitstring)
