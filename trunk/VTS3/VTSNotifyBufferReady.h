@@ -13,8 +13,6 @@
 /////////////////////////////////////////////////////////////////////////////
 // VTSNotifyBufferReady dialog
 
-class VTSNotificationParameters;
-
 class VTSNotifyBufferReady : public CPropertyPage, public VTSNotifyPage
 {
 	DECLARE_DYNCREATE(VTSNotifyBufferReady)
