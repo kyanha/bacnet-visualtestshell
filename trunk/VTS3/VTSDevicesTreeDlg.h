@@ -84,6 +84,8 @@ protected:
 	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
 	afx_msg void OnUpdateNewDevice(CCmdUI* pCmdUI);
 	afx_msg void OnNewDevice();
+	afx_msg void OnCopyObject();
+	afx_msg void OnUpdateCopyObject(CCmdUI* pCmdUI);
 	afx_msg void OnNewObject();
 	afx_msg void OnUpdateNewObject(CCmdUI* pCmdUI);
 	afx_msg void OnNewProperty();
@@ -96,6 +98,9 @@ protected:
 	afx_msg void OnDelete();
 	afx_msg void OnUpdateDelete(CCmdUI* pCmdUI);
 	afx_msg void OnKeydownDevicetree(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnExpandItems();
+	afx_msg void OnCollapseItems();
+	afx_msg void OnSortItems();
 	//}}AFX_MSG
 
 	afx_msg void OnExport();

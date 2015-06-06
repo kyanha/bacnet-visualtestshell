@@ -1236,8 +1236,8 @@ BOOL CSuperGridCtrl::PreTranslateMessage(MSG* pMsg)
 
 
 
-
-#define IDC_EDITCTRL 0x1234
+// If this was actually USED, might face a conflict with resource.h
+// #define IDC_EDITCTRL 0x1234
 CEdit* CSuperGridCtrl::EditLabelEx(int nItem, int nCol)
 {
 	/*CRect rect;

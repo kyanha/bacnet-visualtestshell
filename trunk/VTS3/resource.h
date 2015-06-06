@@ -256,6 +256,7 @@
 #define IDD_SENDWHATISNET               382
 #define IDD_SENDNETNUMBERIS             383
 #define IDD_DISCOVER_EPICS              384
+#define IDD_DEVTREEOBJCOPY              385
 #define IDC_PORTLIST                    1000
 #define IDC_NAMELIST                    1001
 #define IDC_NEWPORT                     1002
@@ -916,6 +917,10 @@
 #define ID_FILE_WKS_OPEN                32815
 #define ID_FILE_WKS_SWITCH              32816
 #define ID_FILE_WKS_SAVEAS              32817
+#define ID_COLLAPSE_ITEMS               32818
+#define ID_EXPAND_ITEMS                 32819
+#define ID_SORT_ITEMS                   32820
+#define ID_COPY_OBJECT                  32821
 #define ID_NEWDEVICE                    32822
 #define ID_NEWPROPERTY                  32823
 #define ID_NEWOBJECT                    32824
