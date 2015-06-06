@@ -2994,13 +2994,13 @@ BEGIN
     LTEXT           "Optional",IDC_STATIC,174,21,33,8
 END
 
-IDD_DEVICEOBJECTPROPREFERENCE DIALOG 0, 0, 237, 137
+IDD_DEVICEOBJECTPROPREFERENCE DIALOGEX 0, 0, 237, 137
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "BACnet DeviceObjectPropertyReference"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,107,111,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,167,113,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,167,111,50,14
     EDITTEXT        IDC_DEVICEID,65,80,90,12,ES_AUTOHSCROLL
     EDITTEXT        IDC_OBJECTID,65,13,90,12,ES_AUTOHSCROLL
     COMBOBOX        IDC_PROPCOMBO,65,38,100,75,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
@@ -4220,6 +4220,20 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,64,267,10
 END
 
+IDD_DEVTREEOBJCOPY DIALOGEX 0, 0, 212, 84
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Copy Object"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    RTEXT           "New &Instance:",IDC_STATIC,7,16,45,8
+    EDITTEXT        IDC_INSTANCE,58,14,53,12,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "Range: 0...4194303",IDC_STATIC,115,16,67,10
+    RTEXT           "New &Name:",IDC_STATIC,7,40,45,8
+    EDITTEXT        IDC_NAME,58,38,145,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,31,66,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,117,66,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -4227,8 +4241,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,6,4,0
- PRODUCTVERSION 3,6,4,0
+ FILEVERSION 3,6,5,0
+ PRODUCTVERSION 3,6,5,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x21L
@@ -4244,12 +4258,12 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "FileDescription", "Visual Test Shell for BACnet"
-            VALUE "FileVersion", "3.6.4.0"
+            VALUE "FileVersion", "3.6.5.0"
             VALUE "InternalName", "VTS"
             VALUE "LegalCopyright", "GPL"
             VALUE "OriginalFilename", "VTS.EXE"
             VALUE "ProductName", "Visual Test Shell for BACnet"
-            VALUE "ProductVersion", "3.6.4.0"
+            VALUE "ProductVersion", "3.6.5.0"
         END
     END
     BLOCK "VarFileInfo"
@@ -5811,6 +5825,14 @@ BEGIN
     BEGIN
         RIGHTMARGIN, 331
         BOTTOMMARGIN, 153
+    END
+
+    IDD_DEVTREEOBJCOPY, DIALOG
+    BEGIN
+        LEFTMARGIN, 5
+        RIGHTMARGIN, 207
+        TOPMARGIN, 5
+        BOTTOMMARGIN, 79
     END
 END
 #endif    // APSTUDIO_INVOKED

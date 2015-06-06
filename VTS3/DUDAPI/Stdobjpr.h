@@ -11,6 +11,7 @@
 #include "propid.h"
 #include "props.h"
 
+#ifndef _etable
 typedef struct {
     word propes;              //proprietary enumeration begin at this value
     dword   propmaxes;        //max value for proprietary+1
@@ -18,6 +19,7 @@ typedef struct {
     char *estrings[500];      //table of pointers to strings
     } etable;
 #define _etable 0
+#endif
 
 //------------------------------------------------------
 // Special Enumeration Tables
@@ -2268,6 +2270,8 @@ typedef struct {
     defparsetypes dpt[147];      //the default parse types
 } dpttable;
 
+#if _DoStaticPropDescriptors
+
 //Special table for default parse types
 static dpttable dParseTypes={
                 147,                   //147 parse types
@@ -2419,5 +2423,6 @@ static dpttable dParseTypes={
                 {WINDOW_SAMPLES,uw,0,0},
                 {STRUCTURED_OBJECT_LIST,none,0,IsArray} }
 };
+#endif
 
 #endif //__STDOBJPR_H_INCLUDED

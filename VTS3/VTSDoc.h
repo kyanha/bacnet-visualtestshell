@@ -443,7 +443,7 @@ class VTSDevice : public CObject
       int InternalWriteProperty( BACnetObjectIdentifier * pbacnetobjectid, BACnetEnumerated * pbacnetpropid, BACnetAPDUDecoder * pdec );
 
       VTSDevObject * FindObject( unsigned int nObjID );
-      VTSDevProperty * FindProperty( VTSDevObject * pobject, int nPropID );
+      static VTSDevProperty * FindProperty( VTSDevObject * pobject, int nPropID );
 
       const VTSDevice& operator=(const VTSDevice& rdeviceSrc);
       void Serialize( CArchive& archive, UINT version );
