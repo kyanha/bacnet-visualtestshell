@@ -3,8 +3,6 @@
    Many later changes made by the VTS community and released into the public domain.
 
 module:     VTSAPI32.C
-desc:    BACnet Standard Objects DLL v2.15
-authors: David M. Fisher, Jack R. Neyer
 
 -- NOTE: 135.1 doesn't say how to encode missing OPTIONAL items in a SEQUENCE:
 -- should there be an empty pair of commas, or should the item and any comma be
@@ -118,7 +116,7 @@ static BACnetRecipient *ParseRecipient(BACnetRecipient *);
 static BACnetObjectPropertyReference *ParseReference(BACnetObjectPropertyReference*);
 static bool ParseCOVSubList(BACnetCOVSubscription **);
 static BACnetCOVSubscription *ParseCOVSubscription();
-static bool ParseEnumList(BACnetEnumList **, etable *);
+static bool ParseEnumList(BACnetEnumList **, const NetworkSniffer::BACnetStringTable *);
 static bool ParsePropertyList(BACnetEnumList **);
 static bool ParseUnsignedList( UnsignedList **elp );
 static bool ParseBooleanList( BooleanList **elp );
@@ -171,7 +169,7 @@ static void SkipAlphaString();
 static bool IsAlphaString( const char *pTestValue );
 static bool ReadDW(dword *pVal, char mustBe = 0);
 static bool ReadW(word *pVal, char mustBe = 0);
-static bool ReadEnum(word *pVal, etable *etp);
+static bool ReadEnum(word *pVal, const NetworkSniffer::BACnetStringTable *etp);
 static bool ReadObjectID(dword *pVal, char mustBe = 0);
 static bool ReadChoiceTag(octet *pChoice, octet maxChoice, bool isRequired = false);
 
@@ -2394,8 +2392,8 @@ nextobject:
                      if (propertyName.CompareNoCase("object-type")==0)
                      {
                         word type;
-                        if (ReadEnum(&type, &etObjectTypes)) return true;
-                        if ((objtype < etObjectTypes.propes) && (objtype != type))
+                        if (ReadEnum(&type, &NetworkSniffer::BAC_STRTAB_BACnetObjectType)) return true;
+                        if ((objtype < NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_nReserved) && (objtype != type))
                         {
                            if (tperror("The object-type property does not agree with the object-identifier!",true))
                               return true;
@@ -2454,7 +2452,7 @@ nextobject:
                   {
                      if (propertyName.CompareNoCase("object-type")==0)
                      {
-                        if (ReadEnum(&objtype, &etObjectTypes)) return true;
+                        if (ReadEnum(&objtype, &NetworkSniffer::BAC_STRTAB_BACnetObjectType)) return true;
                         weKnowObjectType = true;
                         objid = ((dword)objtype)<<22;
 
@@ -2503,7 +2501,7 @@ nextobject:
 //                         continue;
 //                      }
 
-                        if (objtype >= etObjectTypes.propes)
+                        if (objtype >= NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_nReserved)
                         {
                            if ((pobj=(generic_object *)malloc(sizeof(proprietary_obj_type)))==NULL)      //can't allocate space for it
                            {
@@ -2607,7 +2605,7 @@ bool ParseProperty(const char *pn, generic_object *pobj, word objtype)
    void        *pstruc;
    dword       dw;
    char        b[512];
-   etable      *ep;
+   const NetworkSniffer::BACnetStringTable *ep;
    float       *fp;
    word        *wp;
    char        **cp;
@@ -2856,13 +2854,9 @@ bool ParseProperty(const char *pn, generic_object *pobj, word objtype)
                   EpicsListOf actionArray;
                   while (actionArray.HasMore() && (i <16))
                   {
-                     ep = AllETs[parseET]; //point to enumeration table for this guy
-                     // This assumes that the enumeration table contains a value for NULL
-                     // TODO: this means it won't work with the StringTable enumeration
-                     // tables.  Is "pae" ever actually used?  eiDoorValuen.
-                     // CHECKING for "null" like the other priority arrays would just mean
-                     // using a reserved value like upaNULL for the unsigned case.
-                     // Seems safer/better.
+                     // This assumes that the string table contains a value for NULL
+                     // There will generally be two versions of such string tables: with and without null.
+                     ep = NetworkSniffer::GetEnumStringTable(parseET); //point to enumeration table for this guy
                      if (ReadEnum(&wp[i], ep)) return true;
                      i++;
                   }
@@ -2950,11 +2944,11 @@ bool ParseProperty(const char *pn, generic_object *pobj, word objtype)
                if (ReadBool( (bool*)pstruc )) return true;
                break;
             case etl:
-               ep = AllETs[parseET];
+               ep = NetworkSniffer::GetEnumStringTable(parseET);
                if (ParseEnumList((BACnetEnumList **)pstruc, ep )) return true;
                break;
             case PT_PROPLIST:
-               // Almost "etl", except we don't have an appropriate AllETs-format property table
+               // Almost "etl", except we don't have an appropriate property table
                if (ParsePropertyList((BACnetEnumList **)pstruc)) return true;
                break;
             case et:                //an enumeration table
@@ -2964,13 +2958,13 @@ bool ParseProperty(const char *pn, generic_object *pobj, word objtype)
                // This code works, so long as our processor is little-endian and the struct
                // is cleared to zero.  But the tables should be changed to "word", or else
                // to real enumerations and dword.
-               ep = AllETs[parseET];  //point to enumeration table for this guy
+               ep = NetworkSniffer::GetEnumStringTable(parseET);  //point to enumeration table for this guy
                if (ReadEnum( (word*)pstruc, ep )) return true;
                break;
             case bits:                 //octet(s) of T or F flags
                // Number of bits is specified by the enumeration table's element count
-               ep = AllETs[parseET];  //point to enumeration table for this guy
-               if (ParseBitstring( (octet*)pstruc, ep->nes, NULL )) return true;
+               ep = NetworkSniffer::GetEnumStringTable(parseET);  //point to enumeration table for this guy
+               if (ParseBitstring( (octet*)pstruc, ep->m_nStrings, NULL )) return true;
                break;
             case sw:                   //signed word
                // "sw" isn't used by any of the property tables
@@ -3177,7 +3171,7 @@ bool ParseProperty(const char *pn, generic_object *pobj, word objtype)
       if (pd->PropGroup & LAST)
       {
          print_debug("ParseProperty: unknown property'%s' objtype %d\n",pn,objtype);
-         if (objtype < etObjectTypes.propes)
+         if (objtype < NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_nReserved)
          {
             if ((_strnicmp(pn, "vendor", 6) == 0) || (_strnicmp(pn, "proprietary", 11) == 0 ))
             {
@@ -4945,7 +4939,7 @@ bool ParseAccumulatorRecord(BACnetAccumulatorRecord* pt)
    if (ReadW( &pt->presentValue, ',' )) return true;
    if (ReadW( &pt->accumulatedValue, ',' )) return true;
 
-   if (ReadEnum(&pt->accumulatorStatus, &etAccumulatorStatus)) return true;
+   if (ReadEnum(&pt->accumulatorStatus, &NetworkSniffer::BAC_STRTAB_BACnetAccumulatorStatus)) return true;
    return accRecord.End();
 }
 
@@ -5146,7 +5140,7 @@ bool ParseUnsignedList( UnsignedList **elp )
    return s_error;
 }
 
-bool ParseEnumList(BACnetEnumList **elp, etable *etbl)
+bool ParseEnumList(BACnetEnumList **elp, const NetworkSniffer::BACnetStringTable *etbl)
 {
    BACnetEnumList **pp = elp, *q=NULL;
    *elp = NULL;                          //initially there is no list
@@ -5229,7 +5223,7 @@ bool ParseVTClassList(BACnetVTClassList **vtclp)
    while (list.HasMore())
    {
       // Here lp must point to a BACnetVTClass enumeration
-      if (ReadEnum(&vtc, &etVTClasses)) break;
+      if (ReadEnum(&vtc, &NetworkSniffer::BAC_STRTAB_BACnetVTClass)) break;
 
       if ((q = (tagVTClassList *)malloc(sizeof(BACnetVTClassList))) == NULL)
       {
@@ -5888,7 +5882,7 @@ bool ReadB(octet *pValue, UINT lb, UINT ub)
 //      else     the enumeration (note that ? results in enumeration 0)
 //      lp       points at the delimiter after the enumeration.
 //
-bool ReadEnum(word *pVal, etable *etp)
+bool ReadEnum(word *pVal, const NetworkSniffer::BACnetStringTable *etp)
 {
    char  c, e[512];
 
@@ -5918,12 +5912,15 @@ bool ReadEnum(word *pVal, etable *etp)
    e[len] = 0;
    if (len > 0)
    {
+      // We COULD call EnumValue, which would also accept
+      // proprietary{xxx}123, vendor{xxx}123, reserved{xxx}123, or naked integer.
+      // Since these aren't "EPICS legal" we do it by hand.
       word ix;
-      for (ix=0; ix < etp->nes; ix++)
+      for (ix=0; ix < etp->m_nStrings; ix++)
       {
-         if (etp->estrings[ix])
+         if (etp->m_pStrings[ix])
          {
-            if (_stricmp(e,etp->estrings[ix])==0)
+            if (_stricmp(e,etp->m_pStrings[ix])==0)
             {
                //matching enumeration
                *pVal = ix;
@@ -5940,7 +5937,7 @@ bool ReadEnum(word *pVal, etable *etp)
       // To call ReadDW, we need to back up the cursor to the first digit.
       if (_strnicmp(e,"proprietary",11)==0)
       {
-         if (etp->propes == 0)
+         if (etp->m_nMax <= etp->m_nReserved)
          {
             tperror("This is not an extensible enumeration!",true);
          }
@@ -5958,7 +5955,7 @@ bool ReadEnum(word *pVal, etable *etp)
             {
                if (!ReadW( pVal ))
                {
-                  if (*pVal >= etp->propes)
+                  if (*pVal >= etp->m_nReserved)
                   {
                      // Valid proprietary value
                      return false;
@@ -7555,8 +7552,8 @@ void CheckPICSCons2013I(PICSdb *pd)
    {
       // TODO: check for required, conditionally required, and mandatory writable properties
 
-     // 5-24-2005 Shiyuan Xiao. Ignore unstandard object
-     if(obj->object_type < etObjectTypes.propes)
+     // Ignore proprietary object
+     if(obj->object_type < NetworkSniffer::BAC_STRTAB_BACnetObjectType.m_nReserved)
         CheckPICSConsProperties(pd, obj);
 
      obj=(generic_object *)obj->next;
@@ -7634,11 +7631,6 @@ void CheckPICSCons2013L(PICSdb *pd)
       tperror(errMsg,false);
    }
    return;
-}
-
-void *GetEnumTable(int iTableIndex)
-{
-   return AllETs[iTableIndex];
 }
 
 // Read a character string consisting of upper and lower case letters.
@@ -7938,7 +7930,7 @@ bool ReadObjectID(dword *pVal, char mustBe )
       if (ReadW(&objtype)) return true;
    }
    // ReadEnum also accepts 135.1 "proprietarywhatever-123" and VTS-style "unknown:123"
-   else if (ReadEnum(&objtype, &etObjectTypes))
+   else if (ReadEnum(&objtype, &NetworkSniffer::BAC_STRTAB_BACnetObjectType))
    {
       // Error shown by ReadEnum
       return true;
@@ -8017,8 +8009,7 @@ bool ReadChoiceTag(octet *pChoice, octet maxChoice, bool isRequired)
 //
 propdescriptor* GetPropDescriptorTable( word objtype )
 {
-   return (objtype < etObjectTypes.nes)
-          ? StdObjects[objtype].sotProps : ProprietaryObjProps;
+   return (objtype < MAX_DEFINED_OBJ) ? StdObjects[objtype].sotProps : ProprietaryObjProps;
 }
 
 //=============================================================================

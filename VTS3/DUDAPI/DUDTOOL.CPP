@@ -984,7 +984,7 @@ bool CreateCommonProperty( generic_object far * pObj, BACnetPropertyIdentifier p
    ASSERT(pbacnetAnyValue != NULL);
    bool bHandled = false;
 
-   etable *petable = NULL;
+   const NetworkSniffer::BACnetStringTable *petable = NULL;
    const propdescriptor *pd;
    unsigned char *pProp;
    word objType = pObj->object_type;
@@ -1019,17 +1019,15 @@ bool CreateCommonProperty( generic_object far * pObj, BACnetPropertyIdentifier p
       // This code works, so long as our processor is little-endian and the struct
       // is cleared to zero...
       // Please help us stamp out word/dword in our lifetime.  Thank you.
-      petable = (etable *)PICS::GetEnumTable(pd->PropET);
-      pbacnetAnyValue->SetObject(et, new BACnetEnumerated( *(word *) pProp,
-                                                           (const char **)petable->estrings,
-                                                           petable->nes));
+      petable = NetworkSniffer::GetEnumStringTable(pd->PropET);
+      pbacnetAnyValue->SetObject(et, new BACnetEnumerated( *(word *) pProp, *petable ));
       break;
    case flt:
       pbacnetAnyValue->SetObject(flt, new BACnetReal( *(float *) pProp));
       break;
    case bits:
-      petable = (etable *)PICS::GetEnumTable(pd->PropET);
-      pbacnetAnyValue->SetObject(bits, new BACnetBitString( petable->nes, pProp ));
+      petable = NetworkSniffer::GetEnumStringTable(pd->PropET);
+      pbacnetAnyValue->SetObject(bits, new BACnetBitString( petable->m_nStrings, pProp ));
       break;
    case u127:
       pbacnetAnyValue->SetObject(pd->ParseType, new BACnetUnsigned( *pProp));
@@ -1535,6 +1533,7 @@ bool SC_CreateProperty( schedule_obj_type far * pObj, BACnetPropertyIdentifier p
          //msg->pt= xsched;
          break;
       case LIST_OF_OBJECT_PROPERTY_REFERENCES:
+         // These are actually DEVICE object-property-references
          pbacnetAnyValue->SetObject(lopref, CreateDeviceObjectPropertyList(pObj->list_obj_prop_ref));
          break;
       case SCHEDULE_DEFAULT:
@@ -1618,31 +1617,25 @@ bool TR_CreateProperty( trend_obj_type far * pObj, BACnetPropertyIdentifier prop
 
 bool LFSP_CreateProperty( lifesafetypoint_obj_type * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue )
 {
-   etable *petable;
+   const NetworkSniffer::BACnetStringTable *petable;
    ASSERT(pbacnetAnyValue != NULL);
 
    switch ( propertyID )
    {
    case PRESENT_VALUE:
-      petable = (etable *)PICS::GetEnumTable(eiLifeSafetyState);
-      pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->present_value,
-         (const char **)petable->estrings,
-         petable->nes) );
+      petable = NetworkSniffer::GetEnumStringTable(eiLifeSafetyState);
+      pbacnetAnyValue->SetObject(et, new BACnetEnumerated( (int) pObj->present_value, *petable ));
       break;
    case TRACKING_VALUE:
-      petable = (etable *)PICS::GetEnumTable(eiLifeSafetyState);
-      pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->tracking_value,
-         (const char **)petable->estrings,
-         petable->nes) );
+      petable = NetworkSniffer::GetEnumStringTable(eiLifeSafetyState);
+      pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->tracking_value, *petable ));
       break;
    case DEVICE_TYPE:
-         pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->device_type));
-         break;
+      pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->device_type));
+      break;
    case MODE:
-      petable = (etable *)PICS::GetEnumTable(eiLifeSafetyMode);
-      pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->mode,
-         (const char **)petable->estrings,
-         petable->nes) );
+      petable = NetworkSniffer::GetEnumStringTable(eiLifeSafetyMode);
+      pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->mode, *petable ));
       break;
    case ACCEPTED_MODES:
       pbacnetAnyValue->SetObject(etl, CreateEnumList( pObj->accepted_modes, eiLifeSafetyMode ));
@@ -1657,24 +1650,16 @@ bool LFSP_CreateProperty( lifesafetypoint_obj_type * pObj, BACnetPropertyIdentif
       pbacnetAnyValue->SetObject(etl, CreateEnumList( pObj->fault_values, eiLifeSafetyState ));
       break;
    case SILENCED:
-      petable = (etable *)PICS::GetEnumTable(eiSilencedState);
-      pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->silenced,
-         (const char **)petable->estrings,
-         petable->nes) );
+      petable = NetworkSniffer::GetEnumStringTable(eiSilencedState);
+      pbacnetAnyValue->SetObject(et, new BACnetEnumerated( (int) pObj->silenced, *petable ));
       break;
    case OPERATION_EXPECTED:
-      petable = (etable *)PICS::GetEnumTable(eiLifeSafetyOperation);
-
-      pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->operation_expected,
-         (const char **)petable->estrings,
-         petable->nes) );
+      petable = NetworkSniffer::GetEnumStringTable(eiLifeSafetyOperation);
+      pbacnetAnyValue->SetObject(et, new BACnetEnumerated( (int) pObj->operation_expected, *petable ));
       break;
    case MAINTENANCE_REQUIRED:
-      petable = (etable *)PICS::GetEnumTable(eiMaintenance);
-
-      pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->maintenance_required,
-         (const char **)petable->estrings,
-         petable->nes) );
+      petable = NetworkSniffer::GetEnumStringTable(eiMaintenance);
+      pbacnetAnyValue->SetObject(et, new BACnetEnumerated( (int) pObj->maintenance_required, *petable ));
       break;
    case SETTING:
       pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->setting));
@@ -1696,33 +1681,25 @@ bool LFSP_CreateProperty( lifesafetypoint_obj_type * pObj, BACnetPropertyIdentif
 
 bool LFSZ_CreateProperty( lifesafetyzone_obj_type * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue * pbacnetAnyValue )
 {
-   etable *petable;
+   const NetworkSniffer::BACnetStringTable *petable;
    ASSERT(pbacnetAnyValue != NULL);
 
    switch ( propertyID )
    {
    case PRESENT_VALUE:
-      petable = (etable *)PICS::GetEnumTable(eiLifeSafetyState);
-
-      pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->present_value,
-         (const char **)petable->estrings,
-         petable->nes) );
+      petable = NetworkSniffer::GetEnumStringTable(eiLifeSafetyState);
+      pbacnetAnyValue->SetObject(et, new BACnetEnumerated( (int)pObj->present_value, *petable ));
       break;
    case TRACKING_VALUE:
-      petable = (etable *)PICS::GetEnumTable(eiLifeSafetyState);
-      pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->tracking_value,
-         (const char **)petable->estrings,
-         petable->nes) );
+      petable = NetworkSniffer::GetEnumStringTable(eiLifeSafetyState);
+      pbacnetAnyValue->SetObject(et, new BACnetEnumerated( (int)pObj->tracking_value, *petable ));
       break;
    case DEVICE_TYPE:
-         pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->device_type));
-         break;
+      pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->device_type));
+      break;
    case MODE:
-      petable = (etable *)PICS::GetEnumTable(eiLifeSafetyMode);
-
-      pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->mode,
-         (const char **)petable->estrings,
-         petable->nes) );
+      petable = NetworkSniffer::GetEnumStringTable(eiLifeSafetyMode);
+      pbacnetAnyValue->SetObject(et, new BACnetEnumerated( (int)pObj->mode, *petable ));
       break;
    case ACCEPTED_MODES:
       pbacnetAnyValue->SetObject(etl, CreateEnumList( pObj->accepted_modes, eiLifeSafetyMode ));
@@ -1737,16 +1714,12 @@ bool LFSZ_CreateProperty( lifesafetyzone_obj_type * pObj, BACnetPropertyIdentifi
       pbacnetAnyValue->SetObject(etl, CreateEnumList( pObj->fault_values, eiLifeSafetyState ));
       break;
    case SILENCED:
-      petable = (etable *)PICS::GetEnumTable(eiSilencedState);
-      pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->silenced,
-         (const char **)petable->estrings,
-         petable->nes) );
+      petable = NetworkSniffer::GetEnumStringTable(eiSilencedState);
+      pbacnetAnyValue->SetObject(et, new BACnetEnumerated( (int)pObj->silenced, *petable ));
       break;
    case OPERATION_EXPECTED:
-      petable = (etable *)PICS::GetEnumTable(eiLifeSafetyOperation);
-      pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->operation_expected,
-         (const char **)petable->estrings,
-         petable->nes) );
+      petable = NetworkSniffer::GetEnumStringTable(eiLifeSafetyOperation);
+      pbacnetAnyValue->SetObject(et, new BACnetEnumerated( (int)pObj->operation_expected, *petable ));
       break;
    case MAINTENANCE_REQUIRED:
       pbacnetAnyValue->SetObject(ebool, new BACnetBoolean((int) pObj->maintenance_required));
@@ -1772,64 +1745,64 @@ bool AC_CreateProperty( accumulator_obj_type * pObj, BACnetPropertyIdentifier pr
    switch ( propertyID )
    {
    case PRESENT_VALUE:
-          pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->present_value));
-         break;
+      pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->present_value));
+      break;
    case DEVICE_TYPE:
-         pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->device_type));
-         break;
+      pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->device_type));
+      break;
    case SCALE:
+      {
+         if(pObj->scale.choice == 0)
          {
-            if(pObj->scale.choice == 0)
-            {
-               pbacnetAnyValue->SetObject(flt, new BACnetReal(pObj->scale.u.floatScale));
-            }
-            else
-            {
-               pbacnetAnyValue->SetObject(uw, new BACnetInteger(pObj->scale.u.integerScale));
-            }
+            pbacnetAnyValue->SetObject(flt, new BACnetReal(pObj->scale.u.floatScale));
          }
-          break;
+         else
+         {
+            pbacnetAnyValue->SetObject(uw, new BACnetInteger(pObj->scale.u.integerScale));
+         }
+      }
+      break;
    case PRESCALE:
-         pbacnetAnyValue->SetObject(eprescl, new ::BACnetPrescale(pObj->prescale.multiplier,
-                                    pObj->prescale.moduloDivide));
-         break;
+      pbacnetAnyValue->SetObject(eprescl, new ::BACnetPrescale(pObj->prescale.multiplier,
+                                 pObj->prescale.moduloDivide));
+      break;
    case MAX_PRES_VALUE:
-          pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->max_pres_value));
-         break;
+      pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->max_pres_value));
+      break;
    case VALUE_CHANGE_TIME:
-         pbacnetAnyValue->SetObject(dt, new ::BACnetDateTime(pObj->value_change_time.date.year, pObj->value_change_time.date.month,
-                                       pObj->value_change_time.date.day_of_month, pObj->value_change_time.time.hour,
-                                       pObj->value_change_time.time.minute, pObj->value_change_time.time.second));
-         break;
+      pbacnetAnyValue->SetObject(dt, new ::BACnetDateTime(pObj->value_change_time.date.year, pObj->value_change_time.date.month,
+                                 pObj->value_change_time.date.day_of_month, pObj->value_change_time.time.hour,
+                                 pObj->value_change_time.time.minute, pObj->value_change_time.time.second));
+      break;
    case VALUE_BEFORE_CHANGE:
-         pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->value_before_change));
-         break;
+      pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->value_before_change));
+      break;
    case VALUE_SET:
-         pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->value_set));
-         break;
+      pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->value_set));
+      break;
    case LOGGING_RECORD:
-         pbacnetAnyValue->SetObject(eaclr, new ::BACnetAccumulatorRecord(pObj->logging_record.timestamp,
-         pObj->logging_record.presentValue, pObj->logging_record.accumulatedValue,
-         pObj->logging_record.accumulatorStatus));
-          break;
+      pbacnetAnyValue->SetObject(eaclr, new ::BACnetAccumulatorRecord(pObj->logging_record.timestamp,
+      pObj->logging_record.presentValue, pObj->logging_record.accumulatedValue,
+      pObj->logging_record.accumulatorStatus));
+      break;
    case LOGGING_OBJECT:
-          pbacnetAnyValue->SetObject(ob_id, new ::BACnetObjectIdentifier((unsigned int) pObj->logging_device.object_id));
-          break;
+      pbacnetAnyValue->SetObject(ob_id, new ::BACnetObjectIdentifier((unsigned int) pObj->logging_device.object_id));
+      break;
    case PULSE_RATE:
-         pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->pulse_rate));
-         break;
+      pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->pulse_rate));
+      break;
    case HIGH_LIMIT:
-         pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->high_limit));
-         break;
+      pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->high_limit));
+      break;
    case LOW_LIMIT:
-         pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->low_limit));
-         break;
+      pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->low_limit));
+      break;
    case LIMIT_MONITORING_INTERVAL:
-         pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->limit_monitoring_interval));
-         break;
+      pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->limit_monitoring_interval));
+      break;
    default:
-         // Not handled here
-         return false;
+      // Not handled here
+      return false;
    }
 
    return true;
@@ -1842,52 +1815,52 @@ bool PC_CreateProperty( pulseconverter_obj_type * pObj, BACnetPropertyIdentifier
    switch ( propertyID )
    {
    case PRESENT_VALUE:
-          pbacnetAnyValue->SetObject(flt, new BACnetReal(pObj->present_value));
-         break;
+      pbacnetAnyValue->SetObject(flt, new BACnetReal(pObj->present_value));
+      break;
    case INPUT_REFERENCE:
       pbacnetAnyValue->SetObject(propref, new ::BACnetObjectPropertyReference(pObj->input_reference.object_id,
-            pObj->input_reference.property_id, pObj->input_reference.pa_index));
-         break;
+      pObj->input_reference.property_id, pObj->input_reference.pa_index));
+      break;
    case SCALE_FACTOR:
-          pbacnetAnyValue->SetObject(flt, new BACnetReal(pObj->scale_factor));
-         break;
+      pbacnetAnyValue->SetObject(flt, new BACnetReal(pObj->scale_factor));
+      break;
    case ADJUST_VALUE:
-          pbacnetAnyValue->SetObject(flt, new BACnetReal(pObj->adjust_value));
-         break;
+      pbacnetAnyValue->SetObject(flt, new BACnetReal(pObj->adjust_value));
+      break;
    case COUNT:
-          pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->count));
-         break;
+      pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->count));
+      break;
    case UPDATE_TIME:
-          pbacnetAnyValue->SetObject(dt, new ::BACnetDateTime(pObj->update_time.date.year, pObj->update_time.date.month,
-                                       pObj->update_time.date.day_of_month, pObj->update_time.time.hour,
-                                       pObj->update_time.time.minute, pObj->update_time.time.second));
-          break;
+      pbacnetAnyValue->SetObject(dt, new ::BACnetDateTime(pObj->update_time.date.year, pObj->update_time.date.month,
+                                 pObj->update_time.date.day_of_month, pObj->update_time.time.hour,
+                                 pObj->update_time.time.minute, pObj->update_time.time.second));
+      break;
    case COUNT_CHANGE_TIME:
-         pbacnetAnyValue->SetObject(dt, new ::BACnetDateTime(pObj->count_change_time.date.year, pObj->count_change_time.date.month,
-                                       pObj->count_change_time.date.day_of_month, pObj->count_change_time.time.hour,
-                                       pObj->count_change_time.time.minute, pObj->count_change_time.time.second));
-          break;
+      pbacnetAnyValue->SetObject(dt, new ::BACnetDateTime(pObj->count_change_time.date.year, pObj->count_change_time.date.month,
+                                 pObj->count_change_time.date.day_of_month, pObj->count_change_time.time.hour,
+                                 pObj->count_change_time.time.minute, pObj->count_change_time.time.second));
+      break;
    case COUNT_BEFORE_CHANGE:
-          pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->count_before_change));
-          break;
+      pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->count_before_change));
+      break;
    case COV_INCREMENT:
-         pbacnetAnyValue->SetObject(flt, new BACnetReal(pObj->cov_increment));
-          break;
+      pbacnetAnyValue->SetObject(flt, new BACnetReal(pObj->cov_increment));
+      break;
    case COV_PERIOD:
-         pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->cov_period));
-          break;
+      pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->cov_period));
+      break;
    case HIGH_LIMIT:
-         pbacnetAnyValue->SetObject(flt, new BACnetReal(pObj->high_limit));
-         break;
+      pbacnetAnyValue->SetObject(flt, new BACnetReal(pObj->high_limit));
+      break;
    case LOW_LIMIT:
-         pbacnetAnyValue->SetObject(flt, new BACnetReal(pObj->low_limit));
-         break;
+      pbacnetAnyValue->SetObject(flt, new BACnetReal(pObj->low_limit));
+      break;
    case DEADBAND:
-         pbacnetAnyValue->SetObject(flt, new BACnetReal(pObj->deadband));
-         break;
+      pbacnetAnyValue->SetObject(flt, new BACnetReal(pObj->deadband));
+      break;
    default:
-         // Not handled here
-         return false;
+      // Not handled here
+      return false;
    }
 
    return true;
@@ -1895,16 +1868,14 @@ bool PC_CreateProperty( pulseconverter_obj_type * pObj, BACnetPropertyIdentifier
 
 bool LC_CreateProperty( lc_obj_type * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue *pbacnetAnyValue )
 {
-   etable *petable;
+   const NetworkSniffer::BACnetStringTable *petable;
    ASSERT(pbacnetAnyValue != NULL);
 
    switch ( propertyID )
    {
    case PRESENT_VALUE:
-        petable = (etable *)PICS::GetEnumTable(eiShedState);
-      pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->present_value,
-                                                            (const char **)petable->estrings,
-                                                            petable->nes) );
+      petable = NetworkSniffer::GetEnumStringTable(eiShedState);
+      pbacnetAnyValue->SetObject(et, new BACnetEnumerated( (int)pObj->present_value, *petable ));
       break;
    case STATE_DESCRIPTION:
       pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->state_description));
@@ -1986,73 +1957,59 @@ bool LC_CreateProperty( lc_obj_type * pObj, BACnetPropertyIdentifier propertyID,
 
 bool AD_CreateProperty( ad_obj_type * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue *pbacnetAnyValue )
 {
-   etable *petable;
+   const NetworkSniffer::BACnetStringTable *petable;
    ASSERT(pbacnetAnyValue != NULL);
 
    switch ( propertyID )
    {
    case PRESENT_VALUE:
-         petable = (etable *)PICS::GetEnumTable(eiDoorValue);
-         pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->present_value,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+      petable = NetworkSniffer::GetEnumStringTable(eiDoorValue);
+      pbacnetAnyValue->SetObject(et, new BACnetEnumerated( (int)pObj->present_value, *petable ));
       break;
    case RELINQUISH_DEFAULT:
-          petable = (etable *)PICS::GetEnumTable(eiDoorValue);
-         pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->relinquish_default,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+      petable = NetworkSniffer::GetEnumStringTable(eiDoorValue);
+      pbacnetAnyValue->SetObject(et, new BACnetEnumerated( (int)pObj->relinquish_default, *petable ));
       break;
    case PRIORITY_ARRAY:
       pbacnetAnyValue->SetObject(pae, new BACnetPriorityArray((unsigned short *) pObj->priority_array, nPRIO, dvaNULL, true));
       break;
    case DOOR_STATUS:
-          petable = (etable *)PICS::GetEnumTable(eiDoorStatus);
-         pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->door_status,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+      petable = NetworkSniffer::GetEnumStringTable(eiDoorStatus);
+      pbacnetAnyValue->SetObject(et, new BACnetEnumerated( (int)pObj->door_status, *petable ));
       break;
    case LOCK_STATUS:
-          petable = (etable *)PICS::GetEnumTable(eiLockStatus);
-         pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->lock_status,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+      petable = NetworkSniffer::GetEnumStringTable(eiLockStatus);
+      pbacnetAnyValue->SetObject(et, new BACnetEnumerated( (int)pObj->lock_status, *petable ));
       break;
    case SECURED_STATUS:
-          petable = (etable *)PICS::GetEnumTable(eiDoorSecuredStatus);
-         pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->secured_status,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+      petable = NetworkSniffer::GetEnumStringTable(eiDoorSecuredStatus);
+      pbacnetAnyValue->SetObject(et, new BACnetEnumerated( (int)pObj->secured_status, *petable ));
       break;
    case DOOR_MEMBERS:
       pbacnetAnyValue->SetObject(lodoref, CreateDeviceObjectList(pObj->door_members));
       break;
    case DOOR_PULSE_TIME:
-         pbacnetAnyValue->SetObject(ud, new BACnetUnsigned((unsigned long) pObj->door_pulse_time));
+      pbacnetAnyValue->SetObject(ud, new BACnetUnsigned((unsigned long) pObj->door_pulse_time));
       break;
    case DOOR_EXTENDED_PULSE_TIME:
-         pbacnetAnyValue->SetObject(ud, new BACnetUnsigned((unsigned long) pObj->door_extended_pulse_time));
+      pbacnetAnyValue->SetObject(ud, new BACnetUnsigned((unsigned long) pObj->door_extended_pulse_time));
       break;
    case DOOR_UNLOCK_DELAY_TIME:
-         pbacnetAnyValue->SetObject(ud, new BACnetUnsigned((unsigned long) pObj->door_unlock_delay_time));
+      pbacnetAnyValue->SetObject(ud, new BACnetUnsigned((unsigned long) pObj->door_unlock_delay_time));
       break;
    case DOOR_OPEN_TOO_LONG_TIME:
-         pbacnetAnyValue->SetObject(ud, new BACnetUnsigned((unsigned long) pObj->door_open_too_long_time));
+      pbacnetAnyValue->SetObject(ud, new BACnetUnsigned((unsigned long) pObj->door_open_too_long_time));
       break;
    case DOOR_ALARM_STATE:
-          petable = (etable *)PICS::GetEnumTable(eiDoorAlarmState);
-         pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->door_alarm_state,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+      petable = NetworkSniffer::GetEnumStringTable(eiDoorAlarmState);
+      pbacnetAnyValue->SetObject(et, new BACnetEnumerated( (int)pObj->door_alarm_state, *petable ));
       break;
    case MASKED_ALARM_VALUES:
       pbacnetAnyValue->SetObject(etl, CreateEnumList( pObj->masked_alarm_values, eiDoorAlarmState ));
       break;
    case MAINTENANCE_REQUIRED:
-          petable = (etable *)PICS::GetEnumTable(eiMaintenance);
-         pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->maintenance_required,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+      petable = NetworkSniffer::GetEnumStringTable(eiMaintenance);
+      pbacnetAnyValue->SetObject(et, new BACnetEnumerated( (int)pObj->maintenance_required, *petable ));
       break;
    case ALARM_VALUES:
       pbacnetAnyValue->SetObject(etl, CreateEnumList( pObj->alarm_values, eiDoorAlarmState ));
@@ -2070,15 +2027,13 @@ bool AD_CreateProperty( ad_obj_type * pObj, BACnetPropertyIdentifier propertyID,
 
 bool SV_CreateProperty( sv_obj_type * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue *pbacnetAnyValue )
 {
-   etable *petable;
+   const NetworkSniffer::BACnetStringTable *petable;
    ASSERT(pbacnetAnyValue != NULL);
    switch ( propertyID )
    {
    case NODE_TYPE:
-      petable = (etable *)PICS::GetEnumTable(eiNodeType);
-      pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->node_type,
-                                 (const char **)petable->estrings,
-                                 petable->nes) );
+      petable = NetworkSniffer::GetEnumStringTable(eiNodeType);
+      pbacnetAnyValue->SetObject(et, new BACnetEnumerated( (int)pObj->node_type, *petable ));
       break;
    case NODE_SUBTYPE:
       pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->node_subtype));
@@ -2108,13 +2063,13 @@ bool EL_CreateProperty( el_obj_type * pObj, BACnetPropertyIdentifier propertyID,
          break;
       case START_TIME:
          pbacnetAnyValue->SetObject(dt, new ::BACnetDateTime(pObj->start_time.date.year, pObj->start_time.date.month,
-                                       pObj->start_time.date.day_of_month, pObj->start_time.time.hour,
-                                       pObj->start_time.time.minute, pObj->start_time.time.second));
+                                    pObj->start_time.date.day_of_month, pObj->start_time.time.hour,
+                                    pObj->start_time.time.minute, pObj->start_time.time.second));
          break;
       case STOP_TIME:
          pbacnetAnyValue->SetObject(dt, new ::BACnetDateTime(pObj->stop_time.date.year, pObj->stop_time.date.month,
-                                       pObj->stop_time.date.day_of_month, pObj->stop_time.time.hour,
-                                       pObj->stop_time.time.minute, pObj->stop_time.time.second));
+                                    pObj->stop_time.date.day_of_month, pObj->stop_time.time.hour,
+                                    pObj->stop_time.time.minute, pObj->stop_time.time.second));
          break;
       case BUFFER_SIZE:
          pbacnetAnyValue->SetObject(ud, new BACnetUnsigned(pObj->buffer_size));
@@ -2149,7 +2104,7 @@ bool EL_CreateProperty( el_obj_type * pObj, BACnetPropertyIdentifier propertyID,
 
 bool TLM_CreateProperty( tlm_obj_type * pObj, BACnetPropertyIdentifier propertyID, BACnetAnyValue *pbacnetAnyValue )
 {
-   etable *petable;
+   const NetworkSniffer::BACnetStringTable *petable;
    ASSERT(pbacnetAnyValue != NULL);
 
    switch ( propertyID )
@@ -2159,13 +2114,13 @@ bool TLM_CreateProperty( tlm_obj_type * pObj, BACnetPropertyIdentifier propertyI
          break;
    case START_TIME:
          pbacnetAnyValue->SetObject(dt, new ::BACnetDateTime(pObj->start_time.date.year, pObj->start_time.date.month,
-                                       pObj->start_time.date.day_of_month, pObj->start_time.time.hour,
-                                       pObj->start_time.time.minute, pObj->start_time.time.second));
+                                    pObj->start_time.date.day_of_month, pObj->start_time.time.hour,
+                                    pObj->start_time.time.minute, pObj->start_time.time.second));
          break;
    case STOP_TIME:
          pbacnetAnyValue->SetObject(dt, new ::BACnetDateTime(pObj->stop_time.date.year, pObj->stop_time.date.month,
-                                       pObj->stop_time.date.day_of_month, pObj->stop_time.time.hour,
-                                       pObj->stop_time.time.minute, pObj->stop_time.time.second));
+                                    pObj->stop_time.date.day_of_month, pObj->stop_time.time.hour,
+                                    pObj->stop_time.time.minute, pObj->stop_time.time.second));
          break;
    case LOG_DEVICE_OBJECT_PROPERTY:
          pbacnetAnyValue->SetObject(devobjpropref, new ::BACnetDeviceObjectPropertyReference(pObj->log_device_object_property.Objid,
@@ -2173,10 +2128,8 @@ bool TLM_CreateProperty( tlm_obj_type * pObj, BACnetPropertyIdentifier propertyI
                                                                pObj->log_device_object_property.ulIndex, pObj->log_device_object_property.DeviceObj));
          break;
    case LOGGING_TYPE:
-         petable = (etable *)PICS::GetEnumTable(eiLogType);
-         pbacnetAnyValue->SetObject(et, new BACnetEnumerated((int) pObj->logging_type,
-                                                               (const char **)petable->estrings,
-                                                               petable->nes) );
+         petable = NetworkSniffer::GetEnumStringTable(eiLoggingType);
+         pbacnetAnyValue->SetObject(et, new BACnetEnumerated( (int)pObj->logging_type, *petable ));
          break;
    case LOG_INTERVAL:
          pbacnetAnyValue->SetObject(ud, new BACnetUnsigned(pObj->log_interval));
@@ -2459,9 +2412,9 @@ BACnetListOfEnum * CreateEnumList( PICS::BACnetEnumList * penumList, int iTableI
 {
    BACnetListOfEnum * pbacnetList = new BACnetListOfEnum(iTableIndex);
 
-   etable *petable = (etable *)PICS::GetEnumTable(iTableIndex);
+   const NetworkSniffer::BACnetStringTable *petable = NetworkSniffer::GetEnumStringTable(iTableIndex);
    for ( ; penumList != NULL; penumList = penumList->next )
-      pbacnetList->Add(new ::BACnetEnumerated((int)penumList->value , (const char **)petable->estrings , petable->nes ));
+      pbacnetList->Add(new ::BACnetEnumerated((int)penumList->value, *petable ));
 
    return pbacnetList;
 }
@@ -2471,9 +2424,9 @@ BACnetListOfVTClass * CreateVTClassesSupported( PICS::BACnetVTClassList * pVTCla
    BACnetListOfVTClass * pbacnetArray = new BACnetListOfVTClass();
 
    // get pointer to the table describing the VTClasses enumeration
-   etable *petable = (etable *)PICS::GetEnumTable(eiVTCls);
+   const NetworkSniffer::BACnetStringTable *petable = NetworkSniffer::GetEnumStringTable(eiVTCls);
    for ( ; pVTClassList != NULL; pVTClassList = pVTClassList->next )
-      pbacnetArray->Add(new ::BACnetEnumerated((int)pVTClassList->vtclass , (const char **)petable->estrings , petable->nes ));
+      pbacnetArray->Add(new ::BACnetEnumerated((int)pVTClassList->vtclass , *petable ));
 
    return pbacnetArray;
 }

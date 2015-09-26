@@ -227,7 +227,7 @@ private:
 public:
    int                m_enumValue;
 
-   BACnetEnumerated( int evalu, NetworkSniffer::BACnetStringTable &nameList );
+   BACnetEnumerated( int evalu, const NetworkSniffer::BACnetStringTable &nameList );
 
    // Where possible, we suggest using the BACnetStringTable version when a
    // table of strings is required, to avoid maintenance hassles 

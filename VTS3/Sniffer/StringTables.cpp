@@ -2,8 +2,6 @@
 //
 // This file implements BACnetStringTable, a class that represents
 // a mapping between an enumeration and a set of strings.
-// Someday, it would be nice if this class could replace the
-// similar etable struct defined and used in Stdobjpr.h
 
 #include "stdafx.h"
 #include "StringTables.h"
@@ -105,7 +103,7 @@ int BACnetStringTable::EnumValue( const char *pString ) const
 
    if (retval < 0)
    {
-      // Not in the table.  Try for proprietary, vendor, reserved, of naked integer
+      // Not in the table.  Try for proprietary, vendor, reserved, or naked integer
       if ((_strnicmp(str, "proprietary", 11) == 0) ||
           (_strnicmp(str, "vendor", 6) == 0) ||
           (_strnicmp(str, "reserved", 8) == 0) ||
@@ -178,6 +176,12 @@ STRING_TABLE FalseTrue[] = {
 };
 BAC_STRINGTABLE(FalseTrue);
 
+STRING_TABLE NoYes[] = {
+   "No",
+   "Yes"
+};
+BAC_STRINGTABLE(NoYes);
+
 STRING_TABLE ApplicationTypes[] = {
    "Null",           // 0
    "Boolean",
@@ -217,13 +221,21 @@ STRING_TABLE BACnetBinaryPV[] = {
 };
 BAC_STRINGTABLE(BACnetBinaryPV);
 
+// As BACnetBinaryPV, but adding a NULL option
+STRING_TABLE BACnetBinaryPV_orNull[] = {
+   "inactive",
+   "active",
+   "null"
+};
+BAC_STRINGTABLE(BACnetBinaryPV_orNull);
+
 STRING_TABLE BACnetDeviceStatus[] = {
    "operational",
    "operational-read-only",
    "download-required",
    "download-in-progress",
    "non-operational",
-   "backup-in-progress"    // added by Jingbo Gao, Sep 20 2004
+   "backup-in-progress"
 };
 BAC_STRINGTABLE_EX(BACnetDeviceStatus, 64, 65536);
 
@@ -261,6 +273,14 @@ STRING_TABLE BACnetDoorValue[] = {
    "extended-pulse-unlock",
 };
 BAC_STRINGTABLE(BACnetDoorValue);
+
+STRING_TABLE BACnetDoorValue_orNull[] = {
+   "lock",
+   "unlock",
+   "pulse-unlock",
+   "extended-pulse-unlock",
+};
+BAC_STRINGTABLE(BACnetDoorValue_orNull);
 
 STRING_TABLE BACnetEngineeringUnits[] = {
 /* Area */
@@ -544,9 +564,6 @@ STRING_TABLE BACnetEngineeringUnits[] = {
    "pH",                               /* 234 */
    "grams-per-square-meter",           /* 235 */
    "minutes-per-degree-kelvin",        /* 236 last definition in 135-2012 */
-
-   // TODO: If you add strings here, also update etEU in Stdobjpr.cpp 
-   // DUDAPI\Db.h has a BACnetEngineeringUnits enum, but it has no values
 };
 BAC_STRINGTABLE_EX(BACnetEngineeringUnits, 256, 65536);
 
@@ -772,7 +789,6 @@ STRING_TABLE BACnetEventTransitionBits[] = {
 };
 BAC_STRINGTABLE(BACnetEventTransitionBits);
 
-//Modified by Zhu Zhenhua, 2004-5-17
 STRING_TABLE BACnetEventType[] = {
    "change-of-bitstring",     // 0
    "change-of-state",
@@ -830,8 +846,6 @@ STRING_TABLE BACnetFileAccessMethod[] = {
 };
 BAC_STRINGTABLE(BACnetFileAccessMethod);
 
-///////////////////////////////////////////////////////////////////////////
-//Added by Zhu Zhenhua, 2004-6-14
 STRING_TABLE BACnetLifeSafetyMode[] = {
    "off",               // 0
    "on",
@@ -843,11 +857,11 @@ STRING_TABLE BACnetLifeSafetyMode[] = {
    "prearmed",
    "slow",
    "fast",
-   "disconnected",         // 10
+   "disconnected",      // 10
    "enabled",
    "disabled",
    "automatic-release-disabled",
-   "default"            // 14 last in 135-2008
+   "default"            // 14 last in 135-2012
 };
 BAC_STRINGTABLE_EX(BACnetLifeSafetyMode, 256, 65536);
 
@@ -861,7 +875,7 @@ STRING_TABLE BACnetLifeSafetyOperation[] = {
    "reset-fault",
    "unsilence",
    "unsilence-audible",
-   "unsilence-visual",     // 9 last in 135-2008
+   "unsilence-visual",  // 9 last in 135-2012
 };
 BAC_STRINGTABLE_EX(BACnetLifeSafetyOperation, 64, 65536);
 
@@ -889,7 +903,7 @@ STRING_TABLE BACnetLifeSafetyState[] = {
    "local-alarm",       // 20
    "general-alarm",
    "supervisory",
-   "test-supervisory"      // 23 last in 135-2008
+   "test-supervisory"   // 23 last in 135-2012
 };
 BAC_STRINGTABLE_EX(BACnetLifeSafetyState, 256, 65536);
 
@@ -1018,10 +1032,10 @@ STRING_TABLE BACnetObjectType[] = {
    "lighting-output"        // 54 Last  in 135-2012.  Protocol revision 14
 
    // TODO: if you add an object type here, you must also
-   // - Add the string to etObjectTypes in Stdobjpr.h
    // - Add the string to StandardObjects in Vtsapi32.cpp (which is capitalized and uses spaces instead of hyphens)
-   // - Add a value to the enumeration BACnetObjectType in VTS.h (which will change MAX_DEFINED_OBJ)
-   // - Add a case to Check_Obj_Prop in DUDTOOL.CPP, and a table of supported properties for the object
+   // - Add a string to the enumeration BACnetObjectType in VTS.h (which will change MAX_DEFINED_OBJ)
+   // - Add a case to GetObjectTable in DUDTOOL.CPP, and a table of supported properties for the object
+   // - Add a table in stdobjpr.h for the object's properties
    // - For each type, there is also an icon for use in the EpicsTree view,
    //   IDB_EPICSTREE  BITMAP "res\\epicstree.bmp"
    //   So you may need to do some artwork there. (Some extra blank bitmaps have been added, but you can decorate them)
@@ -1741,7 +1755,7 @@ STRING_TABLE BACnetVendorID[] = {
    "JCI Systems Integration Services",                       // 107
    "Freedom Corporation",                                    // 108
    "Neuberger Gebäudeautomation GmbH",                       // 109
-   "Sitronix",                                               // 110
+   "eZi Controls",                                           // 110
    "Leviton Manufacturing",                                  // 111
    "Fujitsu Limited",                                        // 112
    "Emerson Network Power",                                  // 113
@@ -1913,7 +1927,7 @@ STRING_TABLE BACnetVendorID[] = {
    "M-System Co., Ltd.",                                     // 279
    "Yokota Co., Ltd.",                                       // 280
    "Hitranse Technology Co., LTD",                           // 281
-   "Federspiel Controls",                                    // 282
+   "Vigilent Corporation",                                   // 282
    "Kele, Inc.",                                             // 283
    "Opera Electronics, Inc.",                                // 284
    "Gentec",                                                 // 285
@@ -2358,7 +2372,7 @@ STRING_TABLE BACnetVendorID[] = {
    "Eltrac Technologies Pvt Ltd",                            // 724
    "Bektas Invisible Controls GmbH",                         // 725
    "Entelec",                                                // 726
-   "Innexiv",                                                // 727
+   "INNEXIV",                                                // 727
    "Covenant",                                               // 728
    "Davitor AB",                                             // 729
    "TongFang Technovator",                                   // 730
@@ -2429,8 +2443,63 @@ STRING_TABLE BACnetVendorID[] = {
    "8760 Enterprises, Inc.",                                 // 795
    "Touche Controls",                                        // 796
    "Ontrol Teknik Malzeme San. ve Tic. A.S.",                // 797
+   "Uni Control System Sp. Z o.o.",                          // 798
+   "Weihai Ploumeter Co., Ltd",                              // 799
+   "Elcom International Pvt. Ltd",                           // 800
+   "Philips Lighting",                                       // 801
+   "AutomationDirect",                                       // 802
+   "Paragon Robotics",                                       // 803
+   "SMT System  Modules Technology AG",                      // 804
+   "OS Technology Service and Trading Co., LTD",             // 805
+   "CMR Controls Ltd",                                       // 806
+   "Innovari, Inc.",                                         // 807
+   "ABB Control Products",                                   // 808
+   "Gesellschaft fur Gebäudeautomation mbH",                 // 809
+   "RODI Systems Corp.",                                     // 810
+   "Nextek Power Systems",                                   // 811
+   "Creative Lighting",                                      // 812
+   "WaterFurnace International",                             // 813
+   "Mercury Security",                                       // 814
+   "Hisense (Shandong) Air-Conditioning Co., Ltd.",          // 815
+   "Layered Solutions, Inc.",                                // 816
+   "Leegood Automatic System, Inc.",                         // 817
+   "Shanghai Restar Technology Co., Ltd.",                   // 818
+   "Reimann Ingenieurbüro",                                  // 819
+   "LynTec",                                                 // 820
+   "HTP",                                                    // 821
+   "Elkor Technologies, Inc.",                               // 822
+   "Bentrol Pty Ltd",                                        // 823
+   "Team-Control Oy",                                        // 824
+   "NextDevice, LLC",                                        // 825
+   "GLOBAL CONTROL 5 Sp. z o.o.",                            // 826
+   "King I Electronics Co., Ltd",                            // 827
+   "SAMDAV",                                                 // 828
+   "Next Gen Industries Pvt. Ltd.",                          // 829
+   "Entic LLC",                                              // 830
+   "ETAP",                                                   // 831
+   "Moralle Electronics Limited",                            // 832
+   "Leicom AG",                                              // 833
+   "Watts Regulator Company",                                // 834
+   "S.C. Orbtronics S.R.L.",                                 // 835
+   "Gaussan Technologies",                                   // 836
+   "WEBfactory GmbH",                                        // 837
+   "Ocean Controls",                                         // 838
+   "Messana  Air-Ray Conditioning s.r.l.",                   // 839
+   "Hangzhou BATOWN Technology Co. Ltd.",                    // 840
+   "Reasonable Controls",                                    // 841
+   "Servisys, Inc.",                                         // 842
+   "halstrup-walcher GmbH",                                  // 843
+   "SWG Automation Fuzhou Limited",                          // 844
+   "KSB Aktiengesellschaft",                                 // 845
+   "Hybryd Sp. z o.o.",                                      // 846
+   "Helvatron AG",                                           // 847
+   "Oderon Sp. Z.O.O.",                                      // 848
+   "miko",                                                   // 849
+   "Exodraft",                                               // 850
+   "Hochhuth GmbH",                                          // 851
+   "Integrated System Technologies Ltd.",                    // 852
    // TODO add more here ...
-   // Updated 14 November 2014 from http://www.bacnet.org/VendorID/BACnet%20Vendor%20IDs.htm
+   // Updated 26 September 2015 from http://www.bacnet.org/VendorID/BACnet%20Vendor%20IDs.htm
    // Use the VTS utility VendorIdTable to update this table.
 };
 BAC_STRINGTABLE_EX(BACnetVendorID, 0x7FFFFFFF, 0x7FFFFFFF);
@@ -2713,5 +2782,70 @@ STRING_TABLE NetworkNumberType[] = {
    "configured"
 };
 BAC_STRINGTABLE(NetworkNumberType);
+
+
+//=============================================================================
+// Empty table to return for undefined enumerations
+const static BACnetStringTable s_dummy( NULL, 0 );
+
+//=============================================================================
+// Table to map enumeration specifier to a string table for the enumeration.
+static const BACnetStringTable* s_enumStringTables[] =
+{
+   &BAC_STRTAB_FalseTrue,              // 0
+   &BAC_STRTAB_BACnetReliability,
+   &BAC_STRTAB_BACnetEventState,
+   &BAC_STRTAB_BACnetEngineeringUnits,
+   &BAC_STRTAB_BACnetNotifyType,
+   &BAC_STRTAB_BACnetBinaryPV,
+   &BAC_STRTAB_BACnetPolarity,
+   &BAC_STRTAB_BACnetDeviceStatus,
+   &BAC_STRTAB_BACnetSegmentation,
+   &BAC_STRTAB_BACnetEventType,
+   &BAC_STRTAB_BACnetFileAccessMethod, // 10
+   &BAC_STRTAB_BACnetAction,
+   &BAC_STRTAB_BACnetProgramError,
+   &BAC_STRTAB_BACnetProgramState,
+   &BAC_STRTAB_BACnetProgramRequest,
+   &BAC_STRTAB_BACnetObjectType,
+   &BAC_STRTAB_BACnetStatusFlags,
+   &BAC_STRTAB_BACnetEventTransitionBits,
+   &BAC_STRTAB_BACnetLimitEnable,
+   &BAC_STRTAB_BACnetVTClass,
+   &BAC_STRTAB_BACnetDaysOfWeek,       // 20
+   &BAC_STRTAB_NoYes,
+   &BAC_STRTAB_month,
+   &BAC_STRTAB_BACnetBinaryPV_orNull,
+   &BAC_STRTAB_BACnetLifeSafetyState,
+   &BAC_STRTAB_BACnetSilencedState,
+   &BAC_STRTAB_BACnetLifeSafetyOperation,
+   &BAC_STRTAB_BACnetMaintenance,
+   &BAC_STRTAB_BACnetLifeSafetyMode,
+   &BAC_STRTAB_BACnetAccumulatorStatus,
+   &BAC_STRTAB_BACnetLoggingType,      // 30
+   &BAC_STRTAB_BACnetShedState,
+   &BAC_STRTAB_BACnetNodeType,
+   &BAC_STRTAB_BACnetDoorValue,
+   &BAC_STRTAB_BACnetDoorStatus,
+   &BAC_STRTAB_BACnetLockStatus,
+   &BAC_STRTAB_BACnetDoorSecuredStatus,
+   &BAC_STRTAB_BACnetDoorAlarmState,
+   &BAC_STRTAB_BACnetDoorValue_orNull,
+   &BAC_STRTAB_BACnetBackupState,
+   &BAC_STRTAB_BACnetRestartReason     // 40
+};
+
+//=============================================================================
+/// Return a pointer to the BACnetStringTable corresponding to the specified enumeration.
+const BACnetStringTable* GetEnumStringTable(int iTableIndex)
+{
+   const BACnetStringTable *pRetval = &s_dummy;
+   if (iTableIndex < sizeof(s_enumStringTables)/sizeof(s_enumStringTables[0]))
+   {
+      pRetval = s_enumStringTables[iTableIndex];
+   }
+
+   return pRetval;
+}
 
 } // end namespace NetworkSniffer

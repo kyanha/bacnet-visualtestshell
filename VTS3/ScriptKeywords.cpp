@@ -500,9 +500,7 @@ static void MakeHash( ScriptTranslateTable				**ppTheTranslateTable,	// build th
 void MakeHashTables()
 {
 	MakeHash( &ScriptPropertyMap,  NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier, NULL );
-	
 	MakeHash( &ScriptObjectTypeMap, NetworkSniffer::BAC_STRTAB_BACnetObjectType, ScriptObjectTypeMap_Aliases );
-	VetHash( NetworkSniffer::BAC_STRTAB_BACnetObjectType, ScriptObjectTypeMap, (const char**)PICS::etObjectTypes.estrings );
 
 	MakeHash( &ScriptALConfirmedServiceMap, NetworkSniffer::BAC_STRTAB_BACnetConfirmedServiceChoice, NULL );
 	MakeHash( &ScriptALUnconfirmedServiceMap, NetworkSniffer::BAC_STRTAB_BACnetUnconfirmedServiceChoice, NULL );

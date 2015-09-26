@@ -101,6 +101,9 @@ enum  BACnetObjectType
    OBJ_CHANNEL                 = 53, // protocol revision 14
    OBJ_LIGHTING_OUTPUT         = 54, // last in 135-2012 protocol revision 14
 
+   // TODO: see comments at the end of StringTables.cpp BACnetObjectType regarding
+   // actions to be taken when an object type is added
+
    // After the last object, determine size of the above
    MAX_DEFINED_OBJ                   // This is one more than the highest defined object type
 };
