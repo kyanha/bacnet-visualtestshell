@@ -899,9 +899,7 @@ BACnetEncodeable * BACnetEncodeable::Factory( int nParseType, BACnetAPDUDecoder 
 
       case PT_PROPLIST: // List of BACnetPropertyIdentifiers
          // Make a prototype enumerated value
-         pRetval = new BACnetEnumerated( 0,
-                                         NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_pStrings,
-                                         NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier.m_nStrings );
+         pRetval = new BACnetEnumerated( 0, NetworkSniffer::BAC_STRTAB_BACnetPropertyIdentifier );
          // Create an array of them
          pRetval = new BACnetGenericArray(pRetval);
          // Decode the array
@@ -1251,7 +1249,7 @@ IMPLEMENT_DYNAMIC(BACnetEnumerated, BACnetEncodeable)
 //
 // BACnetEnumerated
 //
-BACnetEnumerated::BACnetEnumerated( int evalu, NetworkSniffer::BACnetStringTable &nameList )
+BACnetEnumerated::BACnetEnumerated( int evalu, const NetworkSniffer::BACnetStringTable &nameList )
 : m_enumValue( evalu )
 , m_papNameList(nameList.m_pStrings)
 , m_nListSize(nameList.m_nStrings)
@@ -1415,109 +1413,109 @@ bool BACnetEnumerated::Match( BACnetEncodeable &rbacnet, int iOperator, CString 
 // this method could be replaced by a few lines using the enum-type from the table entry
 BACnetEnumerated * BACnetEnumerated::Factory(int nPropID)
 {
-   PICS::etable *petable;
+   const NetworkSniffer::BACnetStringTable *petable;
 
    switch ( nPropID )
    {
       case OBJECT_TYPE:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiObjectTypes);
+         petable = NetworkSniffer::GetEnumStringTable(eiObjectTypes);
          break;
 
       case EVENT_STATE:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiEvState);
+         petable = NetworkSniffer::GetEnumStringTable(eiEvState);
          break;
 
       case EVENT_TYPE:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiEvType);
+         petable = NetworkSniffer::GetEnumStringTable(eiEvType);
          break;
 
       case RELIABILITY:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiReli);
+         petable = NetworkSniffer::GetEnumStringTable(eiReli);
          break;
 
       case UNITS:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiEU);
+         petable = NetworkSniffer::GetEnumStringTable(eiEU);
          break;
 
       case NOTIFY_TYPE:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiNT);
+         petable = NetworkSniffer::GetEnumStringTable(eiNT);
          break;
 
       case PRESENT_VALUE:
       case RELINQUISH_DEFAULT:
          // TODO: eiBPV isn't correct for AccessDoor.
-         petable = (PICS::etable *)PICS::GetEnumTable(eiBPV);
+         petable = NetworkSniffer::GetEnumStringTable(eiBPV);
          break;
 
       case POLARITY:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiPolar);
+         petable = NetworkSniffer::GetEnumStringTable(eiPolar);
          break;
 
       case ALARM_VALUE:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiBPV);
+         petable = NetworkSniffer::GetEnumStringTable(eiBPV);
          break;
 
       case SYSTEM_STATUS:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiDS);
+         petable = NetworkSniffer::GetEnumStringTable(eiDS);
          break;
 
       case SEGMENTATION_SUPPORTED:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiSegOpt);
+         petable = NetworkSniffer::GetEnumStringTable(eiSegOpt);
          break;
 
       case FILE_ACCESS_METHOD:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiFAM);
+         petable = NetworkSniffer::GetEnumStringTable(eiFAM);
          break;
 
       case OUTPUT_UNITS:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiEU);
+         petable = NetworkSniffer::GetEnumStringTable(eiEU);
          break;
 
       case CONTROLLED_VARIABLE_UNITS:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiEU);
+         petable = NetworkSniffer::GetEnumStringTable(eiEU);
          break;
 
       case ACTION:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiLoopAct);
+         petable = NetworkSniffer::GetEnumStringTable(eiLoopAct);
          break;
 
       case PROPORTIONAL_CONSTANT_UNITS:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiEU);
+         petable = NetworkSniffer::GetEnumStringTable(eiEU);
          break;
 
       case INTEGRAL_CONSTANT_UNITS:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiEU);
+         petable = NetworkSniffer::GetEnumStringTable(eiEU);
          break;
 
       case DERIVATIVE_CONSTANT_UNITS:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiEU);
+         petable = NetworkSniffer::GetEnumStringTable(eiEU);
          break;
 
       case PROGRAM_STATE:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiPrState);
+         petable = NetworkSniffer::GetEnumStringTable(eiPrState);
          break;
 
       case REASON_FOR_HALT:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiPrErr);
+         petable = NetworkSniffer::GetEnumStringTable(eiPrErr);
          break;
 
       case VT_CLASSES_SUPPORTED:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiVTCls);
+         petable = NetworkSniffer::GetEnumStringTable(eiVTCls);
          break;
 
       case BACKUP_AND_RESTORE_STATE:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiBackupState);
+         petable = NetworkSniffer::GetEnumStringTable(eiBackupState);
          break;
 
       case LOGGING_TYPE:
-         petable = (PICS::etable *)PICS::GetEnumTable(eiLoggingType);
+         petable = NetworkSniffer::GetEnumStringTable(eiLoggingType);
          break;
 
       default:
          return new BACnetEnumerated(0);
    }
 
-   return new BACnetEnumerated( 0, (const char **) petable->estrings, petable->nes );
+   return new BACnetEnumerated( 0, *petable );
 }
 
 
@@ -8435,7 +8433,7 @@ BACnetListOfEnum::BACnetListOfEnum(int tableId)
                :BACnetGenericArray(etl)
 {
    m_nType = etl;
-   m_nTableId = tableId;  // from AllETs list in stdobjpr.h
+   m_nTableId = tableId;  // from enumeration enumeration (eiXXX) in prop.h
 }
 
 

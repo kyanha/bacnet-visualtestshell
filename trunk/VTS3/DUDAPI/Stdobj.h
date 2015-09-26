@@ -694,6 +694,8 @@ typedef struct
    bool                    log_enable;
    BACnetDateTime          start_time;
    BACnetDateTime          stop_time;
+   // TODO: should be an ARRAY OF BACnetDeviceObjectPropertyReference
+   // like the LIST OF in ther Schedule
    BACnetDeviceObjectPropertyReference    log_device_object_property;
    enum BACnetLoggingType  logging_type;
    bool                    align_intervals;
@@ -711,7 +713,7 @@ typedef struct
 } tlm_obj_type;
 
 // --------------------------------------------------------
-// A placeholder until *someone* fleshs out the real
+// A placeholder until *someone* fleshes out the real
 // properties of a new Object Type.
 //-------------------------------------------------------
 typedef struct {

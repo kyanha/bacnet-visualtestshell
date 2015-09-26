@@ -13,7 +13,6 @@ namespace NetworkSniffer {
 // long-term usage will result in the buffer being re-used.
 char* TempTextBuffer();
 
-
 // To safely export string tables, we export them as structs
 // containing a pointer to the table, and a count of elements
 struct BACnetStringTable
@@ -51,6 +50,11 @@ struct BACnetStringTable
    void FillCombo( CComboBox &theCombo, bool doSort = false ) const;
 };
 
+/// Return a pointer to the BACnetStringTable corresponding to the specified enumeration.
+/// If the enumeration is unknown, returns a pointer to an empty string table.
+/// The enumeration of enumerations is the eiXXX in PROPS.H
+const BACnetStringTable* GetEnumStringTable(int iTableIndex);
+
 #define STRING_TABLE const char* const
 
 // Define a BACnetStringTable, and declare the table itself
@@ -65,10 +69,12 @@ struct BACnetStringTable
    extern BACnetStringTable BAC_STRTAB_##name
 
 EXPORT_STRINGTABLE(FalseTrue);
+EXPORT_STRINGTABLE(NoYes);
 EXPORT_STRINGTABLE(ApplicationTypes);
 EXPORT_STRINGTABLE(BACnetAccumulatorStatus);
 EXPORT_STRINGTABLE(BACnetAction);
 EXPORT_STRINGTABLE(BACnetBinaryPV);
+EXPORT_STRINGTABLE(BACnetBinaryPV_orNull);
 EXPORT_STRINGTABLE(BACnetDeviceStatus);
 EXPORT_STRINGTABLE(BACnetDoorAlarmState);
 EXPORT_STRINGTABLE(BACnetDoorSecuredStatus);

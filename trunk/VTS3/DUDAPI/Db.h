@@ -186,7 +186,7 @@ enum BACnetEngineeringUnits
       // This enumeration type is used in various functions etc., but none
       // of the enumerated VALUES are ever used: we just cast to and from integers.
       // Thus, to eliminate pointless maintenance, we have removed the values here.
-      // Tables of string may be found in StringTables.cpp and  etEU in Stdobjpr.cpp
+      // Tables of string may be found in StringTables.cpp.
       NOTHING = 0
    };
 

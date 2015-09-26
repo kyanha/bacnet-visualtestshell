@@ -12,16 +12,6 @@ typedef unsigned short uint;
 #include	"stdobj.h"
 #include    "VTS.h"
 
-#ifndef _etable
-typedef struct {
-	word	propes;								//proprietary enumerations begin at this value
-	dword	propmaxes;							//max value for proprietary+1
-	word	nes;								//number of string pointers which follow
-	char	*estrings[500];						//table of pointers to strings
-	} etable;
-#define _etable 0
-#endif
-
 typedef struct {
 	char	*name;
 	dword	dwcons;
@@ -164,7 +154,6 @@ int   GetCharsetSize(void);
 const char *GetCharsetName(octet csTag);
 int   GetSpecialFunctionalitySize(void);
 const char *GetSpecialFunctionalityName(int i);
-void *GetEnumTable(int iTableIndex);
 bool cvhex(char *buf,octet *result);
 
 // Global variables

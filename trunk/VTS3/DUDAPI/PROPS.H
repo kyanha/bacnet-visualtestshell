@@ -181,53 +181,51 @@ static const char *stParseTypes[]={
 //last definition in an object is marked in PropGroup with:
 #define	LAST		0x80
 
-//NOTE: the following equates MUST represent the order in the AllETs table in STDOBJPR.H!
-//msdanner 9/2004 - all reduced by one to eliminate need for "-1" all the time.
-#define		eiTF           0
-#define		eiReli         1
-#define		eiEvState      2
-#define		eiEU           3
-#define		eiNT           4
-#define		eiBPV          5
-#define		eiPolar        6
-#define		eiDS           7
-#define		eiSegOpt       8
-#define		eiEvType       9
-#define		eiFAM          10
-#define		eiLoopAct      11
-#define		eiPrErr        12
-#define		eiPrState      13
-#define		eiPrChg        14
-#define 	   eiObjectTypes  15
-#define		eiStF          16
-#define		eiEvTr         17
-#define		eiLimEn        18
-#define		eiVTCls        19
-#define		eiDOW          20
-#define		eiYN           21
-#define		eiCalType      22
-#define		eiMon          23
-#define		eiWOM          24
-#define		eiAnyDOW       25
-#define		eiBPVn         26
-#define		eiAppDataTypes 27
-#define     eiLifeSafetyState 28
-#define     eiSilencedState   29
-#define     eiLifeSafetyOperation   30
-#define     eiMaintenance  31
-#define     eiLifeSafetyMode 32
-#define     eiAccumulatorStatus  33
-#define		eiLogType 34
-#define		eiShedState 35
-#define		eiNodeType	36
-#define		eiDoorValue	37
-#define		eiDoorStatus	38
-#define		eiLockStatus	39
-#define		eiDoorSecuredStatus	40
-#define		eiDoorAlarmState	41
-#define		eiDoorValuen		42
-#define		eiBackupState		43
-#define		eiRestartReason	44
-#define		eiLoggingType		45
+// NOTE: the following values MUST represent the order in the s_enumStringTables table in StringTables.cpp!
+enum EnumType
+{
+   eiNone = -1,      // used for non-enumerated parse types
+   eiTF = 0,         // 0
+   eiReli,
+   eiEvState,
+   eiEU,
+   eiNT,
+   eiBPV,
+   eiPolar,
+   eiDS,
+   eiSegOpt,
+   eiEvType,
+   eiFAM,            // 10
+   eiLoopAct,
+   eiPrErr,
+   eiPrState,
+   eiPrChg,
+   eiObjectTypes,
+   eiStF,
+   eiEvTr,
+   eiLimEn,
+   eiVTCls,
+   eiDOW,            // 20
+   eiYN,
+   eiMon,
+   eiBPVn,
+   eiLifeSafetyState,
+   eiSilencedState,
+   eiLifeSafetyOperation,
+   eiMaintenance,
+   eiLifeSafetyMode,
+   eiAccumulatorStatus,
+   eiLoggingType,    // 30
+   eiShedState,
+   eiNodeType,
+   eiDoorValue,
+   eiDoorStatus,
+   eiLockStatus,
+   eiDoorSecuredStatus,
+   eiDoorAlarmState,
+   eiDoorValuen,
+   eiBackupState,
+   eiRestartReason   // 40
+};
 
 #endif //__PROPS_H_INCLUDED
