@@ -64,9 +64,6 @@ typedef VTSDevice *VTSDevicePtr;
 class VTSDevicePort;
 typedef VTSDevicePort *VTSDevicePortPtr;
 
-class VTSDeviceDlg;
-typedef VTSDeviceDlg *VTSDeviceDlgPtr;
-
 struct CSendGroup;
 typedef CSendGroup *CSendGroupPtr;
 typedef CSendGroupPtr *CSendGroupList;
