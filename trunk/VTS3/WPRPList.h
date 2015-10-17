@@ -13,14 +13,7 @@
 #include "BACnetIP.hpp"
 #include "VTSAny.h"
 
-//Xiao Shiyuan 2002-12-2
-
-class WPRPList  
-{
-public:
-};
-
-class WPMRPMElem 
+class WPMRPMElem
 {
 public:
 	BACnetEnumerated		m_prop;
