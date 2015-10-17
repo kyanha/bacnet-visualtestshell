@@ -209,8 +209,8 @@ MSTPImplementation::~MSTPImplementation()
 
 
 
-extern void CheckSocketError( char *func );
-extern const char * GetSocketErrorMsg( int nSocketError );
+extern void CheckLastError( const char *pTheFormat );
+extern const char* GetSystemErrorMsg( CString &theResult, const char *pTheFormat, int nError );
 
 //const u_short	kDefaultPort = 17284;
 
@@ -355,7 +355,7 @@ bool MSTPImp_NBLink::SetupNBLinkDevice()
 		else
 		{
 			m_pmstpPort->SetPortStatus(3, "NB-Link initialization failure");
-			str.Format("MS/TP NBLink Init Error:\n%s\n\nThe port has been halted.", GetSocketErrorMsg(nError));
+			GetSystemErrorMsg( str, "MS/TP NBLink Init Error:\n%s\n\nThe port has been halted.", nError );
 		}
 
 		AfxMessageBox(str);
@@ -555,7 +555,7 @@ void MSTPImp_NBLink::SendData( BACnetOctet *data, int len )
 					m_pmstpPort->Msg(str);
 
 #ifdef _DEBUG
-					str.Format("MS/TP Send Error:\n%s", GetSocketErrorMsg(e));
+					GetSystemErrorMsg( str, "MS/TP Send Error:\n%s", e );
 					AfxMessageBox(str);
 #endif
 					break;
@@ -629,8 +629,7 @@ UINT MSTP_NBLink_ThreadFunc( LPVOID pParam )
 		 !socketSvr.IOCtl(FIONBIO, &dwBlocking) )
 	{
 		CString str;
-		str.Format("MSTP NB-Link startup error:\n%s", GetSocketErrorMsg(socketSvr.GetLastError()));
-
+		GetSystemErrorMsg( str, "MSTP NB-Link startup error:\n%s", socketSvr.GetLastError() );
 		AfxMessageBox(str);
 		pNBLink->m_Continue = false;
 	}
@@ -672,7 +671,7 @@ UINT MSTP_NBLink_ThreadFunc( LPVOID pParam )
 				!socketData.IOCtl(FIONBIO, &dwBlocking) )
 			{
 				CString str;
-				str.Format("MSTP NB-Link UDP error:\n%s", GetSocketErrorMsg(socketSvr.GetLastError()));
+				GetSystemErrorMsg( str, "MSTP NB-Link UDP error:\n%s", socketSvr.GetLastError() );
 				pServer->SetPortStatus(1, "NB-Link Data Socket Failure");
 				AfxMessageBox(str);
 				pNBLink->m_Continue = false;
@@ -738,7 +737,7 @@ UINT MSTP_NBLink_ThreadFunc( LPVOID pParam )
 						str.Format("MS/TP Receive Error: WSAE Error = %d, Port status waiting on connection re-establish from NB-Link", nkill);
 						pServer->Msg(str);
 #if _DEBUG
-						str.Format("MS/TP Receive Error:\n%s", GetSocketErrorMsg(nkill));
+						GetSystemErrorMsg( str, "MS/TP Receive Error:\n%s", nkill );
 						OutputDebugString(str);
 #endif
 						pNBLink->m_psocket->Close();
