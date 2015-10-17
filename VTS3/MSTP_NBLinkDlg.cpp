@@ -16,8 +16,8 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // CMSTP_NBLinkDlg dialog
 
-extern void CheckSocketError( char *func );
-extern const char * GetSocketErrorMsg( int nSocketError );
+extern void CheckLastError( const char *pTheFormat );
+extern const char* GetSystemErrorMsg( CString &theResult, const char *pTheFormat, int nError );
 
 const LPCTSTR lpctstrDisclaimer = "The BACnet Testing Laboratories (BTL) has not tested the American Auto-Matrix NB-Link for conformance to the BACnet standard, nor does the BTL endorse the NB-Link as a product.";
 
@@ -143,7 +143,7 @@ void CMSTP_NBLinkDlg::OnReset()
 	if ( nError > 0 )		// use -1 if error but not WSAE error
 	{
 		CString str;
-		str.Format("MS/TP NBLink Reset Error:\n%s", GetSocketErrorMsg(nError));
+		GetSystemErrorMsg( str, "MS/TP NBLink Reset Error:\n%s", nError );
 		AfxMessageBox(str);
 	}
 
