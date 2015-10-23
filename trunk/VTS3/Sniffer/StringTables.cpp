@@ -2498,6 +2498,11 @@ STRING_TABLE BACnetVendorID[] = {
    "Exodraft",                                               // 850
    "Hochhuth GmbH",                                          // 851
    "Integrated System Technologies Ltd.",                    // 852
+   "Shanghai Cellcons Controls Co., Ltd",                    // 853
+   "Emme Controls, LLC",                                     // 854
+   "Field Diagnostic Services, Inc.",                        // 855
+   "Ges Teknik A.S.",                                        // 856
+   "Global Power Products, Inc.",                            // 857
    // TODO add more here ...
    // Updated 26 September 2015 from http://www.bacnet.org/VendorID/BACnet%20Vendor%20IDs.htm
    // Use the VTS utility VendorIdTable to update this table.
