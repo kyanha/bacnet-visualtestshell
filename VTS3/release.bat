@@ -1,5 +1,5 @@
 @echo off
-rem 24 December 2014
+rem 23 October 2015
 rem The original version of this script (near the bottom) is obsolete:
 rem 1) pkzip25 is long since obsolete.
 rem 2) The commands used (-dir) include some junk (.jpg files under doc, for example)
@@ -17,12 +17,13 @@ To make a release:
 2) Run the VTS utility VendorIdTable on this file to generate a new set of strings.
    Use them to upate BACnetVendorID[] in StringTables.cpp.
 3) Update the version resource in vts.rc to the appropriate version number.
-4) Build and test.
+4) Clean, build and test.
 5) Update Docs\QuickStart.html with
    - new/changed feature list
    - change list since the previous version from the svn history
-6) Create a ZIP file with a version-specific name like "vts-3.6.2.zip"
-7) Copy the exe and dll files into the root of the zip file:
+6) Update Docs\vtsversion.txt with the version and the new/changed feature list
+7) Create a ZIP file with a version-specific name like "vts-3.6.2.zip"
+8) Copy the exe and dll files into the root of the zip file:
    - release\VTS.exe
    - release\ptp.dll 
    - NBLink\release\nb_link_settings.dll 
@@ -34,11 +35,16 @@ To make a release:
    - the Visual Studio redistributable installer vcredist_x86.exe
      This may usually be found on your PC somewhere like
      C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bootstrapper\Packages\vcredist_x86\vcredist_x86.exe)
-8) Copy the documentation folder "Docs" as a folder into the zip file
-9) Copy the script folder "scripts" as a folder into the zip file
-10) Upload the zip file to SourceForge.
-11) Update the file http://vts.sourceforge.net/vtsversion.txt to specify the current version.
-   (VTS will read this file at startup, to notify users of updates)
+9) Copy the documentation folder "Docs" as a folder into the zip file
+10) Copy the script folder "scripts" as a folder into the zip file
+11) Upload the zip file to SourceForge (Select "Files" from the VTS page menu...)
+12) Mark the new zip as the one to download by clicking on the circled "i" 
+    "View Details to the right of the uploaded file, and check the "Windows" box.
+    It may take a few seconds/minutes to update the button on the main web page.
+13) Update and upload READNE-Files.txt on the main Files page to specify the new version.
+14) Update the file http://vts.sourceforge.net/vtsversion.txt (edited in step 6
+    above) using a secure FTP client such as FileZilla.
+    (VTS will read this file at startup, to notify users of updates)
 
 We used to also generate s source.zip, but I don't see the point: is svn really so hard?
 If you want to to it:
