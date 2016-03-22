@@ -282,288 +282,251 @@ STRING_TABLE BACnetDoorValue_orNull[] = {
 };
 BAC_STRINGTABLE(BACnetDoorValue_orNull);
 
+// These strings are copied from Clause 21, and match
+// the capitalization and punctuation used there.
 STRING_TABLE BACnetEngineeringUnits[] = {
-/* Area */
-   "Square-meters",             /* 0 */
-   "Square-feet",               /* 1 */
-
-/* Electrical */
-   "Milliamperes",              /* 2 */
-   "Amperes",                   /* 3 */
-   "Ohms",                      /* 4 */
-   "Volts",                     /* 5 */
-   "Kilovolts",                 /* 6 */
-   "Megavolts",                 /* 7 */
-   "Volt-amperes",              /* 8 */
-   "Kilovolt-amperes",          /* 9 */
-   "Megavolt-amperes",          /* 10 */
-   "Volt-amperes-reactive",     /* 11 */
-   "Kilovolt-amperes-reactive", /* 12 */
-   "Megavolt-amperes-reactive", /* 13 */
-   "Degrees phase",             /* 14 */
-   "Power factor",              /* 15 */
-
-/* Energy */
-   "Joules",                    /* 16 */
-   "Kilojoules",                /* 17 */
-   "Watt-hours",                /* 18 */
-   "Kilowatt-hours",            /* 19 */
-   "BTUs",                      /* 20 */
-   "Therms",                    /* 21 */
-   "Ton-hours",                 /* 22 */
-
-/* Enthalpy */
-   "Joules-per-kilogram-dry-air", /* 23 */
-   "BTUs-per-pound-dry-air",      /* 24 */
-
-/* Frequency */
-   "Cycles-per-hour",            /* 25 */
-   "Cycles-per-minute",          /* 26 */
-   "Hertz",                      /* 27 */
-
-/* Humidity */
-   "Grams-of-water-per-kilogram-dry-air", /* 28 */
-   "Percent-relative-humidity",           /* 29 */
-
-/* Length */
-   "Millimeters",               /* 30 */
-   "Meters",                    /* 31 */
-   "Inches",                    /* 32 */
-   "Feet",                      /* 33 */
-
-/* Light */
-   "Watts-per-square-foot",     /* 34 */
-   "Watts-per-square-meter",    /* 35 */
-   "Lumens",                    /* 36 */
-   "Luxes",                     /* 37 */
-   "Foot-candles",              /* 38 */
-
-/* Mass */
-   "Kilograms",                 /* 39 */
-   "Pounds-mass",               /* 40 */
-   "Tons",                      /* 41 */
-
-/* Mass Flow */
-   "Kilograms-per-second",      /* 42 */
-   "Kilograms-per-minute",      /* 43 */
-   "Kilograms-per-hour",        /* 44 */
-   "Pounds-mass-per-minute",    /* 45 */
-   "Pounds-mass-per-hour",      /* 46 */
-
-/* Power */
-   "Watts",                     /* 47 */
-   "Kilowatts",                 /* 48 */
-   "Megawatts",                 /* 49 */
-   "BTUs-per-hour",             /* 50 */
-   "Horsepower",                /* 51 */
-   "Tons (refrigeration)",      /* 52 */
-
-/* Pressure */
-   "Pascals",                      /* 53 */
-   "Kilopascals",                  /* 54 */
-   "Bars",                         /* 55 */
-   "Pounds-force-per-square-inch", /* 56 */
-   "Centimeters-of-water",         /* 57 */
-   "Inches-of-water",              /* 58 */
-   "Millimeters-of-mercury",       /* 59 */
-   "Centimeters-of-mercury",       /* 60 */
-   "Inches-of-mercury",            /* 61 */
-
-/* Temperature */
-   "Degrees-Celsius",           /* 62 */
-   "Degrees-Kelvin",            /* 63 */
-   "Degrees-Fahrenheit",        /* 64 */
-   "Degree-days-Celsius",       /* 65 */
-   "Degree-days-Fahrenheit",    /* 66 */
-
-/* Time */
-   "Years",   /* 67 */
-   "Months",  /* 68 */
-   "Weeks",   /* 69 */
-   "Days",    /* 70 */
-   "Hours",   /* 71 */
-   "Minutes", /* 72 */
-   "Seconds", /* 73 */
-
-/* Velocity */
-   "Meters-per-second",   /* 74 */
-   "Kilometers-per-hour", /* 75 */
-   "Feet-per-second",     /* 76 */
-   "Feet-per-minute",     /* 77 */
-   "Miles-per-hour",      /* 78 */
-
-/* Volume */
-   "Cubic-feet",        /* 79 */
-   "Cubic-meters",      /* 80 */
-   "Imperial-Gallons",  /* 81 */
-   "Liters",            /* 82 */
-   "US-Gallons",        /* 83 */
-
-/* Volumetric Flow */
-   "Cubic-feet-per-minute",        /* 84 */
-   "Cubic-meters-per-second",      /* 85 */
-   "Imperial-gallons-per minute",  /* 86 */
-   "Liters-per-second",            /* 87 */
-   "Liters-per-minute",            /* 88 */
-   "US-Gallons-per minute",        /* 89 */
-
-/* Other */
-   "Degrees-angular",               /* 90 */
-   "Degrees-Celsius-per-hour",      /* 91 */
-   "Degrees-Celsius-per-minute",    /* 92 */
-   "Degrees-Fahrenheit-per-hour",   /* 93 */
-   "Degrees-Fahrenheit-per-minute", /* 94 */
-   "No-units",                      /* 95 */
-   "Parts-per-million",             /* 96 */
-   "Parts-per-billion",             /* 97 */
-   "Percent",                       /* 98 */
-   "Percent-per-second",            /* 99 */
-   "Per-minute",                    /* 100 */
-   "Per-second",                    /* 101 */
-   "PSI-Per-Degree-Fahrenheit",     /* 102 */
-   "Radians",                       /* 103 */
-   "Revolutions-per-minute",        /* 104 */
+   "square-meters",                    // 0
+   "square-feet",                      // 1
+   "milliamperes",                     // 2
+   "amperes",                          // 3
+   "ohms",                             // 4
+   "volts",                            // 5
+   "kilovolts",                        // 6
+   "megavolts",                        // 7
+   "volt-amperes",                     // 8
+   "kilovolt-amperes",                 // 9
+   "megavolt-amperes",                 // 10
+   "volt-amperes-reactive",            // 11
+   "kilovolt-amperes-reactive",        // 12
+   "megavolt-amperes-reactive",        // 13
+   "degrees-phase",                    // 14
+   "power-factor",                     // 15
+   "joules",                           // 16
+   "kilojoules",                       // 17
+   "watt-hours",                       // 18
+   "kilowatt-hours",                   // 19
+   "btus",                             // 20
+   "therms",                           // 21
+   "ton-hours",                        // 22
+   "joules-per-kilogram-dry-air",      // 23
+   "btus-per-pound-dry-air",           // 24
+   "cycles-per-hour",                  // 25
+   "cycles-per-minute",                // 26
+   "hertz",                            // 27
+   "grams-of-water-per-kilogram-dry-air", // 28
+   "percent-relative-humidity",        // 29
+   "millimeters",                      // 30
+   "meters",                           // 31
+   "inches",                           // 32
+   "feet",                             // 33
+   "watts-per-square-foot",            // 34
+   "watts-per-square-meter",           // 35
+   "lumens",                           // 36
+   "luxes",                            // 37
+   "foot-candles",                     // 38
+   "kilograms",                        // 39
+   "pounds-mass",                      // 40
+   "tons",                             // 41
+   "kilograms-per-second",             // 42
+   "kilograms-per-minute",             // 43
+   "kilograms-per-hour",               // 44
+   "pounds-mass-per-minute",           // 45
+   "pounds-mass-per-hour",             // 46
+   "watts",                            // 47
+   "kilowatts",                        // 48
+   "megawatts",                        // 49
+   "btus-per-hour",                    // 50
+   "horsepower",                       // 51
+   "tons-refrigeration",               // 52
+   "pascals",                          // 53
+   "kilopascals",                      // 54
+   "bars",                             // 55
+   "pounds-force-per-square-inch",     // 56
+   "centimeters-of-water",             // 57
+   "inches-of-water",                  // 58
+   "millimeters-of-mercury",           // 59
+   "centimeters-of-mercury",           // 60
+   "inches-of-mercury",                // 61
+   "degrees-Celsius",                  // 62
+   "degrees-Kelvin",                   // 63
+   "degrees-Fahrenheit",               // 64
+   "degree-days-Celsius",              // 65
+   "degree-days-Fahrenheit",           // 66
+   "years",                            // 67
+   "months",                           // 68
+   "weeks",                            // 69
+   "days",                             // 70
+   "hours",                            // 71
+   "minutes",                          // 72
+   "seconds",                          // 73
+   "meters-per-second",                // 74
+   "kilometers-per-hour",              // 75
+   "feet-per-second",                  // 76
+   "feet-per-minute",                  // 77
+   "miles-per-hour",                   // 78
+   "cubic-feet",                       // 79
+   "cubic-meters",                     // 80
+   "imperial-gallons",                 // 81
+   "liters",                           // 82
+   "us-gallons",                       // 83
+   "cubic-feet-per-minute",            // 84
+   "cubic-meters-per-second",          // 85
+   "imperial-gallons-per-minute",      // 86
+   "liters-per-second",                // 87
+   "liters-per-minute",                // 88
+   "us-gallons-per-minute",            // 89
+   "degrees-angular",                  // 90
+   "degrees-Celsius-per-hour",         // 91
+   "degrees-Celsius-per-minute",       // 92
+   "degrees-Fahrenheit-per-hour",      // 93
+   "degrees-Fahrenheit-per-minute",    // 94
+   "no-units",                         // 95
+   "parts-per-million",                // 96
+   "parts-per-billion",                // 97
+   "percent",                          // 98
+   "percent-per-second",               // 99
+   "per-minute",                       // 100
+   "per-second",                       // 101
+   "psi-per-degree-Fahrenheit",        // 102
+   "radians",                          // 103
+   "revolutions-per-minute",           // 104
 
    /* added in second or third public review */
-   "Currency 1",        /* 105 */
-   "Currency 2",        /* 106 */
-   "Currency 3",        /* 107 */
-   "Currency 4",        /* 108 */
-   "Currency 5",        /* 109 */
-   "Currency 6",        /* 110 */
-   "Currency 7",        /* 111 */
-   "Currency 8",        /* 112 */
-   "Currency 9",        /* 113 */
-   "Currency 10",       /* 114 */
-
-   "square-inches",                    /* 115 */
-   "square-centimeters",               /* 116 */
-   "btus-per-pound",                   /* 117 */
-   "centimeters",                      /* 118 */
-   "pounds-mass-per-second",           /* 119 */
-   "delta-degrees-Fahrenheit",         /* 120 */
-   "delta-degrees-Kelvin",             /* 121 */
-
-   "Kilohms",                              /* 122 */
-   "Megohms",                              /* 123 */
-   "Millivolts",                           /* 124 */
-   "Kilojoules-per-kilogram",              /* 125 */
-   "Megajoules",                           /* 126 */
-   "Joules-per-degree-Kelvin",             /* 127 */
-   "Joules-per-kilogram-degree-Kelvin",    /* 128 */
-   "Kilohertz",                            /* 129 */
-   "Megahertz",                            /* 130 */
-   "Per-hour",                             /* 131 */
-   "Milliwatts",                           /* 132 */
-   "Hectopascals",                         /* 133 */
-   "Millibars",                            /* 134 */
-   "Cubic-meters-per-hour",                /* 135 */
-   "Liters-per-hour",                      /* 136 */
-   "Kilowatt-hours-per-square-meter",      /* 137 */
-   "Kilowatt-hours-per-square-foot",       /* 138 */
-   "Megajoules-per-square-meter",          /* 139 */
-   "Megajoules-per-square-foot",           /* 140 */
-   "Watts-per-square-meter-degree-Kelvin", /* 141 */
+   "currency1",                        // 105
+   "currency2",                        // 106
+   "currency3",                        // 107
+   "currency4",                        // 108
+   "currency5",                        // 109
+   "currency6",                        // 110
+   "currency7",                        // 111
+   "currency8",                        // 112
+   "currency9",                        // 113
+   "currency10",                       // 114
+   "square-inches",                    // 115
+   "square-centimeters",               // 116
+   "btus-per-pound",                   // 117
+   "centimeters",                      // 118
+   "pounds-mass-per-second",           // 119
+   "delta-degrees-Fahrenheit",         // 120
+   "delta-degrees-Kelvin",             // 121
+   "kilohms",                          // 122
+   "megohms",                          // 123
+   "millivolts",                       // 124
+   "kilojoules-per-kilogram",          // 125
+   "megajoules",                       // 126
+   "joules-per-degree-Kelvin",         // 127
+   "joules-per-kilogram-degree-Kelvin",// 128
+   "kilohertz",                        // 129
+   "megahertz",                        // 130
+   "per-hour",                         // 131
+   "milliwatts",                       // 132
+   "hectopascals",                     // 133
+   "millibars",                        // 134
+   "cubic-meters-per-hour",            // 135
+   "liters-per-hour",                  // 136
+   "kilowatt-hours-per-square-meter",  // 137
+   "kilowatt-hours-per-square-foot",   // 138
+   "megajoules-per-square-meter",      // 139
+   "megajoules-per-square-foot",       // 140
+   "watts-per-square-meter-degree-kelvin", // 141
 
    // New units added 3/9/2008
-   "Cubic-feet-per-second",            /* 142 */
-   "Percent-obscuration-per-foot",     /* 143 */
-   "Percent-obscuration-per-meter",    /* 144 */
-   "milliohms",                         /* 145 */
-   "megawatt-hours",                   /* 146 */
-   "kilo-btus",                        /* 147 */
-   "mega-btus",                        /* 148 */
-   "kilojoules-per-kilogram-dry-air",  /* 149 */
-   "megajoules-per-kilogram-dry-air",  /* 150 */
-   "kilojoules-per-degree-Kelvin",     /* 151 */
-   "megajoules-per-degree-Kelvin",     /* 152 */
-   "newton",                           /* 153 */
-   "grams-per-second",                 /* 154 */
-   "grams-per-minute",                 /* 155 */
-   "tons-per-hour",                    /* 156 */
-   "kilo-btus-per-hour",               /* 157 */
-   "Hundredths-seconds",               /* 158 */
-   "milliseconds",                     /* 159 */
-   "newton-meters",                    /* 160 */
-   "millimeters-per-second",           /* 161 */
-   "millimeters-per-minute",           /* 162 */
-   "meters-per-minute",                /* 163 */
-   "meters-per-hour",                  /* 164 */
-   "cubic-meters-per-minute",          /* 165 */
-   "meters-per-second-per-second",     /* 166 */
-   "amperes-per-meter",                /* 167 */
-   "amperes-per-square-meter",         /* 168 */
-   "ampere-square-meters",             /* 169 */
-   "farads",                           /* 170 */
-   "henrys",                           /* 171 */
-   "ohm-meters",                       /* 172 */
-   "siemens",                          /* 173 */
-   "siemens-per-meter",                /* 174 */
-   "teslas",                           /* 175 */
-   "volts-per-degree-Kelvin",          /* 176 */
-   "volts-per-meter",                  /* 177 */
-   "webers",                           /* 178 */
-   "candelas",                         /* 179 */
-   "candelas-per-square-meter",        /* 180 */
-   "degrees-Kelvin-per-hour",          /* 181 */
-   "degrees-Kelvin-per-minute",        /* 182 */
-   "joule-seconds",                    /* 183 */
-   "radians-per-second",               /* 184 */
-   "square-meters-per-Newton",         /* 185 */
-   "kilograms-per-cubic-meter",        /* 186 */
-   "newton-seconds",                   /* 187 */
-   "newtons-per-meter",                /* 188 */
-   "watts-per-meter-per-degree-Kelvin",/* 189 last definition in 135-2008 */
-   // Added by Addenda H (135-2004)
-   "micro-siemens",                    /* 190 */
-   "cubic-feet-per-hour",              /* 191 */
-   "us-gallons-per-hour",              /* 192 */
+   "cubic-feet-per-second",            // 142
+   "percent-obscuration-per-foot",     // 143
+   "percent-obscuration-per-meter",    // 144
+   "milliohms",                        // 145
+   "megawatt-hours",                   // 146
+   "kilo-btus",                        // 147
+   "mega-btus",                        // 148
+   "kilojoules-per-kilogram-dry-air",  // 149
+   "megajoules-per-kilogram-dry-air",  // 150
+   "kilojoules-per-degree-Kelvin",     // 151
+   "megajoules-per-degree-Kelvin",     // 152
+   "newton",                           // 153
+   "grams-per-second",                 // 154
+   "grams-per-minute",                 // 155
+   "tons-per-hour",                    // 156
+   "kilo-btus-per-hour",               // 157
+   "hundredths-seconds",               // 158
+   "milliseconds",                     // 159
+   "newton-meters",                    // 160
+   "millimeters-per-second",           // 161
+   "millimeters-per-minute",           // 162
+   "meters-per-minute",                // 163
+   "meters-per-hour",                  // 164
+   "cubic-meters-per-minute",          // 165
+   "meters-per-second-per-second",     // 166
+   "amperes-per-meter",                // 167
+   "amperes-per-square-meter",         // 168
+   "ampere-square-meters",             // 169
+   "farads",                           // 170
+   "henrys",                           // 171
+   "ohm-meters",                       // 172
+   "siemens",                          // 173
+   "siemens-per-meter",                // 174
+   "teslas",                           // 175
+   "volts-per-degree-Kelvin",          // 176
+   "volts-per-meter",                  // 177
+   "webers",                           // 178
+   "candelas",                         // 179
+   "candelas-per-square-meter",        // 180
+   "degrees-Kelvin-per-hour",          // 181
+   "degrees-Kelvin-per-minute",        // 182
+   "joule-seconds",                    // 183
+   "radians-per-second",               // 184
+   "square-meters-per-Newton",         // 185
+   "kilograms-per-cubic-meter",        // 186
+   "newton-seconds",                   // 187
+   "newtons-per-meter",                // 188
+   "watts-per-meter-per-degree-Kelvin",// 189 last definition in 135-2008
 
-   // Added in 135-2012
-   "kilometers",                       /* 193 */
-   "micrometers",                      /* 194 */
-   "grams",                            /* 195 */
-   "milligrams",                       /* 196 */
-   "milliliters",                      /* 197 */
-   "milliliters-per-second",           /* 198 */
-   "decibels",                         /* 199 */
-   "decibels-millivolt",               /* 200 */
-   "decibels-volt",                    /* 201 */
-   "millisiemens",                     /* 202 */
-   "watt-hours-reactive",              /* 203 */
-   "kilowatt-hours-reactive",          /* 204 */
-   "megawatt-hours-reactive",          /* 205 */
-   "millimeters-of-water",             /* 206 */
-   "per-mille",                        /* 207 */
-   "grams-per-gram",                   /* 208 */
-   "kilograms-per-kilogram",           /* 209 */
-   "grams-per-kilogram",               /* 210 */
-   "milligrams-per-gram",              /* 211 */
-   "milligrams-per-kilogram",          /* 212 */
-   "grams-per-milliliter",             /* 213 */
-   "grams-per-liter",                  /* 214 */
-   "milligrams-per-liter",             /* 215 */
-   "micrograms-per-liter",             /* 216 */
-   "grams-per-cubic-meter",            /* 217 */
-   "milligrams-per-cubic-meter",       /* 218 */
-   "micrograms-per-cubic-meter",       /* 219 */
-   "nanograms-per-cubic-meter",        /* 220 */
-   "grams-per-cubic-centimeter",       /* 221 */
-   "becquerels",                       /* 222 */
-   "kilobecquerels",                   /* 223 */
-   "megabecquerels",                   /* 224 */
-   "gray",                             /* 225 */
-   "milligray",                        /* 226 */
-   "microgray",                        /* 227 */
-   "sieverts",                         /* 228 */
-   "millisieverts",                    /* 229 */
-   "microsieverts",                    /* 230 */
-   "microsieverts-per-hour",           /* 231 */
-   "decibels-a",                       /* 232 */
-   "nephelometric-turbidity-unit",     /* 233 */
-   "pH",                               /* 234 */
-   "grams-per-square-meter",           /* 235 */
-   "minutes-per-degree-kelvin",        /* 236 last definition in 135-2012 */
+   "micro-siemens",                    // 190
+   "cubic-feet-per-hour",              // 191
+   "us-gallons-per-hour",              // 192
+   "kilometers",                       // 193
+   "micrometers",                      // 194
+   "grams",                            // 195
+   "milligrams",                       // 196
+   "milliliters",                      // 197
+   "milliliters-per-second",           // 198
+   "decibels",                         // 199
+   "decibels-millivolt",               // 200
+   "decibels-volt",                    // 201
+   "millisiemens",                     // 202
+   "watt-hours-reactive",              // 203
+   "kilowatt-hours-reactive",          // 204
+   "megawatt-hours-reactive",          // 205
+   "millimeters-of-water",             // 206
+   "per-mille",                        // 207
+   "grams-per-gram",                   // 208
+   "kilograms-per-kilogram",           // 209
+   "grams-per-kilogram",               // 210
+   "milligrams-per-gram",              // 211
+   "milligrams-per-kilogram",          // 212
+   "grams-per-milliliter",             // 213
+   "grams-per-liter",                  // 214
+   "milligrams-per-liter",             // 215
+   "micrograms-per-liter",             // 216
+   "grams-per-cubic-meter",            // 217
+   "milligrams-per-cubic-meter",       // 218
+   "micrograms-per-cubic-meter",       // 219
+   "nanograms-per-cubic-meter",        // 220
+   "grams-per-cubic-centimeter",       // 221
+   "becquerels",                       // 222
+   "kilobecquerels",                   // 223
+   "megabecquerels",                   // 224
+   "gray",                             // 225
+   "milligray",                        // 226
+   "microgray",                        // 227
+   "sieverts",                         // 228
+   "millisieverts",                    // 229
+   "microsieverts",                    // 230
+   "microsieverts-per-hour",           // 231
+   "decibels-a",                       // 232
+   "nephelometric-turbidity-unit",     // 233
+   "pH",                               // 234
+   "grams-per-square-meter",           // 235
+   "minutes-per-degree-kelvin",        // 236 last definition in 135-2012
 };
 BAC_STRINGTABLE_EX(BACnetEngineeringUnits, 256, 65536);
 
