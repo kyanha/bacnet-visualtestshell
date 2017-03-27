@@ -279,6 +279,7 @@ STRING_TABLE BACnetDoorValue_orNull[] = {
    "unlock",
    "pulse-unlock",
    "extended-pulse-unlock",
+   "null"
 };
 BAC_STRINGTABLE(BACnetDoorValue_orNull);
 
@@ -1615,7 +1616,7 @@ STRING_TABLE BACnetVendorID[] = {
    "PolarSoft",                                              // 4
    "Johnson Controls, Inc.",                                 // 5
    "American Auto-Matrix",                                   // 6
-   "Siemens Schweiz AG (Formerly: Landis  Staefa Division Europe)", // 7
+   "Siemens Schweiz AG (Formerly: Landis & Staefa Division Europe)", // 7
    "Delta Controls",                                         // 8
    "Siemens Schweiz AG",                                     // 9
    "Schneider Electric",                                     // 10
@@ -1647,10 +1648,10 @@ STRING_TABLE BACnetVendorID[] = {
    "Tridium Inc.",                                           // 36
    "Sierra Monitor Corporation/FieldServer Technologies",    // 37
    "Silicon Energy",                                         // 38
-   "Kieback  Peter GmbH  Co KG",                             // 39
+   "Kieback & Peter GmbH & Co KG",                           // 39
    "Anacon Systems, Inc.",                                   // 40
-   "Systems Controls  Instruments, LLC",                     // 41
-   "Lithonia Lighting",                                      // 42
+   "Systems Controls & Instruments, LLC",                    // 41
+   "Acuity Brands Lighting, Inc.",                           // 42
    "Micropower Manufacturing",                               // 43
    "Matrix Controls",                                        // 44
    "METALAIRE",                                              // 45
@@ -1686,7 +1687,7 @@ STRING_TABLE BACnetVendorID[] = {
    "Institute of Electrical Installation Engineers of Japan (IEIEJ)", // 75
    "Nohmi Bosai, Ltd.",                                      // 76
    "Carel S.p.A.",                                           // 77
-   "UTC Fire  Security España, S.L.",                        // 78
+   "UTC Fire & Security España, S.L.",                       // 78
    "Hochiki Corporation",                                    // 79
    "Fr. Sauter AG",                                          // 80
    "Matsushita Electric Works, Ltd.",                        // 81
@@ -1704,10 +1705,10 @@ STRING_TABLE BACnetVendorID[] = {
    "Argus Control Systems, Ltd.",                            // 93
    "Kyuki Corporation",                                      // 94
    "Richards-Zeta Building Intelligence, Inc.",              // 95
-   "Scientech RD, Inc.",                                     // 96
+   "Scientech R&D, Inc.",                                    // 96
    "VCI Controls, Inc.",                                     // 97
    "Toshiba Corporation",                                    // 98
-   "Mitsubishi Electric Corporation Air Conditioning  Refrigeration Systems Works", // 99
+   "Mitsubishi Electric Corporation Air Conditioning & Refrigeration Systems Works", // 99
    "Custom Mechanical Equipment, LLC",                       // 100
    "ClimateMaster",                                          // 101
    "ICP Panel-Tec, Inc.",                                    // 102
@@ -1721,10 +1722,10 @@ STRING_TABLE BACnetVendorID[] = {
    "eZi Controls",                                           // 110
    "Leviton Manufacturing",                                  // 111
    "Fujitsu Limited",                                        // 112
-   "Emerson Network Power",                                  // 113
+   "Vertiv (Formerly Emerson Network Power)",                // 113
    "S. A. Armstrong, Ltd.",                                  // 114
    "Visonet AG",                                             // 115
-   "MM Systems, Inc.",                                       // 116
+   "M&M Systems, Inc.",                                      // 116
    "Custom Software Engineering",                            // 117
    "Nittan Company, Limited",                                // 118
    "Elutions Inc. (Wizcon Systems SAS)",                     // 119
@@ -1823,18 +1824,18 @@ STRING_TABLE BACnetVendorID[] = {
    "TSC21 Association of Japan",                             // 212
    "Strato Automation",                                      // 213
    "HRW Limited",                                            // 214
-   "Lighting Control  Design, Inc.",                         // 215
+   "Lighting Control & Design, Inc.",                        // 215
    "Mercy Electronic and Electrical Industries",             // 216
    "Samsung SDS Co., Ltd",                                   // 217
    "Impact Facility Solutions, Inc.",                        // 218
    "Aircuity",                                               // 219
    "Control Techniques, Ltd.",                               // 220
    "OpenGeneral Pty., Ltd.",                                 // 221
-   "WAGO Kontakttechnik GmbH  Co. KG",                       // 222
+   "WAGO Kontakttechnik GmbH & Co. KG",                      // 222
    "Cerus Industrial",                                       // 223
    "Chloride Power Protection Company",                      // 224
    "Computrols, Inc.",                                       // 225
-   "Phoenix Contact GmbH  Co. KG",                           // 226
+   "Phoenix Contact GmbH & Co. KG",                          // 226
    "Grundfos Management A/S",                                // 227
    "Ridder Drive Systems",                                   // 228
    "Soft Device SDN BHD",                                    // 229
@@ -1862,9 +1863,9 @@ STRING_TABLE BACnetVendorID[] = {
    "WILO SE",                                                // 251
    "Embedia Technologies Corp.",                             // 252
    "Technilog",                                              // 253
-   "HR Controls Ltd.  Co. KG",                               // 254
+   "HR Controls Ltd. & Co. KG",                              // 254
    "Lennox International, Inc.",                             // 255
-   "RK-Tec Rauchklappen-Steuerungssysteme GmbH  Co. KG",     // 256
+   "RK-Tec Rauchklappen-Steuerungssysteme GmbH & Co. KG",    // 256
    "Thermomax, Ltd.",                                        // 257
    "ELCON Electronic Control, Ltd.",                         // 258
    "Larmia Control AB",                                      // 259
@@ -1884,7 +1885,7 @@ STRING_TABLE BACnetVendorID[] = {
    "KROPMAN Installatietechniek",                            // 273
    "Baldor Electric Company",                                // 274
    "INGA mbH",                                               // 275
-   "GE Consumer  Industrial",                                // 276
+   "GE Consumer & Industrial",                               // 276
    "Functional Devices, Inc.",                               // 277
    "ESAC",                                                   // 278
    "M-System Co., Ltd.",                                     // 279
@@ -1913,7 +1914,7 @@ STRING_TABLE BACnetVendorID[] = {
    "Hitachi Appliances, Inc.",                               // 302
    "Real Time Automation, Inc.",                             // 303
    "ITEC Hankyu-Hanshin Co.",                                // 304
-   "Cyrus EM Engineering Co., Ltd. ",                        // 305
+   "Cyrus E&M Engineering Co., Ltd. ",                       // 305
    "Badger Meter",                                           // 306
    "Cirrascale Corporation",                                 // 307
    "Elesta GmbH Building Automation ",                       // 308
@@ -1921,7 +1922,7 @@ STRING_TABLE BACnetVendorID[] = {
    "OSlsoft, Inc.",                                          // 310
    "Hanazeder Electronic GmbH ",                             // 311
    "Honeywell Security Deutschland, Novar GmbH",             // 312
-   "Siemens Energy  Automation, Inc.",                       // 313
+   "Siemens Industry, Inc.",                                 // 313
    "ETM Professional Control GmbH",                          // 314
    "Meitav-tec, Ltd.",                                       // 315
    "Janitza Electronics GmbH ",                              // 316
@@ -1964,10 +1965,10 @@ STRING_TABLE BACnetVendorID[] = {
    "ZXC Ltd.",                                               // 353
    "Byte Sphere",                                            // 354
    "Generiton Co., Ltd.",                                    // 355
-   "Holter Regelarmaturen GmbH  Co. KG",                     // 356
+   "Holter Regelarmaturen GmbH & Co. KG",                    // 356
    "Bedford Instruments, LLC",                               // 357
    "Standair Inc.",                                          // 358
-   "WEG Automation - RD",                                    // 359
+   "WEG Automation - R&D",                                   // 359
    "Prolon Control Systems ApS",                             // 360
    "Inneasoft",                                              // 361
    "ConneXSoft GmbH",                                        // 362
@@ -1982,7 +1983,7 @@ STRING_TABLE BACnetVendorID[] = {
    "ACME Engineering Prod. Ltd.",                            // 371
    "Zener Electric Pty, Ltd.",                               // 372
    "Selectronix, Inc.",                                      // 373
-   "Gorbet  Banerjee, LLC.",                                 // 374
+   "Gorbet & Banerjee, LLC.",                                // 374
    "IME",                                                    // 375
    "Stephen H. Dawson Computer Service",                     // 376
    "Accutrol, LLC",                                          // 377
@@ -2007,9 +2008,9 @@ STRING_TABLE BACnetVendorID[] = {
    "Thermokon Sensortechnik GmbH",                           // 396
    "EGauge Systems, LLC",                                    // 397
    "Quantum Automation (ASIA) PTE, Ltd.",                    // 398
-   "Toshiba Lighting  Technology Corp.",                     // 399
+   "Toshiba Lighting & Technology Corp.",                    // 399
    "SPIN Engenharia de Automação Ltda.",                     // 400
-   "Logistics Systems  Software Services India PVT. Ltd.",   // 401
+   "Logistics Systems & Software Services India PVT. Ltd.",  // 401
    "Delta Controls Integration Products",                    // 402
    "Focus Media",                                            // 403
    "LUMEnergi Inc.",                                         // 404
@@ -2069,7 +2070,7 @@ STRING_TABLE BACnetVendorID[] = {
    "ICP DAS Co., Ltd.",                                      // 458
    "CARMA Industries Inc.",                                  // 459
    "Log-One Ltd.",                                           // 460
-   "TECO Electric  Machinery Co., Ltd.",                     // 461
+   "TECO Electric & Machinery Co., Ltd.",                    // 461
    "ConnectEx, Inc.",                                        // 462
    "Turbo DDC Südwest",                                      // 463
    "Quatrosense Environmental Ltd.",                         // 464
@@ -2109,7 +2110,7 @@ STRING_TABLE BACnetVendorID[] = {
    "ThyssenKrupp Elevator Americas",                         // 498
    "Abatement Technologies",                                 // 499
    "Continental Control Systems, LLC",                       // 500
-   "WISAG Automatisierungstechnik GmbH  Co KG",              // 501
+   "WISAG Automatisierungstechnik GmbH & Co KG",             // 501
    "EasyIO",                                                 // 502
    "EAP-Electric GmbH",                                      // 503
    "Hardmeier",                                              // 504
@@ -2122,19 +2123,19 @@ STRING_TABLE BACnetVendorID[] = {
    "Redwood Systems",                                        // 511
    "PASStec Industrie-Elektronik GmbH",                      // 512
    "NgEK, Inc.",                                             // 513
-   "FAW Electronics Ltd",                                    // 514
+   "t-mac Technologies",                                     // 514
    "Jireh Energy Tech Co., Ltd.",                            // 515
    "Enlighted Inc.",                                         // 516
    "El-Piast Sp. Z o.o",                                     // 517
    "NetxAutomation Software GmbH",                           // 518
    "Invertek Drives",                                        // 519
-   "Deutschmann Automation GmbH  Co. KG",                    // 520
+   "Deutschmann Automation GmbH & Co. KG",                   // 520
    "EMU Electronic AG",                                      // 521
    "Phaedrus Limited",                                       // 522
-   "Sigmatek GmbH  Co KG",                                   // 523
+   "Sigmatek GmbH & Co KG",                                  // 523
    "Marlin Controls",                                        // 524
    "Circutor, SA",                                           // 525
-   "UTC Fire  Security",                                     // 526
+   "UTC Fire & Security",                                    // 526
    "DENT Instruments, Inc.",                                 // 527
    "FHP Manufacturing Company - Bosch Group",                // 528
    "GE Intelligent Platforms",                               // 529
@@ -2171,7 +2172,7 @@ STRING_TABLE BACnetVendorID[] = {
    "Myers Power Products, Inc.",                             // 560
    "Vector Controls GmbH",                                   // 561
    "Crestron Electronics, Inc.",                             // 562
-   "AE Controls Limited",                                    // 563
+   "A&E Controls Limited",                                   // 563
    "Projektomontaza A.D.",                                   // 564
    "Freeaire Refrigeration",                                 // 565
    "Aqua Cooler Pty Limited",                                // 566
@@ -2239,7 +2240,7 @@ STRING_TABLE BACnetVendorID[] = {
    "Dongseo System",                                         // 628
    "Kanontec Intelligence Technology Co., Ltd.",             // 629
    "EVCO S.p.A.",                                            // 630
-   "Accuenergy (CANADA) Inc.",                               // 631
+   "Accuenergy (Canada) Inc.",                               // 631
    "SoftDEL",                                                // 632
    "Orion Energy Systems, Inc.",                             // 633
    "Roboticsware",                                           // 634
@@ -2252,7 +2253,7 @@ STRING_TABLE BACnetVendorID[] = {
    "Murata Americas",                                        // 641
    "Comptek",                                                // 642
    "Westco Systems, Inc.",                                   // 643
-   "Advancis Software  Services GmbH",                       // 644
+   "Advancis Software & Services GmbH",                      // 644
    "Intergrid, LLC",                                         // 645
    "Markerr Controls, Inc.",                                 // 646
    "Toshiba Elevator and Building Systems Corporation",      // 647
@@ -2345,7 +2346,7 @@ STRING_TABLE BACnetVendorID[] = {
    "B. L. Acoustics, Ltd.",                                  // 734
    "Traxxon Rock Drills, Ltd",                               // 735
    "Franke",                                                 // 736
-   "Wurm GmbH  Co",                                          // 737
+   "Wurm GmbH & Co",                                         // 737
    "AddENERGIE",                                             // 738
    "Mirle Automation Corporation",                           // 739
    "Ibis Networks",                                          // 740
@@ -2385,7 +2386,7 @@ STRING_TABLE BACnetVendorID[] = {
    "Amatis",                                                 // 774
    "Universal Electric Corporation",                         // 775
    "iBACnet",                                                // 776
-   "Unknown-vendor-777",                                     // 777
+   "Reserved-by-ASHRAE-777",                                 // 777
    "Smartrise Engineering, Inc.",                            // 778
    "Miratron, Inc.",                                         // 779
    "SmartEdge",                                              // 780
@@ -2412,7 +2413,7 @@ STRING_TABLE BACnetVendorID[] = {
    "Philips Lighting",                                       // 801
    "AutomationDirect",                                       // 802
    "Paragon Robotics",                                       // 803
-   "SMT System  Modules Technology AG",                      // 804
+   "SMT System & Modules Technology AG",                     // 804
    "OS Technology Service and Trading Co., LTD",             // 805
    "CMR Controls Ltd",                                       // 806
    "Innovari, Inc.",                                         // 807
@@ -2466,8 +2467,150 @@ STRING_TABLE BACnetVendorID[] = {
    "Field Diagnostic Services, Inc.",                        // 855
    "Ges Teknik A.S.",                                        // 856
    "Global Power Products, Inc.",                            // 857
+   "Option NV",                                              // 858
+   "BV-Control AG",                                          // 859
+   "Sigren Engineering AG",                                  // 860
+   "Shanghai Jaltone Technology Co., Ltd.",                  // 861
+   "MaxLine Solutions Ltd",                                  // 862
+   "Kron Instrumentos Elétricos Ltda",                       // 863
+   "Thermo Matrix",                                          // 864
+   "Infinite Automation Systems, Inc.",                      // 865
+   "Vantage",                                                // 866
+   "Elecon Measurements Pvt Ltd",                            // 867
+   "TBA",                                                    // 868
+   "Carnes Company",                                         // 869
+   "Harman Professional",                                    // 870
+   "Nenutec Asia Pacific Pte Ltd",                           // 871
+   "Gia NV",                                                 // 872
+   "Kepware Tehnologies",                                    // 873
+   "Temperature Electronics Ltd",                            // 874
+   "Packet Power",                                           // 875
+   "Project Haystack Corporation",                           // 876
+   "DEOS Controls Americas Inc.",                            // 877
+   "Senseware Inc",                                          // 878
+   "MST Systemtechnik AG",                                   // 879
+   "Lonix Ltd",                                              // 880
+   "GMC-I Messtechnik GmbH",                                 // 881
+   "Aviosys International Inc.",                             // 882
+   "Efficient Building Automation Corp.",                    // 883
+   "Accutron Instruments Inc.",                              // 884
+   "Vermont Energy Control Systems LLC",                     // 885
+   "DCC Dynamics",                                           // 886
+   "Brück Electronic GmbH",                                  // 887
+   "Reserved-by-ASHRAE-888",                                 // 888
+   "NGBS Hungary Ltd.",                                      // 889
+   "ILLUM Technology, LLC",                                  // 890
+   "Delta Controls Germany Limited",                         // 891
+   "S+T Service & Technique S.A.",                           // 892
+   "SimpleSoft",                                             // 893
+   "Candi Controls, Inc.",                                   // 894
+   "EZEN Solution Inc.",                                     // 895
+   "Fujitec Co. Ltd.",                                       // 896
+   "Terralux",                                               // 897
+   "Annicom",                                                // 898
+   "Bihl+Wiedemann GmbH",                                    // 899
+   "Daper, Inc.",                                            // 900
+   "Schüco International KG",                                // 901
+   "Otis Elevator Company",                                  // 902
+   "Fidelix Oy",                                             // 903
+   "RAM GmbH Mess- und Regeltechnik",                        // 904
+   "WEMS",                                                   // 905
+   "Ravel Electronics Pvt Ltd",                              // 906
+   "OmniMagni",                                              // 907
+   "Echelon",                                                // 908
+   "Intellimeter Canada, Inc.",                              // 909
+   "Bithouse Oy",                                            // 910
+   "Reserved-by-ASHRAE-911",                                 // 911
+   "BuildPulse",                                             // 912
+   "Shenzhen 1000 Building Automation Co. Ltd",              // 913
+   "AED Engineering GmbH",                                   // 914
+   "Güntner GmbH & Co. KG",                                  // 915
+   "KNXlogic",                                               // 916
+   "CIM Environmental Group",                                // 917
+   "Flow Control",                                           // 918
+   "Lumen Cache, Inc.",                                      // 919
+   "Ecosystem",                                              // 920
+   "Potter Electric Signal Company, LLC",                    // 921
+   "Tyco Fire & Security S.p.A.",                            // 922
+   "Watanabe Electric Industry Co., Ltd.",                   // 923
+   "Causam Energy",                                          // 924
+   "W-tec AG",                                               // 925
+   "IMI Hydronic Engineering International SA",              // 926
+   "ARIGO Software",                                         // 927
+   "MSA Safety",                                             // 928
+   "Smart Solucoes Ltda - MERCATO",                          // 929
+   "PIATRA Engineering",                                     // 930
+   "ODIN Automation Systems, LLC",                           // 931
+   "Belparts NV",                                            // 932
+   "UAB, SALDA",                                             // 933
+   "Alre-IT Regeltechnik GmbH",                              // 934
+   "Ingenieurbüro H. Lertes GmbH & Co. KG",                  // 935
+   "Breathing Buildings",                                    // 936
+   "eWON SA",                                                // 937
+   "Cav. Uff. Giacomo Cimberio S.p.A",                       // 938
+   "PKE Electronics AG",                                     // 939
+   "Allen",                                                  // 940
+   "Kastle Systems",                                         // 941
+   "Logical Electro-Mechanical (EM) Systems, Inc.",          // 942
+   "ppKinetics Instruments, LLC",                            // 943
+   "Cathexis Technologies",                                  // 944
+   "Sylop Limited",                                          // 945
+   "Brauns  Control GmbH",                                   // 946
+   "Omron Corporation",                                      // 947
+   "Wildeboer Bauteile Gmbh",                                // 948
+   "Shanghai Biens Technologies Ltd",                        // 949
+   "Beijing HZHY Technology Co., Ltd",                       // 950
+   "Building Clouds",                                        // 951
+   "The University of Sheffield-Department of Electronic and Electrical Engineering", // 952
+   "Fabtronics Australia Pty Ltd",                           // 953
+   "SLAT",                                                   // 954
+   "Software Motor Corporation",                             // 955
+   "Armstrong International Inc.",                           // 956
+   "Steril-Aire, Inc.",                                      // 957
+   "Infinique",                                              // 958
+   "Arcom",                                                  // 959
+   "Argo Performance, Ltd",                                  // 960
+   "Dialight",                                               // 961
+   "Ideal Technical Solutions",                              // 962
+   "Neurobat AG",                                            // 963
+   "Neyer Software Consulting LLC",                          // 964
+   "SCADA Technology Development Co., Ltd.",                 // 965
+   "Demand Logic Limited",                                   // 966
+   "GWA Group Limited",                                      // 967
+   "Occitaline",                                             // 968
+   "NAO Digital Co., Ltd.",                                  // 969
+   "Shenzhen Chanslink Network Technology Co., Ltd.",        // 970
+   "Samsung Electronics Co., Ltd.",                          // 971
+   "Mesa Laboratories, Inc.",                                // 972
+   "Unknown-vendor-973",                                     // 973
+   "Unknown-vendor-974",                                     // 974
+   "Unknown-vendor-975",                                     // 975
+   "Unknown-vendor-976",                                     // 976
+   "Unknown-vendor-977",                                     // 977
+   "Unknown-vendor-978",                                     // 978
+   "Unknown-vendor-979",                                     // 979
+   "Unknown-vendor-980",                                     // 980
+   "Unknown-vendor-981",                                     // 981
+   "Unknown-vendor-982",                                     // 982
+   "Unknown-vendor-983",                                     // 983
+   "Unknown-vendor-984",                                     // 984
+   "Unknown-vendor-985",                                     // 985
+   "Unknown-vendor-986",                                     // 986
+   "Unknown-vendor-987",                                     // 987
+   "Unknown-vendor-988",                                     // 988
+   "Unknown-vendor-989",                                     // 989
+   "Unknown-vendor-990",                                     // 990
+   "Unknown-vendor-991",                                     // 991
+   "Unknown-vendor-992",                                     // 992
+   "Unknown-vendor-993",                                     // 993
+   "Unknown-vendor-994",                                     // 994
+   "Unknown-vendor-995",                                     // 995
+   "Unknown-vendor-996",                                     // 996
+   "Unknown-vendor-997",                                     // 997
+   "Unknown-vendor-998",                                     // 998
+   "Reserved-by-ASHRAE-999",                                 // 999
    // TODO add more here ...
-   // Updated 26 September 2015 from http://www.bacnet.org/VendorID/BACnet%20Vendor%20IDs.htm
+   // Updated 21 March 2016 from http://www.bacnet.org/VendorID/BACnet%20Vendor%20IDs.htm
    // Use the VTS utility VendorIdTable to update this table.
 };
 BAC_STRINGTABLE_EX(BACnetVendorID, 0x7FFFFFFF, 0x7FFFFFFF);

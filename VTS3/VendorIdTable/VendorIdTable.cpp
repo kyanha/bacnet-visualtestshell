@@ -23,6 +23,7 @@ void OutputLine( FILE *pOutput, const char *pVendorName, int vendorID )
       {
          if (memcmp(pName, "&amp;", 5) == 0)
          {
+            *pOut++ = '&';
             pName += 5;
          }
          else if (pName[1] == '#')
@@ -30,14 +31,23 @@ void OutputLine( FILE *pOutput, const char *pVendorName, int vendorID )
             ampChar = strtoul( pName+2, &pNext, 10 );
             if (*pNext == ';')
             {
-               pName = pNext + 1;
                *pOut++ = (char)ampChar;
+               pName = pNext + 1;
             }
             else
             {
                fprintf( stderr, "Unknown escape sequence in %s\n", pVendorName );
                exit(-1);
             }
+         }
+         else if (pName[1] == ' ')
+         {
+            // Anything beginning with ampersand SHOULD be an entity.
+            // But as of March 2017 the vendorID HTML page contains at least one
+            // naked & followed by a space.
+            // Rather then commit to hand-cleaning each update, we add this booger.
+            *pOut++ = '&';
+            pName += 1;
          }
          else
          {
@@ -63,6 +73,35 @@ void OutputLine( FILE *pOutput, const char *pVendorName, int vendorID )
    }
 
    fprintf( pOutput, " // %d\n", vendorID );
+}
+
+// Handle reserved or missing ID values
+// Return true for special ID
+bool ShowSpecialVendorId( FILE *pOutput, int vendorID )
+{
+   bool retval = false;
+   if (vendorID == 555)
+   {
+      // SSPC135 has reserved this for use in examples, following
+      // the example of movie phone numbers as 555-1234
+      OutputLine( pOutput, "BACnet Examples", vendorID );
+      retval = true;
+   }
+   else if (vendorID == 666)
+   {
+      // SSPC135 has reserved this for use in examples
+      // of badly-behaved devices
+      OutputLine( pOutput, "Beelzebub Controls", vendorID );
+      retval = true;
+   }
+   else if ((vendorID == 777) || (vendorID == 888) || (vendorID == 911) || (vendorID == 999))
+   {
+      char buf[ 80 ];
+      sprintf (buf, "Reserved-by-ASHRAE-%d", vendorID );
+      OutputLine( pOutput, buf, vendorID );
+      retval = true;
+   }
+   return retval;
 }
 
 int _tmain(int argc, _TCHAR* argv[])
@@ -113,13 +152,18 @@ int _tmain(int argc, _TCHAR* argv[])
    // <TD>Steven T. Bushby</TD>
    // <TD>Mechanical Systems and Controls<BR>Building 226, Room B114<BR>Gaithersburg, MD 20899</TD>
    // </TR>
+   // <TR>
+   // <TD>555</TD>
+   // <TD COLSPAN=3><I>Reserved for ASHRAE</I></TD>
+   // </TR>
+
    int state = 0;
    char buffer[ 1000 ];
    int  vendorID;
    int  nextID = 0;
    while (fgets( buffer, sizeof(buffer), pInput ) != NULL)
    {
-      if (_strnicmp( buffer, "<TR>", 4 ) == 0)
+      if (_strnicmp( buffer, "<TR", 3 ) == 0)
       {
          // Start of a row
          state = 1;
@@ -129,7 +173,9 @@ int _tmain(int argc, _TCHAR* argv[])
          // End of a row
          state = 0;
       }
-      else if (_strnicmp( buffer, "<TD>", 4 ) == 0)
+
+      // Ignore any attributes on table data: COLSPAN etc.
+      else if (_strnicmp( buffer, "<TD", 3 ) == 0)
       {
          // Start of a data item
          char *pEnd = strstr( &buffer[4], "</TD>" );
@@ -137,6 +183,7 @@ int _tmain(int argc, _TCHAR* argv[])
          {
             pEnd = strstr( &buffer[4], "</td>" );
          }
+
          if (pEnd == NULL)
          {
             // Probably a problem
@@ -157,44 +204,36 @@ int _tmain(int argc, _TCHAR* argv[])
                else
                {
                   state = 2;
-               }
 
-               // The table is missing at least one code (at 177),
-               // plus one or more reserved by SSPC135
-               for ( ; nextID < vendorID; nextID++)
-               {
-                  if (nextID == 555)
+                  // Some versions of the table were missing codes, including
+                  // some reserved by SSPC135.
+                  // Since our string table can't have holes, fill them in here.
+                  for ( ; nextID < vendorID; nextID++)
                   {
-                     // SSPC135 has reserved this for use in examples, following
-                     // the example of move phone numbers as 555-1234
-                     OutputLine( pOutput, "BACnet Examples", nextID );
+                     if (!ShowSpecialVendorId( pOutput, nextID ))
+                     {
+                        char buf[ 80 ];
+                        sprintf (buf, "Unknown-vendor-%d", nextID );
+                        OutputLine( pOutput, buf, nextID );
+                     }
                   }
-                  else if (nextID == 666)
-                  {
-                     // SSPC135 has reserved this for use in examples
-                     // of badly-behaved devices
-                     OutputLine( pOutput, "Beelzebub Controls", nextID );
-                  }
-                  else
-                  {
-                     char buf[ 80 ];
-                     sprintf (buf, "Unknown-vendor-%d", nextID );
-                     OutputLine( pOutput, buf, nextID );
-                  }
-               }
 
-               if (vendorID != nextID)
-               {
-                  fprintf( stderr, "VendorID %d differs from expected ID %d\n", vendorID, nextID );
+                  if (vendorID != nextID)
+                  {
+                     fprintf( stderr, "VendorID %d differs from expected ID %d\n", vendorID, nextID );
+                  }
                }
 
                nextID += 1;
             }
-            
+
             else if (state == 2)
             {
-               // Vendor Name
-               OutputLine( pOutput, &buffer[4], vendorID );
+               if (!ShowSpecialVendorId( pOutput, vendorID ))
+               {
+                  // Vendor Name
+                  OutputLine( pOutput, &buffer[4], vendorID );
+               }
                state = 0;
             }
          }
