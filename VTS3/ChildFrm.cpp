@@ -1203,7 +1203,16 @@ BOOL CChildFrame::CreateScriptFile( CString * pstrFileName, CReadAllPropSettings
                      }
                   }
 
-                  if (pDatabase->propflags[nPropIndex] & ValueUnknown)
+                  if (_stricmp( szTemp, "log-buffer" ) == 0)
+                  {
+                     // Can't read log-buffer except via ReadRange.  So expect an error
+                     str.Format( "\tPDU = Error\n"
+                                 "\tService = ReadProperty\n"
+                                 "\tEnum 2  -- properties\n"
+                                 "\tEnum 27 -- read-access-denied\n"
+                                 "    )\n\n" );
+                  }
+                  else if (pDatabase->propflags[nPropIndex] & ValueUnknown)
                   {
                      // EPICS says "unknown": accept any value
                      str.Format( "\tPDU = ComplexAck\n"
