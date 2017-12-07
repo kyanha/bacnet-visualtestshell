@@ -41,7 +41,7 @@ enum ActionValueType value_type;
 
 typedef struct tagTextList {
 struct tagTextList   *next;
-   char        text[132];
+   char        text[MAX_TEXT_STRING];
    } TextList;
 
 typedef struct {
@@ -605,7 +605,7 @@ typedef struct {
    word                 property_value;
 enum BACnetReliability        property_access_error;
    word                 property_value_id;
-   char                 description[32];
+   char                 description[MAX_TEXT_STRING];
    } BACnetReadAccessResult;
 
 typedef struct tagReadAccessSpecification {

@@ -50,9 +50,9 @@ propdescriptor PlaceholderProps[] =
 {
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
    { STATUS_FLAGS,                   oo(go.status_flags),               bits,        0,        eiStF,              R|QVAL },
    { EVENT_STATE,                    oo(go.event_state),                et,          0,        eiEvState,          R|QVAL },
    { RELIABILITY,                    oo(go.reliability),                et,          0,        eiReli,             O },
@@ -73,7 +73,7 @@ propdescriptor PlaceholderProps[] =
    { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,   0,        0,                  O,        13 },
    // <More properties here>
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -82,10 +82,10 @@ propdescriptor ProprietaryObjProps[] =
 {
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevisio
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -94,11 +94,11 @@ propdescriptor AIprops[]=
 {
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
    { PRESENT_VALUE,                  oo(pv),                            flt,         0,        0,                  R|Woutofservice|QVAL },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
-   { DEVICE_TYPE,                    oo(device_type),                   s64,         0,        0,                  O },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
+   { DEVICE_TYPE,                    oo(device_type),                   ch_string,   0,        0,                  O },
    { STATUS_FLAGS,                   oo(go.status_flags),               bits,        0,        eiStF,              R|QVAL },
    { EVENT_STATE,                    oo(go.event_state),                et,          0,        eiEvState,          R|QVAL },
    { RELIABILITY,                    oo(go.reliability),                et,          0,        eiReli,             O },
@@ -127,7 +127,7 @@ propdescriptor AIprops[]=
    { TIME_DELAY_NORMAL,              oo(go.time_delay_normal),          ud,          0,        0,                  O,        13 },
    { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,   0,        0,                  O,        13 },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -135,11 +135,11 @@ propdescriptor AIprops[]=
 propdescriptor AOprops[]={
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
    { PRESENT_VALUE,                  oo(pv),                            flt,         0,        0,                  W|IsCommandable|QVAL },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
-   { DEVICE_TYPE,                    oo(device_type),                   s64,         0,        0,                  O },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
+   { DEVICE_TYPE,                    oo(device_type),                   ch_string,   0,        0,                  O },
    { STATUS_FLAGS,                   oo(go.status_flags),               bits,        0,        eiStF,              R|QVAL },
    { EVENT_STATE,                    oo(go.event_state),                et,          0,        eiEvState,          R|QVAL },
    { RELIABILITY,                    oo(go.reliability),                et,          0,        eiReli,             O },
@@ -169,7 +169,7 @@ propdescriptor AOprops[]={
    { TIME_DELAY_NORMAL,              oo(go.time_delay_normal),          ud,          0,        0,                  O,        13 },
    { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,   0,        0,                  O,        13 },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -177,10 +177,10 @@ propdescriptor AOprops[]={
 propdescriptor AVprops[]={
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
    { PRESENT_VALUE,                  oo(pv),                            flt,         0,        0,                  W|IsCommandable },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O|QVAL },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O|QVAL },
    { STATUS_FLAGS,                   oo(go.status_flags),               bits,        0,        eiStF,              R|QVAL },
    { EVENT_STATE,                    oo(go.event_state),                et,          0,        eiEvState,          R|QVAL },
    { RELIABILITY,                    oo(go.reliability),                et,          0,        eiReli,             O },
@@ -210,7 +210,7 @@ propdescriptor AVprops[]={
    { MAX_PRES_VALUE,                 oo(max_pres_value),                flt,         0,        0,                  O,        14 },
    { RESOLUTION,                     oo(resolution),                    flt,         0,        0,                  O,        14 },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -218,18 +218,18 @@ propdescriptor AVprops[]={
 propdescriptor BIprops[]={
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
    { PRESENT_VALUE,                  oo(pv),                            et,          0,        eiBPV,              R|Woutofservice|QVAL },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
-   { DEVICE_TYPE,                    oo(device_type),                   s64,         0,        0,                  O },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
+   { DEVICE_TYPE,                    oo(device_type),                   ch_string,   0,        0,                  O },
    { STATUS_FLAGS,                   oo(go.status_flags),               bits,        0,        eiStF,              R|QVAL },
    { EVENT_STATE,                    oo(go.event_state),                et,          0,        eiEvState,          R|QVAL },
    { RELIABILITY,                    oo(go.reliability),                et,          0,        eiReli,             O },
    { OUT_OF_SERVICE,                 oo(go.out_of_service),             ebool,       0,        eiTF,               R },
    { POLARITY,                       oo(polarity),                      et,          0,        eiPolar,            R },
-   { INACTIVE_TEXT,                  oo(inactive_text),                 s64,         1,        0,                  O|WithGroup },
-   { ACTIVE_TEXT,                    oo(active_text),                   s64,         1,        0,                  O|WithGroup },
+   { INACTIVE_TEXT,                  oo(inactive_text),                 ch_string,   1,        0,                  O|WithGroup },
+   { ACTIVE_TEXT,                    oo(active_text),                   ch_string,   1,        0,                  O|WithGroup },
    { CHANGE_OF_STATE_TIME,           oo(cos_time),                      dt,          2,        0,                  O|WithGroup|QVAL },
    { CHANGE_OF_STATE_COUNT,          oo(cos_count),                     uw,          2,        0,                  O|WithGroup|QVAL },
    { TIME_OF_STATE_COUNT_RESET,      oo(time_of_state_count_reset),     dt,          2,        0,                  O|WithGroup },
@@ -250,7 +250,7 @@ propdescriptor BIprops[]={
    { TIME_DELAY_NORMAL,              oo(go.time_delay_normal),          ud,          0,        0,                  O,        13 },
    { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,   0,        0,                  O,        13 },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -258,18 +258,18 @@ propdescriptor BIprops[]={
 propdescriptor BOprops[]={
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
    { PRESENT_VALUE,                  oo(pv),                            et,          0,        eiBPV,              W|IsCommandable|QVAL },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
-   { DEVICE_TYPE,                    oo(device_type),                   s64,         0,        0,                  O },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
+   { DEVICE_TYPE,                    oo(device_type),                   ch_string,   0,        0,                  O },
    { STATUS_FLAGS,                   oo(go.status_flags),               bits,        0,        eiStF,              R|QVAL },
    { EVENT_STATE,                    oo(go.event_state),                et,          0,        eiEvState,          R|QVAL },
    { RELIABILITY,                    oo(go.reliability),                et,          0,        eiReli,             O },
    { OUT_OF_SERVICE,                 oo(go.out_of_service),             ebool,       0,        eiTF,               R },
    { POLARITY,                       oo(polarity),                      et,          0,        eiPolar,            R },
-   { INACTIVE_TEXT,                  oo(inactive_text),                 s64,         1,        0,                  O|WithGroup },
-   { ACTIVE_TEXT,                    oo(active_text),                   s64,         1,        0,                  O|WithGroup },
+   { INACTIVE_TEXT,                  oo(inactive_text),                 ch_string,   1,        0,                  O|WithGroup },
+   { ACTIVE_TEXT,                    oo(active_text),                   ch_string,   1,        0,                  O|WithGroup },
    { CHANGE_OF_STATE_TIME,           oo(cos_time),                      dt,          2,        0,                  O|WithGroup|QVAL },
    { CHANGE_OF_STATE_COUNT,          oo(cos_count),                     uw,          2,        0,                  O|WithGroup|QVAL },
    { TIME_OF_STATE_COUNT_RESET,      oo(time_of_state_count_reset),     dt,          2,        0,                  O|WithGroup },
@@ -294,7 +294,7 @@ propdescriptor BOprops[]={
    { TIME_DELAY_NORMAL,              oo(go.time_delay_normal),          ud,          0,        0,                  O,        13 },
    { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,   0,        0,                  O,        13 },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -302,16 +302,16 @@ propdescriptor BOprops[]={
 propdescriptor BVprops[]={
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
    { PRESENT_VALUE,                  oo(pv),                            et,          0,        eiBPV,              R|Woutofservice|IsCommandable|QVAL },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
    { STATUS_FLAGS,                   oo(go.status_flags),               bits,        0,        eiStF,              R|QVAL },
    { EVENT_STATE,                    oo(go.event_state),                et,          0,        eiEvState,          R|QVAL },
    { RELIABILITY,                    oo(go.reliability),                et,          0,        eiReli,             O },
    { OUT_OF_SERVICE,                 oo(go.out_of_service),             ebool,       0,        eiTF,               R },
-   { INACTIVE_TEXT,                  oo(inactive_text),                 s64,         1,        0,                  O|WithGroup },
-   { ACTIVE_TEXT,                    oo(active_text),                   s64,         1,        0,                  O|WithGroup },
+   { INACTIVE_TEXT,                  oo(inactive_text),                 ch_string,   1,        0,                  O|WithGroup },
+   { ACTIVE_TEXT,                    oo(active_text),                   ch_string,   1,        0,                  O|WithGroup },
    { CHANGE_OF_STATE_TIME,           oo(cos_time),                      dt,          2,        0,                  O|WithGroup|QVAL },
    { CHANGE_OF_STATE_COUNT,          oo(cos_count),                     uw,          2,        0,                  O|WithGroup|QVAL },
    { TIME_OF_STATE_COUNT_RESET,      oo(time_of_state_count_reset),     dt,          2,        0,                  O|WithGroup },
@@ -336,7 +336,7 @@ propdescriptor BVprops[]={
    { TIME_DELAY_NORMAL,              oo(go.time_delay_normal),          ud,          0,        0,                  O,        13 },
    { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,   0,        0,                  O,        13 },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -344,13 +344,13 @@ propdescriptor BVprops[]={
 propdescriptor CLprops[]={
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
    { PRESENT_VALUE,                  oo(pv),                            ebool,       0,        eiTF,               R|QVAL },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
    { DATE_LIST,                      oo(date_list),                     calist,      0,        0,                  R },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -358,16 +358,16 @@ propdescriptor CLprops[]={
 propdescriptor CMprops[]={
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
    { PRESENT_VALUE,                  oo(pv),                            uw,          0,        0,                  W|QVAL },
    { IN_PROCESS,                     oo(in_process),                    ebool,       0,        eiTF,               R|QVAL },
    { ALL_WRITES_SUCCESSFUL,          oo(all_writes_successful),         ebool,       0,        eiTF,               R|QVAL },
    { ACTION,                         oo(action),                        act,         0,        MAX_ACTION_TEXTS,   R|IsArray },
    { ACTION_TEXT,                    oo(action_text),                   actext,      0,        MAX_ACTION_TEXTS,   O|IsArray },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -375,16 +375,16 @@ propdescriptor CMprops[]={
 propdescriptor DVprops[]={
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
    { SYSTEM_STATUS,                  oo(system_status),                 et,          0,        eiDS,               R|QVAL },
-   { VENDOR_NAME,                    oo(vendor_name),                   s64,         0,        0,                  R },
+   { VENDOR_NAME,                    oo(vendor_name),                   ch_string,   0,        0,                  R },
    { VENDOR_IDENTIFIER,              oo(vendor_id),                     uw,          0,        0,                  R },
-   { MODEL_NAME,                     oo(model_name),                    s32,         0,        0,                  R },
-   { FIRMWARE_REVISION,              oo(firmware_rev),                  s32,         0,        0,                  R },
-   { APPLICATION_SOFTWARE_VERSION,   oo(application_software_ver),      s32,         0,        0,                  R },
-   { LOCATION,                       oo(location),                      s64,         0,        0,                  O },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
+   { MODEL_NAME,                     oo(model_name),                    ch_string,   0,        0,                  R },
+   { FIRMWARE_REVISION,              oo(firmware_rev),                  ch_string,   0,        0,                  R },
+   { APPLICATION_SOFTWARE_VERSION,   oo(application_software_ver),      ch_string,   0,        0,                  R },
+   { LOCATION,                       oo(location),                      ch_string,   0,        0,                  O },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
    { PROTOCOL_VERSION,               oo(protocol_ver),                  uw,          0,        0,                  R },
    { PROTOCOL_REVISION,              oo(protocol_rev),                  uw,          0,        0,                  R },
    { PROTOCOL_CONFORMANCE_CLASS,     oo(protocol_conf_class),           uw,          0,        0,                  O },  // TODO: was required, now deprecated...
@@ -429,9 +429,9 @@ propdescriptor DVprops[]={
    { TIME_SYNCHRONIZATION_INTERVAL,  oo(time_synchronization_interval), uw,          0,        0,                  O,        7 },
    { ALIGN_INTERVALS,                oo(align_intervals),               ebool,       0,        eiTF,               O,        7 },
    { INTERVAL_OFFSET,                oo(interval_offset),               uw,          0,        0,                  O,        7 },
-   { SERIAL_NUMBER,                  oo(serial_number),                 s132,        0,        0,                  O,        14 },
+   { SERIAL_NUMBER,                  oo(serial_number),                 ch_string,   0,        0,                  O,        14 },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -439,9 +439,9 @@ propdescriptor DVprops[]={
 propdescriptor EEprops[]={
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
    { EVENT_TYPE,                     oo(parameter_list.event_type),     et,          0,        eiEvType,           R },
    { NOTIFY_TYPE,                    oo(go.notify_type),                et,          0,        eiNT,               R },
    { EVENT_PARAMETERS,               oo(parameter_list),                evparm,      0,        0,                  R },
@@ -470,7 +470,7 @@ propdescriptor EEprops[]={
 // { FAULT_PARAMETERS, oo(fault_parameters),  PT_FAULT_PARMS, 0,  0, O,                            13 },
    { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,   0,        0,                  O,        13 },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -478,10 +478,10 @@ propdescriptor EEprops[]={
 propdescriptor FLprops[]={
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
-   { FILE_TYPE,                      oo(file_type),                     s32,         0,        0,                  R },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
+   { FILE_TYPE,                      oo(file_type),                     ch_string,   0,        0,                  R },
    { FILE_SIZE,                      oo(file_size),                     ud,          0,        0,                  R },
    { MODIFICATION_DATE,              oo(mod_date),                      dt,          0,        0,                  R },
    { ARCHIVE,                        oo(archive),                       ebool,       0,        eiTF,               W },
@@ -489,7 +489,7 @@ propdescriptor FLprops[]={
    { FILE_ACCESS_METHOD,             oo(access_method),                 et,          0,        eiFAM,              R },
    { RECORD_COUNT,                   oo(record_count),                  ud,          0,        0,                  O },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -497,13 +497,13 @@ propdescriptor FLprops[]={
 propdescriptor GRprops[]={
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
    { LIST_OF_GROUP_MEMBERS,          oo(list_of_group_members),         raslist,     0,        0,                  R },
    { PRESENT_VALUE,                  0,                                 none,        0,        0,                  R|QVAL },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -511,10 +511,10 @@ propdescriptor GRprops[]={
 propdescriptor LPprops[]={
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
    { PRESENT_VALUE,                  oo(pv),                            flt,         0,        0,                  R|QVAL },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
    { STATUS_FLAGS,                   oo(go.status_flags),               bits,        0,        eiStF,              R|QVAL },
    { EVENT_STATE,                    oo(go.event_state),                et,          0,        eiEvState,          R|QVAL },
    { RELIABILITY,                    oo(go.reliability),                et,          0,        eiReli,             O },
@@ -555,7 +555,7 @@ propdescriptor LPprops[]={
    { TIME_DELAY_NORMAL,              oo(go.time_delay_normal),          ud,          0,        0,                  O,        13 },
    { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,   0,        0,                  O,        13 },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -563,11 +563,11 @@ propdescriptor LPprops[]={
 propdescriptor MIprops[]={
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
    { PRESENT_VALUE,                  oo(pv),                            uw,          0,        0,                  R|Woutofservice|QVAL },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
-   { DEVICE_TYPE,                    oo(device_type),                   s64,         0,        0,                  O },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
+   { DEVICE_TYPE,                    oo(device_type),                   ch_string,   0,        0,                  O },
    { STATUS_FLAGS,                   oo(go.status_flags),               bits,        0,        eiStF,              R|QVAL },
    { EVENT_STATE,                    oo(go.event_state),                et,          0,        eiEvState,          R|QVAL },
    { RELIABILITY,                    oo(go.reliability),                et,          0,        eiReli,             O },
@@ -590,7 +590,7 @@ propdescriptor MIprops[]={
    { TIME_DELAY_NORMAL,              oo(go.time_delay_normal),          ud,          0,        0,                  O,        13 },
    { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,   0,        0,                  O,        13 },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -598,11 +598,11 @@ propdescriptor MIprops[]={
 propdescriptor MOprops[]={
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
    { PRESENT_VALUE,                  oo(pv),                            uw,          0,        0,                  W|IsCommandable|QVAL },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
-   { DEVICE_TYPE,                    oo(device_type),                   s64,         0,        0,                  O },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
+   { DEVICE_TYPE,                    oo(device_type),                   ch_string,   0,        0,                  O },
    { STATUS_FLAGS,                   oo(go.status_flags),               bits,        0,        eiStF,              R|QVAL },
    { EVENT_STATE,                    oo(go.event_state),                et,          0,        eiEvState,          R|QVAL },
    { RELIABILITY,                    oo(go.reliability),                et,          0,        eiReli,             O },
@@ -626,7 +626,7 @@ propdescriptor MOprops[]={
    { TIME_DELAY_NORMAL,              oo(go.time_delay_normal),          ud,          0,        0,                  O,        13 },
    { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,   0,        0,                  O,        13 },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -634,15 +634,15 @@ propdescriptor MOprops[]={
 propdescriptor NCprops[]={
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
    { NOTIFICATION_CLASS,             oo(go.notification_class),         uw,          0,        0,                  R },
    { PRIORITY,                       oo(priority),                      uwarr,       0,        0,                  R|IsArray },
    { ACK_REQUIRED,                   oo(ack_required),                  bits,        0,        eiEvTr,             R },
    { RECIPIENT_LIST,                 oo(recipient_list),                reciplist,   0,        0,                  R },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -650,15 +650,15 @@ propdescriptor NCprops[]={
 propdescriptor PRprops[]={
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
    { PROGRAM_STATE,                  oo(prog_state),                    et,          0,        eiPrState,          R|QVAL },
    { PROGRAM_CHANGE,                 oo(prog_change),                   et,          0,        eiPrChg,            W },
    { REASON_FOR_HALT,                oo(reason_for_halt),               et,          1,        eiPrErr,            O|WithGroup },
-   { DESCRIPTION_OF_HALT,            oo(description_of_halt),           s64,         1,        0,                  O|WithGroup },
-   { PROGRAM_LOCATION,               oo(prog_location),                 s64,         0,        0,                  O },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
-   { INSTANCE_OF,                    oo(instance_of),                   s64,         0,        0,                  O },
+   { DESCRIPTION_OF_HALT,            oo(description_of_halt),           ch_string,   1,        0,                  O|WithGroup },
+   { PROGRAM_LOCATION,               oo(prog_location),                 ch_string,   0,        0,                  O },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
+   { INSTANCE_OF,                    oo(instance_of),                   ch_string,   0,        0,                  O },
    { STATUS_FLAGS,                   oo(go.status_flags),               bits,        0,        eiStF,              R|QVAL },
    { RELIABILITY,                    oo(go.reliability),                et,          0,        eiReli,             O },
    { OUT_OF_SERVICE,                 oo(go.out_of_service),             ebool,       0,        eiTF,               R },
@@ -673,7 +673,7 @@ propdescriptor PRprops[]={
    { EVENT_MESSAGE_TEXTS_CONFIG,     oo(go.event_message_texts_config), statext,     0,        3,                  O|IsArray, 13 },
    { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,   0,        0,                  O,        13 },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -681,10 +681,10 @@ propdescriptor PRprops[]={
 propdescriptor SCprops[]={
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
    { PRESENT_VALUE,                  oo(pv),                            none,        0,        0,                  R|QVAL },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
    { EFFECTIVE_PERIOD,               oo(effective_period),              dtrange,     0,        0,                  R },
    { WEEKLY_SCHEDULE,                oo(weekly_schedule),               wsched,      1,        0,                  O|AtLeast1|IsArray },
    { EXCEPTION_SCHEDULE,             oo(exception_schedule),            xsched,      1,        0,                  O|AtLeast1|IsArray },
@@ -705,7 +705,7 @@ propdescriptor SCprops[]={
    { EVENT_MESSAGE_TEXTS_CONFIG,     oo(go.event_message_texts_config), statext,     0,        3,                  O|IsArray, 13 },
    { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,   0,        0,                  O,        13 },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -713,7 +713,7 @@ propdescriptor SCprops[]={
 propdescriptor AVGprops[]={
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
    { MINIMUM_VALUE,                  oo(minimum_value),                 flt,         0,        0,                  R|QVAL },
    { MINIMUM_VALUE_TIMESTAMP,        oo(minimum_value_timestamp),       dt,          0,        0,                  O|QVAL },
@@ -721,14 +721,14 @@ propdescriptor AVGprops[]={
    { VARIANCE_VALUE,                 oo(variance_value),                flt,         0,        0,                  O|QVAL },
    { MAXIMUM_VALUE,                  oo(maximum_value),                 flt,         0,        0,                  O|QVAL },
    { MAXIMUM_VALUE_TIMESTAMP,        oo(maximum_value_timestamp),       dt,          0,        0,                  O|QVAL },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
    { ATTEMPTED_SAMPLES,              oo(attempted_samples),             uw,          0,        0,                  W },
    { VALID_SAMPLES,                  oo(valid_samples),                 uw,          0,        0,                  R|QVAL },
    { OBJECT_PROPERTY_REFERENCE,      oo(obj_prop_ref),                  devobjpropref, 0,      0,                  R },
    { WINDOW_INTERVAL,                oo(window_interval),               uw,          0,        0,                  W },
    { WINDOW_SAMPLES,                 oo(window_samples),                uw,          0,        0,                  W },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -736,10 +736,10 @@ propdescriptor AVGprops[]={
 propdescriptor MVprops[]={
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
    { PRESENT_VALUE,                  oo(present_value),                 uw,          0,        0,                  W|IsCommandable|QVAL },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
    { STATUS_FLAGS,                   oo(go.status_flags),               bits,        0,        eiStF,              R|QVAL },
    { EVENT_STATE,                    oo(go.event_state),                et,          0,        eiEvState,          R|QVAL },
    { RELIABILITY,                    oo(go.reliability),                et,          0,        eiReli,             O },
@@ -764,7 +764,7 @@ propdescriptor MVprops[]={
    { TIME_DELAY_NORMAL,              oo(go.time_delay_normal),          ud,          0,        0,                  O,        13 },
    { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,   0,        0,                  O,        13 },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -772,9 +772,9 @@ propdescriptor MVprops[]={
 propdescriptor TRprops[]={
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
    { ENABLE,                         oo(log_enable),                    ebool,       0,        eiTF,               W },
    { START_TIME,                     oo(start_time),                    dt,          0,        0,                  O },
    { STOP_TIME,                      oo(stop_time),                     dt,          0,        0,                  O },
@@ -810,7 +810,7 @@ propdescriptor TRprops[]={
    { TIME_DELAY_NORMAL,              oo(go.time_delay_normal),          ud,          0,        0,                  O,        13 },
    { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,   0,        0,                  O,        13 },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -819,12 +819,12 @@ propdescriptor LFSPProps[] =
 {
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
    { PRESENT_VALUE,                  oo(present_value),                 et,          0,        eiLifeSafetyState,  R|QVAL },
    { TRACKING_VALUE,                 oo(tracking_value),                et,          0,        eiLifeSafetyState,  O },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
-   { DEVICE_TYPE,                    oo(device_type),                   s64,         0,        0,                  O },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
+   { DEVICE_TYPE,                    oo(device_type),                   ch_string,   0,        0,                  O },
    { STATUS_FLAGS,                   oo(go.status_flags),               bits,        0,        eiStF,              R|QVAL },
    { EVENT_STATE,                    oo(go.event_state),                et,          0,        eiEvState,          R|QVAL },
    { RELIABILITY,                    oo(go.reliability),                et,          0,        eiReli,             R },
@@ -855,7 +855,7 @@ propdescriptor LFSPProps[] =
    { UNITS,                          oo(units),                         et,          0,        eiEU,               O },
    { MEMBER_OF,                      oo(member_of),                     lodoref,     0,        0,                  O|IsArray },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -864,12 +864,12 @@ propdescriptor LFSZProps[] =
 {
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
    { PRESENT_VALUE,                  oo(present_value),                 et,          0,        eiLifeSafetyState,  R|QVAL },
    { TRACKING_VALUE,                 oo(tracking_value),                et,          0,        eiLifeSafetyState,  O },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
-   { DEVICE_TYPE,                    oo(device_type),                   s64,         0,        0,                  O },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
+   { DEVICE_TYPE,                    oo(device_type),                   ch_string,   0,        0,                  O },
    { STATUS_FLAGS,                   oo(go.status_flags),               bits,        0,        eiStF,              R|QVAL },
    { EVENT_STATE,                    oo(go.event_state),                et,          0,        eiEvState,          R|QVAL },
    { RELIABILITY,                    oo(go.reliability),                et,          0,        eiReli,             R },
@@ -898,7 +898,7 @@ propdescriptor LFSZProps[] =
    { ZONE_MEMBERS,                   oo(zone_members),                  lodoref,     0,        0,                  R },
    { MEMBER_OF,                      oo(member_of),                     lodoref,     0,        0,                  O },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -907,11 +907,11 @@ propdescriptor ACProps[] =
 {
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
    { PRESENT_VALUE,                  oo(present_value),                 uw,          0,        0,                  R|QVAL },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
-   { DEVICE_TYPE,                    oo(device_type),                   s64,         0,        0,                  O },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
+   { DEVICE_TYPE,                    oo(device_type),                   ch_string,   0,        0,                  O },
    { STATUS_FLAGS,                   oo(go.status_flags),               bits,        0,        eiStF,              R|QVAL },
    { EVENT_STATE,                    oo(go.event_state),                et,          0,        eiEvState,          R|QVAL },
    { RELIABILITY,                    oo(go.reliability),                et,          0,        eiReli,             O },
@@ -944,7 +944,7 @@ propdescriptor ACProps[] =
    { TIME_DELAY_NORMAL,              oo(go.time_delay_normal),          ud,          0,        0,                  O,        13 },
    { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,   0,        0,                  O,        13 },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -953,9 +953,9 @@ propdescriptor PCProps[] =
 {
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
    { PRESENT_VALUE,                  oo(present_value),                 flt,         0,        0,                  R|QVAL },
    { INPUT_REFERENCE,                oo(input_reference),               propref,     0,        0,                  O },
    { STATUS_FLAGS,                   oo(go.status_flags),               bits,        0,        eiStF,              R|QVAL },
@@ -989,7 +989,7 @@ propdescriptor PCProps[] =
    { TIME_DELAY_NORMAL,              oo(go.time_delay_normal),          ud,          0,        0,                  O,        13 },
    { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,   0,        0,                  O,        13 },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -998,11 +998,11 @@ propdescriptor LCProps[] =
 {
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
    { PRESENT_VALUE,                  oo(present_value),                 et,          0,        eiShedState,        R|QVAL },
-   { STATE_DESCRIPTION,              oo(state_description),             s132,        0,        0,                  O },
+   { STATE_DESCRIPTION,              oo(state_description),             ch_string,   0,        0,                  O },
    { STATUS_FLAGS,                   oo(go.status_flags),               bits,        0,        eiStF,              R|QVAL },
    { EVENT_STATE,                    oo(go.event_state),                et,          0,        eiEvState,          R|QVAL },
    { RELIABILITY,                    oo(go.reliability),                et,          0,        eiReli,             O },
@@ -1030,7 +1030,7 @@ propdescriptor LCProps[] =
    { TIME_DELAY_NORMAL,              oo(go.time_delay_normal),          ud,          0,        0,                  O,        13 },
    { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,   0,        0,                  O,        13 },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -1039,10 +1039,10 @@ propdescriptor ADProps[] =
 {
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
    { PRESENT_VALUE,                  oo(present_value),                 et,          0,        eiDoorValue,        W|QVAL },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
    { STATUS_FLAGS,                   oo(go.status_flags),               bits,        0,        eiStF,              R|QVAL },
    { EVENT_STATE,                    oo(go.event_state),                et,          0,        eiEvState,          R|QVAL },
    { RELIABILITY,                    oo(go.reliability),                et,          0,        eiReli,             O },
@@ -1076,7 +1076,7 @@ propdescriptor ADProps[] =
    { TIME_DELAY_NORMAL,              oo(go.time_delay_normal),          ud,          0,        0,                  O,        13 },
    { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,   0,        0,                  O,        13 },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -1085,16 +1085,16 @@ propdescriptor SVProps[] =
 {
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
    { NODE_TYPE,                      oo(node_type),                     et,          0,        eiNodeType,         R },
-   { NODE_SUBTYPE,                   oo(node_subtype),                  s132,        0,        0,                  O },
+   { NODE_SUBTYPE,                   oo(node_subtype),                  ch_string,   0,        0,                  O },
    // Even though subordinate-list is an array, re-use the "list of device object reference" type here; we'll catch the difference when parsing.
    { SUBORDINATE_LIST,               oo(subordinate_list),              lodoref,     0,        0,                  R|IsArray },
    { SUBORDINATE_ANNOTATIONS,        oo(subordinate_annotations),       statext,     0,        MAX_SV_ANNOTATIONS, O|IsArray },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -1103,10 +1103,10 @@ propdescriptor ELProps[] =
 {
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
    { STATUS_FLAGS,                   oo(go.status_flags),               bits,        0,        eiStF,              R|QVAL },
    { EVENT_STATE,                    oo(go.event_state),                et,          0,        eiEvState,          R|QVAL },
    { RELIABILITY,                    oo(go.reliability),                et,          0,        eiReli,             O },
@@ -1133,7 +1133,7 @@ propdescriptor ELProps[] =
    { EVENT_ALGORITHM_INHIBIT,        oo(go.event_algorithm_inhibit),    ebool,       0,        0,                  O,        13 },
    { TIME_DELAY_NORMAL,              oo(go.time_delay_normal),          ud,          0,        0,                  O,        13 },
    { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,   0,        0,                  O,        13 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -1142,9 +1142,9 @@ propdescriptor GlobalGroupProps[] =
 {
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
 // TODO:  GROUP_MEMBERS, array of BACnetDeviceObjectPropertyReference R
 // TODO:  GROUP_MEMBER_NAMES, array of character strings O
 // TODO:  PRESENT_VALUE, array of BACnetPropertyAccessResult R
@@ -1173,7 +1173,7 @@ propdescriptor GlobalGroupProps[] =
    { COVU_RECIPIENTS,                oo(covu_recipients),               tsrecip,     0,        0,                  O },
    { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,   0,        0,                  O,        13 },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -1182,9 +1182,9 @@ propdescriptor TLMProps[] =
 {
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
    { STATUS_FLAGS,                   oo(go.status_flags),               bits,        0,        eiStF,              R|QVAL },
    { EVENT_STATE,                    oo(go.event_state),                et,          0,        eiEvState,          R|QVAL },
    { RELIABILITY,                    oo(go.reliability),                et,          0,        eiReli,             O },
@@ -1218,7 +1218,7 @@ propdescriptor TLMProps[] =
    { TIME_DELAY_NORMAL,              oo(go.time_delay_normal),          ud,          0,        0,                  O,        13 },
    { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,   0,        0,                  O,        13 },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -1227,16 +1227,16 @@ propdescriptor CharstringProps[]=
 {
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
-   { PRESENT_VALUE,                  oo(present_value),                 s132,        0,        0,                  W|IsCommandable|QVAL },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
+   { PRESENT_VALUE,                  oo(present_value),                 ch_string,   0,        0,                  W|IsCommandable|QVAL },
    { STATUS_FLAGS,                   oo(go.status_flags),               bits,        0,        eiStF,              R|QVAL },
    { EVENT_STATE,                    oo(go.event_state),                et,          0,        eiEvState,          R|QVAL },
    { RELIABILITY,                    oo(go.reliability),                et,          0,        eiReli,             O },
    { OUT_OF_SERVICE,                 oo(go.out_of_service),             ebool,       0,        eiTF,               R },
 // TODO: { PRIORITY_ARRAY,      oo(priority_array),       pa??,    3,          0,       O|IsArray|WithGroup|QVAL },
-   { RELINQUISH_DEFAULT,             oo(relinquish_default),            s132,        3,        0,                  O|WithGroup },
+   { RELINQUISH_DEFAULT,             oo(relinquish_default),            ch_string,   3,        0,                  O|WithGroup },
    { TIME_DELAY,                     oo(go.time_delay),                 uw,          Intr,     0,                  O|WithService },
    { NOTIFICATION_CLASS,             oo(go.notification_class),         uw,          Intr,     0,                  O|WithService },
    { ALARM_VALUES,                   oo(alarm_values),                  actext,      Intr,     MAX_FAULT_STRINGS,  O|IsArray|WithService },
@@ -1253,7 +1253,7 @@ propdescriptor CharstringProps[]=
    { TIME_DELAY_NORMAL,              oo(go.time_delay_normal),          ud,          0,        0,                  O,        13 },
    { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,   0,        0,                  O,        13 },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -1262,9 +1262,9 @@ propdescriptor IntegerProps[]=
 {
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
    { PRESENT_VALUE,                  oo(present_value),                 ptInt32,     0,        0,                  W|IsCommandable|QVAL },
    { STATUS_FLAGS,                   oo(go.status_flags),               bits,        0,        eiStF,              R|QVAL },
    { EVENT_STATE,                    oo(go.event_state),                et,          0,        eiEvState,          R|QVAL },
@@ -1295,7 +1295,7 @@ propdescriptor IntegerProps[]=
    { MAX_PRES_VALUE,                 oo(max_pres_value),                ptInt32,     0,        0,                  O,        14 },
    { RESOLUTION,                     oo(resolution),                    ptInt32,     0,        0,                  O,        14 },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 // parse type "ud" is unsigned double word, eg what would be Uint32
@@ -1305,9 +1305,9 @@ propdescriptor PositiveIntegerProps[]=
 {
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
    { PRESENT_VALUE,                  oo(present_value),                 ud,          0,        0,                  W|IsCommandable|QVAL },
    { STATUS_FLAGS,                   oo(go.status_flags),               bits,        0,        eiStF,              R|QVAL },
    { EVENT_STATE,                    oo(go.event_state),                et,          0,        eiEvState,          R|QVAL },
@@ -1338,7 +1338,7 @@ propdescriptor PositiveIntegerProps[]=
    { MAX_PRES_VALUE,                 oo(max_pres_value),                ud,          0,        0,                  O,        14 },
    { RESOLUTION,                     oo(resolution),                    ud,          0,        0,                  O,        14 },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 #undef oo
@@ -1347,9 +1347,9 @@ propdescriptor DateTimeValueProps[]=
 {
 // property identifier,            struc offset,                      parse,       group,    table,              qualifiers, firstRevision
    { OBJECT_IDENTIFIER,              oo(go.object_id),                  ob_id,       0,        0,                  R },
-   { OBJECT_NAME,                    oo(go.object_name),                s64,         0,        0,                  R },
+   { OBJECT_NAME,                    oo(go.object_name),                ch_string,   0,        0,                  R },
    { OBJECT_TYPE,                    oo(go.object_type),                et,          0,        eiObjectTypes,      R },
-   { DESCRIPTION,                    oo(go.description),                s132,        0,        0,                  O },
+   { DESCRIPTION,                    oo(go.description),                ch_string,   0,        0,                  O },
    { PRESENT_VALUE,                  oo(present_value),                 dt,          0,        0,                  W|IsCommandable|QVAL },
    { STATUS_FLAGS,                   oo(go.status_flags),               bits,        0,        eiStF,              R|QVAL },
    { EVENT_STATE,                    oo(go.event_state),                et,          0,        eiEvState,          R|QVAL },
@@ -1360,7 +1360,7 @@ propdescriptor DateTimeValueProps[]=
    { IS_UTC,                         oo(is_utc),                        ebool,       0,        eiTF,               R },
    { RELIABILITY_EVALUATION_INHIBIT, oo(go.reliability_evaluation_inhibit), ebool,   0,        0,                  O,        13 },
    { PROPERTY_LIST,                  oo(go.property_list),              PT_PROPLIST, 0,        0,                  R,        14 },
-   { PROFILE_NAME,                   oo(go.profile_name),               s132,        LAST,     0,                  O }
+   { PROFILE_NAME,                   oo(go.profile_name),               ch_string,   LAST,     0,                  O }
 };
 
 stdobjtype  StdObjects[MAX_DEFINED_OBJ]={
@@ -1459,7 +1459,7 @@ static dpttable dParseTypes={
                 {ACTION,act,0,IsArray},
                 {ACTION,et,eiLoopAct,0},
                 {ACTION_TEXT,actext,0,IsArray},
-                {ACTIVE_TEXT,s64,0},
+                {ACTIVE_TEXT,ch_string,0},
                 {ACTIVE_VT_SESSIONS,vtse,0,0},
                 {ALARM_VALUE,et,eiBPV,0},
                 {ALARM_VALUES,stavals,0,0},
@@ -1467,7 +1467,7 @@ static dpttable dParseTypes={
                 {ALL_WRITES_SUCCESSFUL,ebool,eiTF,0},
                 {APDU_SEGMENT_TIMEOUT,uw,0,0},
                 {APDU_TIMEOUT,uw,0,0},
-                {APPLICATION_SOFTWARE_VERSION,s32,0,0},
+                {APPLICATION_SOFTWARE_VERSION,ch_string,0,0},
                 {ARCHIVE,ebool,eiTF,0},
                 {ATTEMPTED_SAMPLES,uw,0,0},
                 {AVERAGE_VALUE,flt,0,0},
@@ -1485,10 +1485,10 @@ static dpttable dParseTypes={
                 {DEADBAND,flt,0,0},
                 {DERIVATIVE_CONSTANT,flt,0,0},
                 {DERIVATIVE_CONSTANT_UNITS,et,eiEU,0},
-                {DESCRIPTION,s132,0,0},
-                {DESCRIPTION_OF_HALT,s64,0,0},
+                {DESCRIPTION,ch_string,0,0},
+                {DESCRIPTION_OF_HALT,ch_string,0,0},
                 {DEVICE_ADDRESS_BINDING,dabind,0,0},
-                {DEVICE_TYPE,s64,0,0},
+                {DEVICE_TYPE,ch_string,0,0},
                 {EFFECTIVE_PERIOD,dtrange,0,0},
                 {ELAPSED_ACTIVE_TIME,ud,0,0},
                 {ERROR_LIMIT,flt,0,0},
@@ -1501,12 +1501,12 @@ static dpttable dParseTypes={
                 {FEEDBACK_VALUE,et,eiBPV,0},
                 {FILE_ACCESS_METHOD,et,eiFAM,0},
                 {FILE_SIZE,ud,0,0},
-                {FILE_TYPE,s32,0,0},
-                {FIRMWARE_REVISION,s32,0,0},
+                {FILE_TYPE,ch_string,0,0},
+                {FIRMWARE_REVISION,ch_string,0,0},
                 {HIGH_LIMIT,flt,0,0},
-                {INACTIVE_TEXT,s64,0,0},
+                {INACTIVE_TEXT,ch_string,0,0},
                 {IN_PROCESS,ebool,eiTF,0},
-                {INSTANCE_OF,s64,0,0},
+                {INSTANCE_OF,ch_string,0,0},
                 {INTEGRAL_CONSTANT,flt,0,0},
                 {INTEGRAL_CONSTANT_UNITS,et,eiEU,0},
                 {ISSUE_CONFIRMED_NOTIFICATIONS,ebool,eiTF,0},
@@ -1516,7 +1516,7 @@ static dpttable dParseTypes={
                 {LIST_OF_SESSION_KEYS,skeys,0,0},
                 {LOCAL_DATE,none,0,0},
                 {LOCAL_TIME,none,0,0},
-                {LOCATION,s64,0,0},
+                {LOCATION,ch_string,0,0},
                 {LOG_BUFFER,LOGREC,0,0},
                 {LOW_LIMIT,flt,0,0},
                 {MANIPULATED_VARIABLE_REFERENCE,propref,0,0},
@@ -1533,14 +1533,14 @@ static dpttable dParseTypes={
                 {MINIMUM_VALUE,flt,0,0},
                 {MINIMUM_VALUE_TIMESTAMP,dt,0,0},
                 {MIN_PRES_VALUE,flt,0,0},
-                {MODEL_NAME,s32,0,0},
+                {MODEL_NAME,ch_string,0,0},
                 {MODIFICATION_DATE,dt,0,0},
                 {NOTIFY_TYPE,et,eiNT,0},
                 {NUMBER_OF_APDU_RETRIES,uw,0,0},
                 {NUMBER_OF_STATES,uw,0,0},
                 {OBJECT_IDENTIFIER,ob_id,0,0},
                 {OBJECT_LIST,none,0,IsArray},
-                {OBJECT_NAME,s32,0,0},
+                {OBJECT_NAME,ch_string,0,0},
                 {OBJECT_PROPERTY_REFERENCE,devobjpropref,0},
                 {OBJECT_TYPE,et,eiObjectTypes,0},
                 {PROP_OPTIONAL,none,0,0},
@@ -1560,7 +1560,7 @@ static dpttable dParseTypes={
                 {PRIORITY_FOR_WRITING,u16,0,0},
                 {PROCESS_IDENTIFIER,uw,0,0},
                 {PROGRAM_CHANGE,et,eiPrChg,0},
-                {PROGRAM_LOCATION,s64,0,0},
+                {PROGRAM_LOCATION,ch_string,0,0},
                 {PROGRAM_STATE,et,eiPrState,0},
                 {PROPORTIONAL_CONSTANT,flt,0,0},
                 {PROPORTIONAL_CONSTANT_UNITS,et,eiEU,0},
@@ -1594,7 +1594,7 @@ static dpttable dParseTypes={
                 {VALID_SAMPLES,uw,0,0,},
                 {VARIANCE_VALUE,flt,0,0},
                 {VENDOR_IDENTIFIER,uw,0,0},
-                {VENDOR_NAME,s64,0,0},
+                {VENDOR_NAME,ch_string,0,0},
                 {VT_CLASSES_SUPPORTED,vtcl,0,0},
                 {WEEKLY_SCHEDULE,wsched,0,IsArray},
                 {WINDOW_INTERVAL,uw,0,0},

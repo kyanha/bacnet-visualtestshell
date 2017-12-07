@@ -13,10 +13,10 @@
 #define	ud					5					//unsigned dword (32 bits)
 #define	sw					6					//signed word (16 bits)
 #define	u127				7					//1..127
-#define	s10					8					//char [10]
-#define	s32					9					//char [32]
-#define	s64					10					//char [64]
-#define	s132				11					//char [132]
+//#define	s10					8					//was char [10]
+//#define	s32					9					//was char [32]
+//#define	s64					10					//was char [64]
+#define	ch_string				11					// string with max length
 #define	propref				12					//obj property reference
 #define	dt					13					//BACnetDateTime
 #define	calist				14					//list of calendarentry
@@ -122,7 +122,7 @@ static const char *stParseTypes[]={
 				"char10",
 				"char32",
 				"char64",         // 10
-				"char132",
+				"char string",
 				"prop ref",
 				"date time",
 				"calendar list",

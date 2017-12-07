@@ -29,7 +29,6 @@ namespace PICS {
 #include "bacprim.h"  // contains basic encoding functions
 
 #include "dudapi.h"   // export interface
-#include "dudtool.h"  // tool functions
 
 #include "props.h"
 
@@ -213,578 +212,6 @@ static BACnetActionCommand far* gTestAct[nTEST][1];
 //
 // ===========================================================================================================
 
-
-// TODO: Not currently used.  Is it functional?  The idea of built-in regression tests is nice...
-//
-// This function is used to allocate dynamic memory and to write test property values
-// to the allocated memory.
-void CreateTestValues(void)
-{
-  // Test value for BACnetActionCommand: ---
-
-  BACnetActionCommand far* pAct;
-
-  pAct= gTestAct[0][0]= new BACnetActionCommand;
-
-  pAct->next= NULL;
-  pAct->device_id= 0;
-  pAct->object_id= 4711;
-  pAct->property_id= PRESENT_VALUE;
-  pAct->pa_index= NotAnArray;
-  pAct->value_type= FLT;
-  pAct->av.fproperty_value= 1.1F;
-  pAct->priority= 16;
-  pAct->post_delay= 1;
-  pAct->quit_on_failure= 0;
-  pAct->write_successful= 0;
-
-  pAct= gTestAct[1][0]= new  BACnetActionCommand;
-
-  pAct->next= NULL;
-  pAct->device_id= 0;
-  pAct->object_id= 4712;
-  pAct->property_id= PRESENT_VALUE;
-  pAct->pa_index= NotAnArray;
-  pAct->value_type= FLT;
-  pAct->av.fproperty_value= 1.2F;
-  pAct->priority= 16;
-  pAct->post_delay= 2;
-  pAct->quit_on_failure= 0;
-  pAct->write_successful= 0;
-
-  pAct= gTestAct[2][0]= new  BACnetActionCommand;
-
-  pAct->next= NULL;
-  pAct->device_id= 0;
-  pAct->object_id= 4713;
-  pAct->property_id= PRESENT_VALUE;
-  pAct->pa_index= NotAnArray;
-  pAct->value_type= FLT;
-  pAct->av.fproperty_value= 1.3F;
-  pAct->priority= 16;
-  pAct->post_delay= 3;
-  pAct->quit_on_failure= 0;
-  pAct->write_successful= 0;
-
-
-  // Test Value for BACnetExceptionSchedule: ---
-
-  BACnetExceptionSchedule far* px;
-  BACnetSpecialEvent far* pe;
-  BACnetTimeValue far* pt;
-
-  px= gTestXSched[0]= new  BACnetExceptionSchedule;               //                   ***001
-  px->size= 1;
-
-  pe= px->special_event= new  BACnetSpecialEvent;              //                   ***001
-  pe->next= NULL;
-  pe->choice= 0;
-  pe->u.date.year= 96;
-  pe->u.date.month= 5;
-  pe->u.date.day_of_month= 3;
-  pe->u.date.day_of_week= 1;
-  pe->event_priority= 16;
-
-  pt= pe->list_of_time_values= new  BACnetTimeValue;           //                   ***001
-  pt->next= NULL;
-  pt->time.hour= 7;
-  pt->time.minute= 30;
-  pt->time.second= 42;
-  pt->time.hundredths= 11;
-  pt->value_type= UNS;
-  pt->av.uproperty_value= 3;
-
-  px= gTestXSched[1]= new  BACnetExceptionSchedule;               //                   ***001
-  px->size= 1;
-
-  pe= px->special_event= new  BACnetSpecialEvent;              //                   ***001
-  pe->next= NULL;
-  pe->choice= 0;
-  pe->u.date.year= 96;
-  pe->u.date.month= 4;
-  pe->u.date.day_of_month= 2;
-  pe->u.date.day_of_week= 2;
-  pe->event_priority= 16;
-
-  pt= pe->list_of_time_values= new  BACnetTimeValue;           //                   ***001
-  pt->next= NULL;
-  pt->time.hour= 8;
-  pt->time.minute= 31;
-  pt->time.second= 43;
-  pt->time.hundredths= 12;
-  pt->value_type= UNS;
-  pt->av.uproperty_value= 2;
-
-
-  px= gTestXSched[2]= new  BACnetExceptionSchedule;
-  px->size= 1;
-
-  pe= px->special_event= new  BACnetSpecialEvent;
-  pe->next= NULL;
-  pe->choice= 0;
-  pe->u.date.year= 96;
-  pe->u.date.month= 4;
-  pe->u.date.day_of_month= 3;
-  pe->u.date.day_of_week= 3;
-  pe->event_priority= 16;
-
-  pt= pe->list_of_time_values= new  BACnetTimeValue;
-  pt->next= NULL;
-  pt->time.hour= 8;
-  pt->time.minute= 33;
-  pt->time.second= 44;
-  pt->time.hundredths= 13;
-  pt->value_type= UNS;
-  pt->av.uproperty_value= 3;
-
-
-  for (int i=0; i<7; i++)
-    {
-      gTestWsched[0][i]= (BACnetTimeValue far*)&gTestTimeValue[0][i];
-      gTestWsched[1][i]= (BACnetTimeValue far*)&gTestTimeValue[1][i];
-      gTestWsched[2][i]= (BACnetTimeValue far*)&gTestTimeValue[2][i];
-    }
-
-
-  // Test Values for ListOf Properties: ---------------------------------------------------------------------
-
-  // Date_List (calendar) List of BACnetCalendarEntry
-
-  BACnetCalendarEntry far* pCal= gTestCalist[0]= new  BACnetCalendarEntry; // 3 elements     ***001
-
-  pCal->choice=            0;
-  pCal->u.date.year=          96;
-  pCal->u.date.month=         5;
-  pCal->u.date.day_of_month=  20;
-  pCal->u.date.day_of_week=   dontcare;
-  pCal->next=              new  BACnetCalendarEntry;              //             ***001
-  pCal= pCal->next;
-
-  pCal->choice=            0;
-  pCal->u.date.year=          96;
-  pCal->u.date.month=         4;
-  pCal->u.date.day_of_month=  19;
-  pCal->u.date.day_of_week=   dontcare;
-  pCal->next=              new  BACnetCalendarEntry;              //             ***001
-  pCal= pCal->next;
-
-  pCal->choice=            0;
-  pCal->u.date.year=          96;
-  pCal->u.date.month=         3;
-  pCal->u.date.day_of_month=  18;
-  pCal->u.date.day_of_week=   dontcare;
-  pCal->next= NULL;
-
-  gTestCalist[1]= gTestCalist[0]->next->next; // 1 element
-  gTestCalist[2]= NULL; // empty list
-
-  pCal= gTestCalist[3]= new  BACnetCalendarEntry;                 //             ***001
-  pCal->choice=            0;
-  pCal->u.date.year=          97;
-  pCal->u.date.month=         3;
-  pCal->u.date.day_of_month=  15;
-  pCal->u.date.day_of_week=   dontcare;
-  pCal->next= NULL;
-
-  // VT_Classes_Supported (device) List of BACnetVTClass
-
-  BACnetVTClassList far* pVtcl= gTestVtcl[0]= new  BACnetVTClassList; // 3 elements          ***001
-
-  pVtcl->vtclass= DEFAULT_TERMINAL;
-  pVtcl->next= new  BACnetVTClassList;                            //             ***001
-  pVtcl= pVtcl->next;
-
-  pVtcl->vtclass= ANSI_X34;
-  pVtcl->next= new  BACnetVTClassList;                            //             ***001
-  pVtcl= pVtcl->next;
-
-  pVtcl->vtclass= DEC_VT52;
-  pVtcl->next= NULL;
-
-  gTestVtcl[1]= gTestVtcl[0]->next->next; // 1 element
-  gTestVtcl[2]= NULL; // empty list
-
-  pVtcl= gTestVtcl[3]= new  BACnetVTClassList;                       //             ***001
-  pVtcl->vtclass= IBM_3130;
-  pVtcl->next= NULL;
-
-
-  // Active_VT_Sessions (device) List of BACnetVTSession
-
-  BACnetVTSession far* pVtse= gTestVtse[0]= new  BACnetVTSession; // 3 elements              ***001
-
-  pVtse->local_session_id= 1;
-  pVtse->remote_session_id= 1;
-  pVtse->remote_address.network_number= 1;
-  pVtse->remote_address.mac_address[0]= 'p';
-  pVtse->remote_address.address_size= 1;
-  pVtse->next= new  BACnetVTSession;                              //             ***001
-  pVtse= pVtse->next;
-
-  pVtse->local_session_id= 2;
-  pVtse->remote_session_id= 2;
-  pVtse->remote_address.network_number= 2;
-  pVtse->remote_address.mac_address[0]= 'o';
-  pVtse->remote_address.address_size= 1;
-  pVtse->next= new  BACnetVTSession;                              //             ***001
-  pVtse= pVtse->next;
-
-  pVtse->local_session_id= 3;
-  pVtse->remote_session_id= 3;
-  pVtse->remote_address.network_number= 3;
-  pVtse->remote_address.mac_address[0]= 'e';
-  pVtse->remote_address.address_size= 1;
-  pVtse->next= NULL;
-
-  gTestVtse[1]= gTestVtse[0]->next->next; // 1 element
-  gTestVtse[2]= NULL; // empty list
-
-  pVtse= gTestVtse[3]= new  BACnetVTSession;                         //             ***001
-  pVtse->local_session_id= 4;
-  pVtse->remote_session_id= 4;
-  pVtse->remote_address.network_number= 4;
-  pVtse->remote_address.mac_address[0]= 'z';
-  pVtse->remote_address.address_size= 1;
-  pVtse->next= NULL;
-
-  // List_Of_Session_Keys (device) List of BACnetSessionKey
-
-  BACnetSessionKey far* pSkeys= gTestSkeys[0]= new  BACnetSessionKey; // 3 elements          ***001
-
-  pSkeys->session_key[0]= 1; pSkeys->session_key[1]= 2; pSkeys->session_key[2]= 3; pSkeys->session_key[3]= 4;
-  pSkeys->session_key[4]= 5; pSkeys->session_key[5]= 6; pSkeys->session_key[6]= 7; pSkeys->session_key[7]= 8;
-  pSkeys->peer_address.network_number= 1;
-  pSkeys->peer_address.mac_address[0]= 'p';
-  pSkeys->peer_address.address_size= 1;
-  pSkeys->next= new  BACnetSessionKey;                            //             ***001
-  pSkeys= pSkeys->next;
-
-  pSkeys->session_key[0]= 8; pSkeys->session_key[1]= 6; pSkeys->session_key[2]= 4; pSkeys->session_key[3]= 2;
-  pSkeys->session_key[4]= 7; pSkeys->session_key[5]= 5; pSkeys->session_key[6]= 3; pSkeys->session_key[7]= 1;
-  pSkeys->peer_address.network_number= 2;
-  pSkeys->peer_address.mac_address[0]= 'o';
-  pSkeys->peer_address.address_size= 1;
-  pSkeys->next= new  BACnetSessionKey;                            //             ***001
-  pSkeys= pSkeys->next;
-
-  pSkeys->session_key[0]= 1; pSkeys->session_key[1]= 3; pSkeys->session_key[2]= 5; pSkeys->session_key[3]= 7;
-  pSkeys->session_key[4]= 2; pSkeys->session_key[5]= 4; pSkeys->session_key[6]= 6; pSkeys->session_key[7]= 8;
-  pSkeys->peer_address.network_number= 3;
-  pSkeys->peer_address.mac_address[0]= 'e';
-  pSkeys->peer_address.address_size= 1;
-  pSkeys->next= NULL;
-
-  gTestSkeys[1]= gTestSkeys[0]->next->next; // 1 element
-  gTestSkeys[2]= NULL; // empty list
-
-  pSkeys= gTestSkeys[3]= new  BACnetSessionKey;                      //             ***001
-  pSkeys->session_key[0]= 1; pSkeys->session_key[1]= 3; pSkeys->session_key[2]= 5; pSkeys->session_key[3]= 7;
-  pSkeys->session_key[4]= 2; pSkeys->session_key[5]= 4; pSkeys->session_key[6]= 6; pSkeys->session_key[7]= 8;
-  pSkeys->peer_address.network_number= 4;
-  pSkeys->peer_address.mac_address[0]= 'z';
-  pSkeys->peer_address.address_size= 1;
-  pSkeys->next= NULL;
-
-  // Time_Synchronization_Recipients (device)  List of BACnetRecipient
-
-  BACnetRecipient far* pRecip= gTestRecip[0]= new  BACnetRecipient; // 3 elements            ***001
-
-  pRecip->choice= 0;
-  pRecip->u.device= 4711;
-  pRecip->next= new  BACnetRecipient;                             //             ***001
-  pRecip= pRecip->next;
-
-  pRecip->choice= 0;
-  pRecip->u.device= 4712;
-  pRecip->next= new  BACnetRecipient;                             //             ***001
-  pRecip= pRecip->next;
-
-  pRecip->choice= 0;
-  pRecip->u.device= 4713;
-  pRecip->next= NULL;
-
-  gTestRecip[1]= gTestRecip[0]->next->next; // 1 element
-  gTestRecip[2]= NULL; // empty list
-
-  pRecip= gTestRecip[3]= new  BACnetRecipient;                       //             ***001
-  pRecip->choice= 0;
-  pRecip->u.device= 4714;
-  pRecip->next= NULL;
-
-  // Device_Address_Binding (device) List of BACnetAddressBinding
-
-  BACnetAddressBinding far* pDabind= gTestDabind[0]= new  BACnetAddressBinding; // 3 elements   ***001
-
-  pDabind->device_object_id= 4711;
-  pDabind->device_address.network_number= 1;
-  pDabind->device_address.mac_address[0]= 'P';
-  pDabind->device_address.address_size= 1;
-  pDabind->next= new  BACnetAddressBinding;                          //             ***001
-  pDabind= pDabind->next;
-
-  pDabind->device_object_id= 4712;
-  pDabind->device_address.network_number= 2;
-  pDabind->device_address.mac_address[0]= 'O';
-  pDabind->device_address.address_size= 1;
-  pDabind->next= new  BACnetAddressBinding;                          //             ***001
-  pDabind= pDabind->next;
-
-  pDabind->device_object_id= 4713;
-  pDabind->device_address.network_number= 3;
-  pDabind->device_address.mac_address[0]= 'E';
-  pDabind->device_address.address_size= 1;
-  pDabind->next= NULL;
-
-  gTestDabind[1]= gTestDabind[0]->next->next; // 1 element
-  gTestDabind[2]= NULL; // empty list
-
-  pDabind= gTestDabind[3]= new  BACnetAddressBinding;                   //             ***001
-  pDabind->device_object_id= 4714;
-  pDabind->device_address.network_number= 4;
-  pDabind->device_address.mac_address[0]= 'z';
-  pDabind->device_address.address_size= 1;
-  pDabind->next= NULL;
-
-  // List_Of_Group_Members (group) List of ReadAccessSpecification
-
-  BACnetReadAccessSpecification far* pRaslist= gTestRaslist[0]= new  BACnetReadAccessSpecification; // 3 elements ***001
-
-  pRaslist->object_id= 4711;
-  pRaslist->list_of_prop_ref= NULL;
-  pRaslist->next= new  BACnetReadAccessSpecification;                   //             ***001
-  pRaslist= pRaslist->next;
-
-  pRaslist->object_id= 4712;
-  pRaslist->list_of_prop_ref= NULL;
-  pRaslist->next= new  BACnetReadAccessSpecification;                   //             ***001
-  pRaslist= pRaslist->next;
-
-  pRaslist->object_id= 4713;
-  pRaslist->list_of_prop_ref= NULL;
-  pRaslist->next= NULL;
-
-  gTestRaslist[1]= gTestRaslist[0]->next->next; // 1 element
-  gTestRaslist[2]= NULL; // empty list
-
-  pRaslist= gTestRaslist[3]= new  BACnetReadAccessSpecification;           //             ***001
-  pRaslist->object_id= 4714;
-  pRaslist->list_of_prop_ref= NULL;
-  pRaslist->next= NULL;
-
-  // Present_Value (group) List of ReadAccessResult
-
-
-  // Recipient_List (notification class) List of BACnetDestination
-
-  BACnetDestination far* pReciplist= gTestReciplist[0] = new BACnetDestination; // 3 elements***001
-
-  pReciplist->valid_days= 0x44;
-  pReciplist->from_time.hour= 16;
-  pReciplist->from_time.minute= 17;
-  pReciplist->from_time.second= dontcare;
-  pReciplist->from_time.hundredths= dontcare;
-  pReciplist->to_time.hour= 16;
-  pReciplist->to_time.minute= 18;
-  pReciplist->to_time.second= dontcare;
-  pReciplist->to_time.hundredths= dontcare;
-  pReciplist->recipient.next= NULL;
-  pReciplist->recipient.choice= 0;
-  pReciplist->recipient.u.device= 4711;
-  pReciplist->process_id= 14;
-  pReciplist->notification= 0;
-  pReciplist->transitions= 0x55;
-  pReciplist->next= new  BACnetDestination;              //             ***001
-  pReciplist= pReciplist->next;
-
-  pReciplist->valid_days= 0x45;
-  pReciplist->from_time.hour= 17;
-  pReciplist->from_time.minute= 18;
-  pReciplist->from_time.second= dontcare;
-  pReciplist->from_time.hundredths= dontcare;
-  pReciplist->to_time.hour= 17;
-  pReciplist->to_time.minute= 19;
-  pReciplist->to_time.second= dontcare;
-  pReciplist->to_time.hundredths= dontcare;
-  pReciplist->recipient.next= NULL;
-  pReciplist->recipient.choice= 0;
-  pReciplist->recipient.u.device= 4712;
-  pReciplist->process_id= 15;
-  pReciplist->notification= 0;
-  pReciplist->transitions= 0x55;
-  pReciplist->next= new  BACnetDestination;                       //             ***001
-  pReciplist= pReciplist->next;
-
-  pReciplist->valid_days= 0x46;
-  pReciplist->from_time.hour= 17;
-  pReciplist->from_time.minute= 18;
-  pReciplist->from_time.second= dontcare;
-  pReciplist->from_time.hundredths= dontcare;
-  pReciplist->to_time.hour= 19;
-  pReciplist->to_time.minute= 18;
-  pReciplist->to_time.second= dontcare;
-  pReciplist->to_time.hundredths= dontcare;
-  pReciplist->recipient.next= NULL;
-  pReciplist->recipient.choice= 0;
-  pReciplist->recipient.u.device= 4713;
-  pReciplist->process_id= 16;
-  pReciplist->notification= 0;
-  pReciplist->transitions= 0x44;
-  pReciplist->next= NULL;
-
-  gTestReciplist[1]= gTestReciplist[0]->next->next; // 1 element
-  gTestReciplist[2]= NULL; // empty list
-
-  pReciplist= gTestReciplist[3]= new  BACnetDestination;                //             ***001
-  pReciplist->valid_days= 0x47;
-  pReciplist->from_time.hour= 18;
-  pReciplist->from_time.minute= 16;
-  pReciplist->from_time.second= dontcare;
-  pReciplist->from_time.hundredths= dontcare;
-  pReciplist->to_time.hour= 19;
-  pReciplist->to_time.minute= 8;
-  pReciplist->to_time.second= dontcare;
-  pReciplist->to_time.hundredths= dontcare;
-  pReciplist->recipient.next= NULL;
-  pReciplist->recipient.choice= 0;
-  pReciplist->recipient.u.device= 4714;
-  pReciplist->process_id= 17;
-  pReciplist->notification= 0;
-  pReciplist->transitions= 0x44;
-  pReciplist->next= NULL;
-
-
-  // List_Of_Object_Property_References(schedule) List of BACnetObjectPropertyReference
-  BACnetObjectPropertyReference far* pLopref= gTestLopref[0]= new  BACnetObjectPropertyReference; // 3 elements***001
-
-  pLopref->object_id= 4711;
-  pLopref->property_id= 75;
-  pLopref->pa_index= NotAnArray;
-  pLopref->next= new  BACnetObjectPropertyReference;                    //             ***001
-  pLopref= pLopref->next;
-
-  pLopref->object_id= 4712;
-  pLopref->property_id= 75;
-  pLopref->pa_index= NotAnArray;
-  pLopref->next= new  BACnetObjectPropertyReference;                    //             ***001
-  pLopref= pLopref->next;
-
-  pLopref->object_id= 4713;
-  pLopref->property_id= 75;
-  pLopref->pa_index= NotAnArray;
-  pLopref->next= NULL;
-
-  gTestLopref[1]= gTestLopref[0]->next->next; // 1 element
-  gTestLopref[2]= NULL; // empty list
-
-  pLopref= gTestLopref[3]= new  BACnetObjectPropertyReference;                   //             ***001
-  pLopref->object_id= 4714;
-  pLopref->property_id= 75;
-  pLopref->pa_index= NotAnArray;
-  pLopref->next= NULL;
-
-  BACnetDeviceObjectPropertyReference far* pLodpref= gTestLodpref[0]= new  BACnetDeviceObjectPropertyReference; // 3 elements***001
-
-  pLodpref->Objid= 4711;
-  pLodpref->wPropertyid= 75;
-  pLodpref->ulIndex= NotAnArray;
-  pLodpref->next= new  BACnetDeviceObjectPropertyReference;                   //             ***001
-  pLodpref= pLodpref->next;
-
-  pLodpref->Objid= 4712;
-  pLodpref->wPropertyid= 75;
-  pLodpref->ulIndex= NotAnArray;
-  pLodpref->next= new  BACnetDeviceObjectPropertyReference;                   //             ***001
-  pLodpref= pLodpref->next;
-
-  pLodpref->Objid= 4713;
-  pLodpref->wPropertyid= 75;
-  pLodpref->ulIndex= NotAnArray;
-  pLodpref->next= NULL;
-
-  gTestLodpref[1]= gTestLodpref[0]->next->next; // 1 element
-  gTestLodpref[2]= NULL; // empty list
-
-  pLodpref= gTestLodpref[3]= new  BACnetDeviceObjectPropertyReference;                    //             ***001
-  pLodpref->Objid= 4714;
-  pLodpref->wPropertyid= 75;
-  pLodpref->ulIndex= NotAnArray;
-  pLodpref->next= NULL;
-}
-
-
-// This function is used to release the dynamic allocated memory of the
-// test property values.
-void DeleteTestValues(void)
-{
-  BACnetExceptionSchedule far* px;
-  BACnetSpecialEvent far* pe;
-  BACnetTimeValue far* pt;
-
-  for (int i= 0; i<nTEST; i++)
-    {
-      delete gTestAct[i][0];
-
-      px= gTestXSched[i];
-      pe= px->special_event;
-      pt= pe->list_of_time_values;
-
-      delete pt;
-      delete pe;
-      delete px;
-    }
-
-  // delete ListOf-Property lists
-
-  BACnetCalendarEntry far* pCal= gTestCalist[0];
-  BACnetCalendarEntry far* pCal2;
-  while (pCal!=NULL) { pCal2= pCal->next; delete pCal; pCal= pCal2; }
-  delete gTestCalist[3];
-
-  BACnetVTClassList far* pVtcl= gTestVtcl[0];
-  BACnetVTClassList far* pVtcl2;
-  while (pVtcl!=NULL) { pVtcl2= pVtcl->next; delete pVtcl; pVtcl= pVtcl2; }
-  delete gTestVtcl[3];
-
-  BACnetVTSession far* pVtse= gTestVtse[0];
-  BACnetVTSession far* pVtse2;
-  while (pVtse!=NULL) { pVtse2= pVtse->next; delete pVtse; pVtse= pVtse2; }
-  delete gTestVtse[3];
-
-  BACnetRecipient far* pRecip= gTestRecip[0];
-  BACnetRecipient far* pRecip2;
-  while (pRecip!=NULL) { pRecip2= pRecip->next; delete pRecip; pRecip= pRecip2; }
-  delete gTestRecip[3];
-
-  BACnetSessionKey far* pSkeys= gTestSkeys[0];
-  BACnetSessionKey far* pSkeys2;
-  while (pSkeys!=NULL) { pSkeys2= pSkeys->next; delete pSkeys; pSkeys= pSkeys2; }
-  delete gTestSkeys[3];
-
-  BACnetAddressBinding far* pDabind= gTestDabind[0];
-  BACnetAddressBinding far* pDabind2;
-  while (pDabind!=NULL) { pDabind2= pDabind->next; delete pDabind; pDabind= pDabind2; }
-  delete gTestDabind[3];
-
-  BACnetReadAccessSpecification far* pRaslist= gTestRaslist[0];
-  BACnetReadAccessSpecification far* pRaslist2;
-  while (pRaslist!=NULL) { pRaslist2= pRaslist->next; delete pRaslist; pRaslist= pRaslist2; }
-  delete gTestRaslist[3];
-
-  BACnetDestination far* pReciplist= gTestReciplist[0];
-  BACnetDestination far* pReciplist2;
-  while (pReciplist!=NULL) { pReciplist2= pReciplist->next; delete pReciplist; pReciplist= pReciplist2; }
-  delete gTestReciplist[3];
-
-  BACnetDeviceObjectPropertyReference far* pLodpref= gTestLodpref[0];
-  BACnetDeviceObjectPropertyReference far* pLodpref2;
-  while (pLodpref!=NULL) { pLodpref2= pLodpref->next; delete pLodpref; pLodpref= pLodpref2; }
-  delete gTestLodpref[3];
-
-  BACnetObjectPropertyReference far* pLopref= gTestLopref[0];
-  BACnetObjectPropertyReference far* pLopref2;
-  while (pLopref!=NULL) { pLopref2= pLopref->next; delete pLopref; pLopref= pLopref2; }
-  delete gTestLopref[3];
-}
 
 // ===========================================================================================================
 // Functions for loading type of data and pointer to buffer for encoding later, checking now, etc.
@@ -1042,10 +469,7 @@ bool CreateCommonProperty( generic_object far * pObj, BACnetPropertyIdentifier p
    case ebool:
       pbacnetAnyValue->SetObject(ebool, new BACnetBoolean( *(bool *)pProp));
       break;
-   case s10:
-   case s32:
-   case s64:
-   case s132:
+   case ch_string:
       pbacnetAnyValue->SetObject(pd->ParseType, new BACnetCharacterString( (char*) pProp));
       break;
    case dt:
@@ -1631,7 +1055,7 @@ bool LFSP_CreateProperty( lifesafetypoint_obj_type * pObj, BACnetPropertyIdentif
       pbacnetAnyValue->SetObject(et, new BACnetEnumerated(  (int) pObj->tracking_value, *petable ));
       break;
    case DEVICE_TYPE:
-      pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->device_type));
+      pbacnetAnyValue->SetObject(ch_string, new BACnetCharacterString(pObj->device_type));
       break;
    case MODE:
       petable = NetworkSniffer::GetEnumStringTable(eiLifeSafetyMode);
@@ -1695,7 +1119,7 @@ bool LFSZ_CreateProperty( lifesafetyzone_obj_type * pObj, BACnetPropertyIdentifi
       pbacnetAnyValue->SetObject(et, new BACnetEnumerated( (int)pObj->tracking_value, *petable ));
       break;
    case DEVICE_TYPE:
-      pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->device_type));
+      pbacnetAnyValue->SetObject(ch_string, new BACnetCharacterString(pObj->device_type));
       break;
    case MODE:
       petable = NetworkSniffer::GetEnumStringTable(eiLifeSafetyMode);
@@ -1748,7 +1172,7 @@ bool AC_CreateProperty( accumulator_obj_type * pObj, BACnetPropertyIdentifier pr
       pbacnetAnyValue->SetObject(uw, new BACnetUnsigned(pObj->present_value));
       break;
    case DEVICE_TYPE:
-      pbacnetAnyValue->SetObject(s64, new BACnetCharacterString(pObj->device_type));
+      pbacnetAnyValue->SetObject(ch_string, new BACnetCharacterString(pObj->device_type));
       break;
    case SCALE:
       {
@@ -1878,7 +1302,7 @@ bool LC_CreateProperty( lc_obj_type * pObj, BACnetPropertyIdentifier propertyID,
       pbacnetAnyValue->SetObject(et, new BACnetEnumerated( (int)pObj->present_value, *petable ));
       break;
    case STATE_DESCRIPTION:
-      pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->state_description));
+      pbacnetAnyValue->SetObject(ch_string, new BACnetCharacterString(pObj->state_description));
       break;
    case ENABLE:
       pbacnetAnyValue->SetObject(ebool, new BACnetBoolean((int) pObj->log_enable));
@@ -2036,7 +1460,7 @@ bool SV_CreateProperty( sv_obj_type * pObj, BACnetPropertyIdentifier propertyID,
       pbacnetAnyValue->SetObject(et, new BACnetEnumerated( (int)pObj->node_type, *petable ));
       break;
    case NODE_SUBTYPE:
-      pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->node_subtype));
+      pbacnetAnyValue->SetObject(ch_string, new BACnetCharacterString(pObj->node_subtype));
       break;
    case SUBORDINATE_LIST:
       pbacnetAnyValue->SetObject(lodoref, CreateDeviceObjectList(pObj->subordinate_list));
@@ -2185,10 +1609,10 @@ bool CharStr_CreateProperty( charstring_obj_type far * pObj, BACnetPropertyIdent
    switch ( propertyID )
    {
       case PRESENT_VALUE:
-         pbacnetAnyValue->SetObject(s132, new BACnetCharacterString( pObj->present_value));
+         pbacnetAnyValue->SetObject(ch_string, new BACnetCharacterString( pObj->present_value));
          break;
       case RELINQUISH_DEFAULT:
-         pbacnetAnyValue->SetObject(s132, new BACnetCharacterString(pObj->relinquish_default));
+         pbacnetAnyValue->SetObject(ch_string, new BACnetCharacterString(pObj->relinquish_default));
          break;
 //    case PRIORITY_ARRAY:
 //       // TODO: make me an array of strings, please

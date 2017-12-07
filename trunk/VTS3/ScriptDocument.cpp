@@ -27,7 +27,6 @@ namespace PICS {
 #include "props.h"
 #include "bacprim.h"
 #include "dudapi.h"
-#include "dudtool.h"
 #include "propid.h"
 }
 extern PICS::PICSdb *gPICSdb;

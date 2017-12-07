@@ -12,7 +12,7 @@ void OutputLine( FILE *pOutput, const char *pVendorName, int vendorID )
    // Replace &amp; <BR> &#146; &#228; etc.
    // This is NOT a complete swapper
    // (<BR occurs once, presumably by accident...)
-   char buf[ 100 ];
+   char buf[ 200 ];
    char *pOut = buf;
    const char *pName = pVendorName;
    char *pNext;
@@ -96,7 +96,7 @@ bool ShowSpecialVendorId( FILE *pOutput, int vendorID )
    }
    else if ((vendorID == 777) || (vendorID == 888) || (vendorID == 911) || (vendorID == 999))
    {
-      char buf[ 80 ];
+      char buf[ 200 ];
       sprintf (buf, "Reserved-by-ASHRAE-%d", vendorID );
       OutputLine( pOutput, buf, vendorID );
       retval = true;
@@ -212,7 +212,7 @@ int _tmain(int argc, _TCHAR* argv[])
                   {
                      if (!ShowSpecialVendorId( pOutput, nextID ))
                      {
-                        char buf[ 80 ];
+                        char buf[ 200 ];
                         sprintf (buf, "Unknown-vendor-%d", nextID );
                         OutputLine( pOutput, buf, nextID );
                      }

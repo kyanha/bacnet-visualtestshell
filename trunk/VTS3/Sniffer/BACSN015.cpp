@@ -875,7 +875,7 @@ int interp_bacnet_NL( char *header, int length)  /* Network Layer interpreter */
    int port_id;             /* port ID field */
    int port_info_length;    /* port information length in octets */
    const char *name;        /* translated name */
-   char namebuff[80];       /* buffer to print translated name */
+   char namebuff[MAX_TEXT_STRING]; /* buffer to print translated name */
 
    pi_data_current = pi_data_bacnet_NL;
    npdu_length = 2;

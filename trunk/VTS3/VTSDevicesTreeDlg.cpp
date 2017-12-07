@@ -1002,10 +1002,7 @@ int GetBACnetToAnyTypeMapping( int nBACnetEncodeableDataType )
    case flt:      return PRIM_REAL;    //float / real, BACnetReal (changed 2005 by kare.sars@wapice.com)
 // case flt:      return PRIM_DOUBLE;  //float / double, BACnetDouble
 
-   case s10:                           //char [10]
-   case s32:                           //char [32]
-   case s64:                           //char [64]
-   case s132:     return PRIM_CHARACTER_STRING; //char [132], BACnetCharacterString
+   case ch_string: return PRIM_CHARACTER_STRING; //char [MAX_TEXT_STRING], BACnetCharacterString
 
    case pss:                           //protocol services supported bitstring
    case pos:                           //protocol objects supported bitstring
