@@ -13,7 +13,6 @@ namespace PICS {
 #include "props.h"
 #include "bacprim.h"
 #include "dudapi.h"
-#include "dudtool.h"
 #include "propid.h"
 	
 	//extern struct generic_object;
@@ -305,10 +304,7 @@ BACnetEncodeable * ScriptIfdefExpr::CreateOperand( ScriptToken & token )
 					break;
 				case ebool:
 					return new BACnetBoolean( ((BACnetBoolean *) bacnetEPICSProperty.GetObject())->boolValue );
-				case s10:		// char [10] --------------------------------------------
-				case s32:		// char [32]
-				case s64:		// char [64]
-				case s132:		// char [132]
+				case ch_string:		// char [MAX_TEXT_STRING]
 					return new BACnetCharacterString( *((BACnetCharacterString *) bacnetEPICSProperty.GetObject()) );
 				case 0:
 					break;		// not EPICS property reference

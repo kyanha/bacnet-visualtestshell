@@ -68,6 +68,12 @@ const char* DoubleToString( CString &theString, double theValue, bool fullResolu
 int StringToFloat( const char *pString, float &theValue );
 int StringToDouble( const char *pString, double &theValue );
 
+// The maximum size of most character strings, especially those of type ch_string.
+// Ideally, these would all use CString and avoid max length, but that would be
+// WAY too much work.
+#define MAX_TEXT_STRING 256
+
+
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
 

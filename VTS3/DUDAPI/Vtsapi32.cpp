@@ -311,7 +311,7 @@ static int     lPICSErr;                  //Count of EPICS consistency errors, -
 static octet   newParseType;
 static word    newPropET;
 static boolean bNeedReset = false, bHasReset = false, bHasNoneType = false;
-static char    NoneTypeValue[256], NoneTypePropName[100];   // for store temp address of lp
+static char    NoneTypeValue[512], NoneTypePropName[MAX_TEXT_STRING];   // for store temp address of lp
 
 static unsigned int cConsistencyErrors;
 
@@ -2326,7 +2326,7 @@ void SetPropertyFlags( generic_object *pobj, UINT pindex )
 
 bool ReadObjects(PICSdb *pd)
 {
-   char  objname[512];
+   char  objname[MAX_TEXT_STRING];     //size matches object_name fields
    bool  weKnowObjectType;
    word  objtype;                      //enumeration value for object type
    dword objid = 0;                    //object identifier
@@ -2513,7 +2513,7 @@ nextobject:
                            pobj->next = NULL;
                            pobj->object_id = objid;
                            pobj->object_type = objtype;
-                           memcpy(&pobj->object_name[0], &objname[0],32);
+                           strncpy(pobj->object_name, objname, sizeof(pobj->object_name));
 
                            pobj->propflags[typeProp] |= fType;   //found type
                            pobj->propflags[idProp]   |= fID;     //found id
@@ -2532,7 +2532,7 @@ nextobject:
                         pobj->next = NULL;
                         pobj->object_id = objid;
                         pobj->object_type = objtype;
-                        memcpy(&pobj->object_name[0],&objname[0],32);
+                        strncpy(pobj->object_name, objname, sizeof(pobj->object_name));
                         pobj->propflags[typeProp] |= fType;   //found type
                         pobj->propflags[idProp]   |= fID;     //found id
                         pobj->propflags[nameProp] |= fName;   //found name
@@ -2635,7 +2635,7 @@ bool ParseProperty(const char *pn, generic_object *pobj, word objtype)
          if (pd->ParseType == none)
          {
             print_debug("NONE: Saving %s as NoneTypePropName\n",pn);
-            strcpy(NoneTypePropName,pn);
+            strncpy(NoneTypePropName,pn,sizeof(NoneTypePropName));
          }
 
          // 135.1 4.5(c) says that '?' means "value unspecified", but this
@@ -2651,7 +2651,7 @@ bool ParseProperty(const char *pn, generic_object *pobj, word objtype)
             if (pd->ParseType == none)
             {
                print_debug("NONE: Saving value %s\n",lp);
-               strcpy( NoneTypeValue, lp );   // store the value of property with ParseType none
+               strncpy( NoneTypeValue, lp, sizeof(NoneTypeValue) );   // store the value of property with ParseType none
             }
             lp++;                   //skip ?
          }
@@ -2826,9 +2826,7 @@ bool ParseProperty(const char *pn, generic_object *pobj, word objtype)
                   EpicsListOf actionArray;
                   while (actionArray.HasMore() && (i < parseET))
                   {
-                     // Allow up to 80 chars (was 32) since b[] is 512 bytes, and
-                     // we'll malloc the string storage below to fit the actual size.
-                     if (setstring(b,80,lp)) return true;   //put string in buffer b
+                     if (setstring(b,sizeof(b),lp)) return true;   //put string in buffer b
                      if (b[0])            //if string isn't null
                      {
                         ub=strlen(b)+1;   //reqd length
@@ -3023,18 +3021,8 @@ bool ParseProperty(const char *pn, generic_object *pobj, word objtype)
                }
                *(word *)pstruc=(word)dw;
                break;
-            case s10:                  //char [10]
-               ub=10;
-               goto ppstub;
-            case s32:                  //char [32]
-               ub=32;
-               goto ppstub;
-            case s64:                  //char [64]
-               ub=64;
-               goto ppstub;
-            case s132:                 //char [132]
-               ub=132;
-   ppstub:     if (setstring((char *)pstruc,ub,lp)) return true;
+            case ch_string:            //char [132MAX_TEXT_STRING
+               if (setstring((char *)pstruc,MAX_TEXT_STRING,lp)) return true;
                break;
 
 // TODO: Implement me

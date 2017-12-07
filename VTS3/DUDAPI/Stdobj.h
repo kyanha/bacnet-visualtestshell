@@ -88,18 +88,16 @@ typedef struct
    int            allowedValues;
 } ObjPropValueLimit; //Default property value restriction
 
-#define MAX_TEXT_STRING 132      // our commonly used value
-
 //Generic Object type structure common to all Std Objects
 //-------------------------------------------------------
 typedef struct {
    void             *next;
    dword            object_id;
-   char             object_name[64];
+   char             object_name[MAX_TEXT_STRING];
    word             object_type;
-   char             description[132];
+   char             description[MAX_TEXT_STRING];
    octet            propflags[NUM_PROP_FLAGS];    //flags, indexed by position in property table
-   char             profile_name[132];
+   char             profile_name[MAX_TEXT_STRING];
    BACnetEnumList   *property_list;   // List of BACnetPropertyIdentifier
 
    // These properties don't exist in ALL object, but the occur in enough that
@@ -132,7 +130,7 @@ typedef struct {
 typedef struct {
     generic_object      go;
     float               pv;
-    char                device_type[64];
+    char                device_type[MAX_TEXT_STRING];
     word                update_interval;
     word                units;   // WAS enum BACnetEngineeringUnits.  See NOTE above
     float               min_pres_value;
@@ -149,7 +147,7 @@ typedef struct {
 typedef struct {
     generic_object      go;
     float               pv;
-    char                device_type[64];
+    char                device_type[MAX_TEXT_STRING];
     word                units;   // WAS enum BACnetEngineeringUnits.  See NOTE above
     float               min_pres_value;
     float               max_pres_value;
@@ -184,10 +182,10 @@ typedef struct {
 typedef struct {
     generic_object      go;
     word                pv;  // WAS enum BACnetBinaryPV.  See NOTE above
-    char                device_type[64];
+    char                device_type[MAX_TEXT_STRING];
     word                polarity;  // WAS enum BACnetBinaryPV.  See NOTE above
-    char                inactive_text[64];
-    char                active_text[64];
+    char                inactive_text[MAX_TEXT_STRING];
+    char                active_text[MAX_TEXT_STRING];
     BACnetDateTime      cos_time;
     word                cos_count;
     BACnetDateTime      time_of_state_count_reset;
@@ -201,10 +199,10 @@ typedef struct {
 typedef struct {
     generic_object      go;
     word                pv;  // WAS enum BACnetBinaryPV.  See NOTE above
-    char                device_type[64];
+    char                device_type[MAX_TEXT_STRING];
     word                polarity;  // WAS enum BACnetBinaryPV.  See NOTE above
-    char                inactive_text[64];
-    char                active_text[64];
+    char                inactive_text[MAX_TEXT_STRING];
+    char                active_text[MAX_TEXT_STRING];
     BACnetDateTime      cos_time;
     word                cos_count;
     BACnetDateTime      time_of_state_count_reset;
@@ -222,8 +220,8 @@ typedef struct {
 typedef struct {
     generic_object      go;
     word                pv;  // WAS enum BACnetBinaryPV.  See NOTE above
-    char                inactive_text[64];
-    char                active_text[64];
+    char                inactive_text[MAX_TEXT_STRING];
+    char                active_text[MAX_TEXT_STRING];
     BACnetDateTime      cos_time;
     word                cos_count;
     BACnetDateTime      time_of_state_count_reset;
@@ -277,12 +275,12 @@ typedef struct {
 typedef struct {
    generic_object      go;
    word                system_status;  // WAS enum BACnetDeviceStatus.  See NOTE above
-   char                vendor_name[64];
+   char                vendor_name[MAX_TEXT_STRING];
    word                vendor_id;
-   char                model_name[32];
-   char                firmware_rev[100];
-   char                application_software_ver[32];
-   char                location[64];
+   char                model_name[MAX_TEXT_STRING];
+   char                firmware_rev[MAX_TEXT_STRING];
+   char                application_software_ver[MAX_TEXT_STRING];
+   char                location[MAX_TEXT_STRING];
    word                protocol_ver;
    word                protocol_rev;
    word                protocol_conf_class;
@@ -348,7 +346,7 @@ typedef struct {
 //-------------------------------------------------------
 typedef struct {
     generic_object         go;
-    char                   file_type[32];
+    char                   file_type[MAX_TEXT_STRING];
     dword                  file_size;
     BACnetDateTime         mod_date;
     bool                   archive;
@@ -401,7 +399,7 @@ typedef struct {
 typedef struct {
     generic_object         go;
     word                   pv;
-    char                   device_type[64];
+    char                   device_type[MAX_TEXT_STRING];
     word                   num_of_states;
     char                   *state_text[MAX_STATE_TEXTS];
     UnsignedList           *alarm_values;
@@ -413,7 +411,7 @@ typedef struct {
 typedef struct {
     generic_object   go;
     word             pv;
-    char             device_type[64];
+    char             device_type[MAX_TEXT_STRING];
     word             num_of_states;
     char             *state_text[MAX_STATE_TEXTS];
     word             priority_array[16];
@@ -428,9 +426,9 @@ typedef struct {
    word              prog_state;       // WAS enum BACnetProgramState.  See NOTE above
    word              prog_change;      // WAS enum BACnetProgramRequest.  See NOTE above
    word              reason_for_halt;  // WAS enum BACnetProgramError.  See NOTE above
-   char              description_of_halt[64];
-   char              prog_location[64];
-   char              instance_of[64];
+   char              description_of_halt[MAX_TEXT_STRING];
+   char              prog_location[MAX_TEXT_STRING];
+   char              instance_of[MAX_TEXT_STRING];
 } program_obj_type;
 
 //Schedule Object
@@ -539,7 +537,7 @@ typedef struct
     generic_object            go;
 enum BACnetLifeSafetyState    present_value;
 enum BACnetLifeSafetyState    tracking_value;
-    char                      device_type[64];
+    char                      device_type[MAX_TEXT_STRING];
 enum BACnetLifeSafetyMode     mode;
     BACnetEnumList            *accepted_modes; // List of BACnetLifeSafetyMode
     BACnetEnumList            *life_safety_alarm_values; // List of LifeSafetyState
@@ -559,7 +557,7 @@ typedef struct
     generic_object            go;
 enum BACnetLifeSafetyState    present_value;
 enum BACnetLifeSafetyState    tracking_value;
-    char                      device_type[64];
+    char                      device_type[MAX_TEXT_STRING];
 enum BACnetLifeSafetyMode     mode;
     BACnetEnumList            *accepted_modes; // List of BACnetLifeSafetyMode
     BACnetEnumList            *life_safety_alarm_values; // List of LifeSafetyState
@@ -576,7 +574,7 @@ typedef struct
 {
    generic_object             go;
    word                       present_value;
-   char                       device_type[64];
+   char                       device_type[MAX_TEXT_STRING];
    BACnetScale                scale;
    word                       units;   // WAS enum BACnetEngineeringUnits.  See NOTE above
    BACnetPrescale             prescale;
@@ -625,7 +623,7 @@ typedef struct
    bool                       log_enable;
    BACnetDateTime             start_time;
    enum BACnetShedState       present_value;
-   char                       state_description[132];
+   char                       state_description[MAX_TEXT_STRING];
    float                      full_duty_baseline;
 } lc_obj_type;
 
@@ -657,7 +655,7 @@ typedef struct
 {
    generic_object       go;
    enum BACnetNodeType  node_type;
-   char                 node_subtype[132];
+   char                 node_subtype[MAX_TEXT_STRING];
    BACnetDeviceObjectReference*subordinate_list;
    char                 *subordinate_annotations[MAX_SV_ANNOTATIONS];
 } sv_obj_type;

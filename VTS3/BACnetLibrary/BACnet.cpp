@@ -108,7 +108,6 @@ namespace PICS {
 #include "vtsapi.h"
 #include "db.h"
 #include "dudapi.h"
-#include "dudtool.h"
 }
 #include "propid.h"
 
@@ -740,10 +739,7 @@ BACnetEncodeable * BACnetEncodeable::Factory( int nParseType, BACnetAPDUDecoder 
          pRetval = new BACnetObjectIdentifier(dec);
          break;
 
-      case s10:      // char [10] --------------------------------------------
-      case s32:      // char [32]
-      case s64:      // char [64]
-      case s132:     // char [132]
+      case ch_string:     // char [MAX_TEXT_STRING]
          pRetval = new BACnetCharacterString(dec);
          break;
 
@@ -2576,7 +2572,7 @@ void BACnetCharacterString::Decode( const char *dec )
 
 int BACnetCharacterString::DataType() const
 {
-   return s132;
+   return ch_string;
 }
 
 BACnetEncodeable * BACnetCharacterString::clone()
@@ -7074,7 +7070,7 @@ void BACnetObjectContainer::Encode( BACnetAPDUEncoder& enc, int context )
 
 void BACnetObjectContainer::Encode( CString &enc, Format theFormat ) const
 {
-   ASSERT(pbacnetTypedValue != NULL);
+//   ASSERT(pbacnetTypedValue != NULL);
 
    if (pbacnetTypedValue != NULL)
       pbacnetTypedValue->Encode(enc, theFormat);
@@ -8034,7 +8030,7 @@ BACnetCalendarEntry & BACnetListOfCalendarEntry::operator[](int nIndex)
 IMPLEMENT_DYNAMIC(BACnetTextArray, BACnetGenericArray)
 
 BACnetTextArray::BACnetTextArray( char * paText[], int nMax /* = -1 */ )
-            :BACnetGenericArray(s132)
+            :BACnetGenericArray(ch_string)
 {
    m_nType = statext;
 
@@ -8047,7 +8043,7 @@ BACnetTextArray::BACnetTextArray( char * paText[], int nMax /* = -1 */ )
 
 // Constructor for only one array element
 BACnetTextArray::BACnetTextArray( char * pText )
-            :BACnetGenericArray(s132)
+            :BACnetGenericArray(ch_string)
 {
    m_nType = statext;
    m_apBACnetObjects.Add(new BACnetCharacterString(pText));
@@ -8055,7 +8051,7 @@ BACnetTextArray::BACnetTextArray( char * pText )
 
 
 BACnetTextArray::BACnetTextArray( BACnetAPDUDecoder& dec )
-            :BACnetGenericArray(s132)
+            :BACnetGenericArray(ch_string)
 {
    m_nType = statext;
    Decode(dec);

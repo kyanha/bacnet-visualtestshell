@@ -2015,10 +2015,7 @@ int VTSAny::GetBACnetToAnyTypeMapping( int nBACnetEncodeableDataType )
 
 		case ptInt32:		return 3;		// signed long
 
-		case s10:							//char [10]
-		case s32:							//char [32]
-		case s64:							//char [64]
-		case s132:			return 7;		//char [132], BACnetCharacterString
+		case ch_string:			return 7;		//char [MAX_TEXT_STRING], BACnetCharacterString
 
 		case dt:			return 15;		//date/time, BACnetDateTime
 		case calist:		return 18;		//list of calendarentry, BACnetCalendarEntry
