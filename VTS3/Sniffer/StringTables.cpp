@@ -1646,7 +1646,7 @@ STRING_TABLE BACnetVendorID[] = {
    "Notifier",                                               // 34
    "Reliable Controls Corporation",                          // 35
    "Tridium Inc.",                                           // 36
-   "Sierra Monitor Corporation/FieldServer Technologies",    // 37
+   "Sierra Monitor Corporation",                             // 37
    "Silicon Energy",                                         // 38
    "Kieback & Peter GmbH & Co KG",                           // 39
    "Anacon Systems, Inc.",                                   // 40
@@ -1855,7 +1855,7 @@ STRING_TABLE BACnetVendorID[] = {
    "Paragon Controls, Inc.",                                 // 243
    "A. O. Smith Corporation",                                // 244
    "Contemporary Control Systems, Inc.",                     // 245
-   "Intesis Software SL",                                    // 246
+   "Intesis Software SLU",                                   // 246
    "Ingenieurgesellschaft N. Hartleb mbH",                   // 247
    "Heat-Timer Corporation",                                 // 248
    "Ingrasys Technology, Inc.",                              // 249
@@ -2105,7 +2105,7 @@ STRING_TABLE BACnetVendorID[] = {
    "Hotraco",                                                // 493
    "SABO Elektronik GmbH",                                   // 494
    "Equip'Trans",                                            // 495
-   "TCS Basys Controls",                                     // 496
+   "Temperature Control Specialities Co., Inc (TCS)",        // 496
    "FlowCon International A/S",                              // 497
    "ThyssenKrupp Elevator Americas",                         // 498
    "Abatement Technologies",                                 // 499
@@ -2363,7 +2363,7 @@ STRING_TABLE BACnetVendorID[] = {
    "Drupal",                                                 // 751
    "Axiomatic Technology, Ltd",                              // 752
    "Bohnke + Partner",                                       // 753
-   "Function 1",                                             // 754
+   "Function1",                                              // 754
    "Optergy Pty, Ltd",                                       // 755
    "LSI Virticus",                                           // 756
    "Konzeptpark GmbH",                                       // 757
@@ -2509,7 +2509,7 @@ STRING_TABLE BACnetVendorID[] = {
    "Terralux",                                               // 897
    "Annicom",                                                // 898
    "Bihl+Wiedemann GmbH",                                    // 899
-   "Daper, Inc.",                                            // 900
+   "Draper, Inc.",                                           // 900
    "Schüco International KG",                                // 901
    "Otis Elevator Company",                                  // 902
    "Fidelix Oy",                                             // 903
@@ -2554,7 +2554,7 @@ STRING_TABLE BACnetVendorID[] = {
    "Logical Electro-Mechanical (EM) Systems, Inc.",          // 942
    "ppKinetics Instruments, LLC",                            // 943
    "Cathexis Technologies",                                  // 944
-   "Sylop Limited",                                          // 945
+   "Sylop sp. Z o.o. sp.k",                                  // 945
    "Brauns  Control GmbH",                                   // 946
    "Omron Corporation",                                      // 947
    "Wildeboer Bauteile Gmbh",                                // 948
@@ -2582,35 +2582,74 @@ STRING_TABLE BACnetVendorID[] = {
    "Shenzhen Chanslink Network Technology Co., Ltd.",        // 970
    "Samsung Electronics Co., Ltd.",                          // 971
    "Mesa Laboratories, Inc.",                                // 972
-   "Unknown-vendor-973",                                     // 973
-   "Unknown-vendor-974",                                     // 974
-   "Unknown-vendor-975",                                     // 975
-   "Unknown-vendor-976",                                     // 976
-   "Unknown-vendor-977",                                     // 977
-   "Unknown-vendor-978",                                     // 978
-   "Unknown-vendor-979",                                     // 979
-   "Unknown-vendor-980",                                     // 980
-   "Unknown-vendor-981",                                     // 981
-   "Unknown-vendor-982",                                     // 982
-   "Unknown-vendor-983",                                     // 983
-   "Unknown-vendor-984",                                     // 984
-   "Unknown-vendor-985",                                     // 985
-   "Unknown-vendor-986",                                     // 986
-   "Unknown-vendor-987",                                     // 987
-   "Unknown-vendor-988",                                     // 988
-   "Unknown-vendor-989",                                     // 989
-   "Unknown-vendor-990",                                     // 990
-   "Unknown-vendor-991",                                     // 991
-   "Unknown-vendor-992",                                     // 992
-   "Unknown-vendor-993",                                     // 993
-   "Unknown-vendor-994",                                     // 994
-   "Unknown-vendor-995",                                     // 995
-   "Unknown-vendor-996",                                     // 996
-   "Unknown-vendor-997",                                     // 997
-   "Unknown-vendor-998",                                     // 998
+   "Fischer",                                                // 973
+   "OpSys Solutions Ltd.",                                   // 974
+   "Advanced Devices Limited",                               // 975
+   "Condair",                                                // 976
+   "INELCOM Ingenieria Electronica Comercial S.A.",          // 977
+   "GridPoint, Inc.",                                        // 978
+   "ADF Technologies Sdn Bhd",                               // 979
+   "EPM, Inc.",                                              // 980
+   "Lighting Controls Ltd",                                  // 981
+   "Perix Controls Ltd.",                                    // 982
+   "AERCO International, Inc.",                              // 983
+   "KONE Inc.",                                              // 984
+   "Ziehl-Abegg SE",                                         // 985
+   "Robot, S.A.",                                            // 986
+   "Optigo Networks, Inc.",                                  // 987
+   "Openmotics BVBA",                                        // 988
+   "Metropolitan Industries, Inc.",                          // 989
+   "Huawei Technologies Co., Ltd.",                          // 990
+   "OSRAM Sylvania, Inc.",                                   // 991
+   "Vanti",                                                  // 992
+   "Cree, Inc.",                                             // 993
+   "Richmond Heights SDN BHD",                               // 994
+   "Payne-Sparkman Lighting Mangement",                      // 995
+   "Ashcroft",                                               // 996
+   "Jet Controls Corp",                                      // 997
+   "Zumtobel Lighting GmbH",                                 // 998
    "Reserved-by-ASHRAE-999",                                 // 999
+   "Ekon GmbH",                                              // 1000
+   "Molex",                                                  // 1001
+   "Maco Lighting Pty Ltd.",                                 // 1002
+   "Axecon Corp.",                                           // 1003
+   "Tensor plc",                                             // 1004
+   "Kaseman Environmental Control Equipment (Shanghai) Limited", // 1005
+   "AB Axis Industries",                                     // 1006
+   "Netix Controls",                                         // 1007
+   "Eldridge Products, Inc.",                                // 1008
+   "Micronics",                                              // 1009
+   "Fortecho Solutions Ltd",                                 // 1010
+   "Sellers Manufacturing Company",                          // 1011
+   "Rite-Hite Doors, Inc.",                                  // 1012
+   "Violet Defense LLC",                                     // 1013
+   "Simna",                                                  // 1014
+   "Multi-Énergie Best Inc.",                                // 1015
+   "Mega System Technologies, Inc.",                         // 1016
+   "Rheem",                                                  // 1017
+   "Ing. Punzenberger COPA-DATA GmbH",                       // 1018
+   "MEC Electronics GmbH",                                   // 1019
+   "Taco Comfort Solutions",                                 // 1020
+   "Alexander Maier GmbH",                                   // 1021
+   "Ecorithm, Inc.",                                         // 1022
+   "Accurro Ltd",                                            // 1023
+   "ROMTECK Australia Pty Ltd",                              // 1024
+   "Splash Monitoring Limited",                              // 1025
+   "Light Application",                                      // 1026
+   "Logical Building Automation",                            // 1027
+   "Exilight Oy",                                            // 1028
+   "Hager Electro SAS",                                      // 1029
+   "KLIF Co., LTD",                                          // 1030
+   "HygroMatik",                                             // 1031
+   "Daniel Mousseau Programmation & Electronique",           // 1032
+   "Aerionics Inc.",                                         // 1033
+   "M2S Electronique Ltee",                                  // 1034
+   "Automation Components, Inc.",                            // 1035
+   "Niobrara Research & Development Corporation",            // 1036
+   "Netcom Sicherheitstechnik GmbH",                         // 1037
+   "Lumel S.A.",                                             // 1038
    // TODO add more here ...
-   // Updated 21 March 2016 from http://www.bacnet.org/VendorID/BACnet%20Vendor%20IDs.htm
+   // Updated 5 January 2018 from http://www.bacnet.org/VendorID/BACnet%20Vendor%20IDs.htm
    // Use the VTS utility VendorIdTable to update this table.
 };
 BAC_STRINGTABLE_EX(BACnetVendorID, 0x7FFFFFFF, 0x7FFFFFFF);
