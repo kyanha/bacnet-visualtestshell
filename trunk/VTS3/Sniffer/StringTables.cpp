@@ -1733,7 +1733,7 @@ STRING_TABLE BACnetVendorID[] = {
    "Unico, Inc.",                                            // 121
    "Ebtron, Inc.",                                           // 122
    "Scada Engine",                                           // 123
-   "AC Technology Corporation",                              // 124
+   "Lenze Americas (Formerly: AC Technology Corporation)",   // 124
    "Eagle Technology",                                       // 125
    "Data Aire, Inc.",                                        // 126
    "ABB, Inc.",                                              // 127
@@ -2648,8 +2648,14 @@ STRING_TABLE BACnetVendorID[] = {
    "Niobrara Research & Development Corporation",            // 1036
    "Netcom Sicherheitstechnik GmbH",                         // 1037
    "Lumel S.A.",                                             // 1038
+   "Great Plains Industries, Inc.",                          // 1039
+   "Domotica Labs S.R.L",                                    // 1040
+   "Energy Cloud, Inc.",                                     // 1041
+   "Vomatec",                                                // 1042
+   "Demma Companies",                                        // 1043
+   "Valsena",                                                // 1044
    // TODO add more here ...
-   // Updated 5 January 2018 from http://www.bacnet.org/VendorID/BACnet%20Vendor%20IDs.htm
+   // Updated 15 February 2018 from http://www.bacnet.org/VendorID/BACnet%20Vendor%20IDs.htm
    // Use the VTS utility VendorIdTable to update this table.
 };
 BAC_STRINGTABLE_EX(BACnetVendorID, 0x7FFFFFFF, 0x7FFFFFFF);
