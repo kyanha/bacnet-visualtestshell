@@ -61,7 +61,9 @@ void VTSDevicesTreeValuePage::DoDataExchange(CDataExchange* pDX)
 	{
 		DDX_Text(pDX, IDC_CONTEXT, str);
 		if ( str.IsEmpty() )
+		{
 			m_nContext = -1;
+		}
 		else
 		{
 			DDX_Text(pDX, IDC_CONTEXT, m_nContext);
@@ -81,9 +83,9 @@ void VTSDevicesTreeValuePage::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(VTSDevicesTreeValuePage, VTSPropertyPage)
 	//{{AFX_MSG_MAP(VTSDevicesTreeValuePage)
 	ON_CBN_SELCHANGE(IDC_TYPECOMBO, OnSelChangeTypeCombo)
+	ON_EN_CHANGE(IDC_CONTEXT, OnEditChangeContextTag)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
-
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -194,7 +196,7 @@ void VTSDevicesTreeValuePage::CtrlToValue( VTSDevValue * pdevvalue )
 
 	// take the value out of the dev object and encode it into the buffer... the other generic pages
 	// already take care of this for us but the object ID page doesn't... this helps us avoid creating
-	// a while new page type just for this...
+	// a whole new page type just for this...
 
 	if ( m_nDataType == 12 )
 	{
@@ -251,6 +253,7 @@ void * VTSDevicesTreeValuePage::GetActiveData(void)
 }
 
 
+// Change of datatype: change to the appropriate edit page
 void VTSDevicesTreeValuePage::OnSelChangeTypeCombo() 
 {
 	UpdateData(TRUE);
@@ -260,4 +263,11 @@ void VTSDevicesTreeValuePage::OnSelChangeTypeCombo()
 	NotifyOfDataChange();
 }
 
-
+// Change of context tag value: be sure it is saved and displayed
+void VTSDevicesTreeValuePage::OnEditChangeContextTag()
+{
+	UpdateData(TRUE);
+	CtrlToValue(m_pdevvalue);
+	EnableControls(true);
+	NotifyOfDataChange();
+}

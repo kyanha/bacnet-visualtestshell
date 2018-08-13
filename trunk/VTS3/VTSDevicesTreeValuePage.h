@@ -64,6 +64,7 @@ protected:
 	// Generated message map functions
 	//{{AFX_MSG(VTSDevicesTreeValuePage)
 	afx_msg void OnSelChangeTypeCombo();
+	afx_msg void OnEditChangeContextTag();
 	//}}AFX_MSG
 
 	void ValueToCtrl( VTSDevValue * pdevvalue );
