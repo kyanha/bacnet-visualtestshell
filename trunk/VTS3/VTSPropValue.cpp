@@ -108,33 +108,63 @@ const VTSDevValue& VTSDevValue::operator=(const VTSDevValue& rdevvalueSrc)
 	return *this;
 }
 
+// Short type names to be shown on value lines
+static LPCTSTR s_typeNames[] =
+{
+	_T(""),			// "Null" is shown by Encode()
+	_T("Boolean"),
+	_T("Unsigned"),
+	_T("Signed"),
+	_T("Real"),
+	_T("Double"),
+	_T("Octet string"),
+	_T("Character string"),
+	_T("Bit string"),
+	_T("Enumerated"),
+	_T("Date"),
+	_T("Time"),
+	_T("Object Identifier"),
+	_T(""),		// Opening Tag
+	_T("")		// Closing Tag
+};
 
 CString VTSDevValue::GetDescription( void )
 {
-	CString str = _T("Undefined");
+	CString str = _T("<Undefined>");
+	LPCTSTR type = _T("");
 
 	BACnetEncodeable * pbacnet = CreateBACnetObject();
-
-	switch(m_nType)
+	if (pbacnet != NULL)
 	{
-	case 13:	str = _T("OpeningTag");	break;
-	case 14:	str = _T("ClosingTag");	break;
-	default:	
-		if (pbacnet != NULL)
-		{
-			try {
+		type = s_typeNames[m_nType];
+		try {
+			switch(m_nType)
+			{
+			case 13: str = _T("Opening Tag");	break;
+			case 14: str = _T("Closing Tag");	break;
+
+			default:	
 				pbacnet->Encode(str, BACnetEncodeable::FMT_SCRIPT);
-			} 
-			catch(...) {
-				str = _T("<Error during conversion to text>");
+				break;
 			}
 		}
+		catch(...) {
+			str = _T("<Error during conversion to text>");
+		}
+
+		delete pbacnet;
 	}
 
-	if ( pbacnet != NULL )
-		delete pbacnet;
-
-	return CString("Val = " + str);
+	CString retval;
+	if (m_nContext >= 0)
+	{
+		retval.Format( "[%d] %s  %s", m_nContext, (LPCTSTR)str, type );
+	}
+	else
+	{
+		retval.Format( "%s  %s", (LPCTSTR)str, type );
+	}
+	return retval;
 }
 
 
@@ -147,27 +177,30 @@ BACnetEncodeable * VTSDevValue::CreateBACnetObject( void )
 	try {
 	switch ( m_nType )
 	{
-		case PRIM_NULL:		pbacnet = new BACnetNull(dec);	break;
-		case PRIM_BOOLEAN:	pbacnet = new BACnetBoolean(dec);	break;
-		case PRIM_UNSIGNED:	pbacnet = new BACnetUnsigned(dec);	break;
+		case PRIM_NULL:			pbacnet = new BACnetNull(dec);	break;
+		case PRIM_BOOLEAN:		pbacnet = new BACnetBoolean(dec);	break;
+		case PRIM_UNSIGNED:		pbacnet = new BACnetUnsigned(dec);	break;
 		case PRIM_SIGNED:		pbacnet = new BACnetInteger(dec);	break;
-		case PRIM_REAL:		pbacnet = new BACnetReal(dec);	break;
+		case PRIM_REAL:			pbacnet = new BACnetReal(dec);	break;
 		case PRIM_DOUBLE:		pbacnet = new BACnetDouble(dec);	break;
 		case PRIM_OCTET_STRING:	pbacnet = new BACnetOctetString(dec);	break;
 		case PRIM_CHARACTER_STRING:	pbacnet = new BACnetCharacterString(dec);	break;
 		case PRIM_BIT_STRING:	pbacnet = new BACnetBitString(dec);	break;
 		case PRIM_ENUMERATED:	pbacnet = new BACnetEnumerated(dec);	break;
-		case PRIM_DATE:		pbacnet = new BACnetDate(dec); break;
-		case PRIM_TIME:		pbacnet = new BACnetTime(dec); break;
+		case PRIM_DATE:			pbacnet = new BACnetDate(dec); break;
+		case PRIM_TIME:			pbacnet = new BACnetTime(dec); break;
 		case PRIM_OBJECT_IDENTIFIER:	pbacnet = new BACnetObjectIdentifier(dec); break;
-		case 13:	pbacnet = new BACnetOpeningTag();	break;
-		case 14:	pbacnet = new BACnetClosingTag();	break;
+		case 13:				pbacnet = new BACnetOpeningTag();	break;
+		case 14:				pbacnet = new BACnetClosingTag();	break;
 
 		// Let the user type in whatever they want as hex
-		case 15:	pbacnet = new BACnetANY();	break;
+		case 15:				pbacnet = new BACnetANY();	break;
 	}
 	}
-	catch(...) {}
+	catch(...)
+	{
+		pbacnet = NULL;
+	}
 
 	return pbacnet;
 }
